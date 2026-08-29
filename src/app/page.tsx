@@ -1,9 +1,13 @@
-import Footer from "@/components/Footer";
+import Footer from "@/components/shared/Footer";
+import NavBar from "@/components/shared/Nav";
 
 export default function Home() {
   return (
     <main>
       {/* ── Sections go here ── */}
+
+      <NavBar/>
+
       {/* e.g. <HeroSection />, <WhySection />, <OpenRoles />, etc. */}
 
       <div className="container-site py-24 text-center">
