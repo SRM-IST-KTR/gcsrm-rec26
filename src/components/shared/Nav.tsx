@@ -11,7 +11,18 @@ export default function NavBar() {
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
     if (section) {
-      section.scrollIntoView({ behavior: "smooth" });
+      // Find the navbar element to get its exact height dynamically
+      const navElement = document.querySelector('nav');
+      const navHeight = navElement ? navElement.offsetHeight : 80; 
+      
+      // Calculate the section's position relative to the top of the page, minus the nav height
+      const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+      
+      // Use window.scrollTo instead of scrollIntoView to apply the offset
+      window.scrollTo({
+        top: sectionTop - navHeight,
+        behavior: "smooth"
+      });
     }
   };
 
@@ -23,7 +34,6 @@ export default function NavBar() {
   };
 
   return (
-    // Added 'sticky top-0' here so it locks to the viewport top on scroll
     <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
       {/* 1. Brand Icon */}
