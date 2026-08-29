@@ -32,6 +32,29 @@ async function parseRequestBody(request: Request) {
   };
 }
 
+export async function GET(request: Request) {
+  try {
+    await connectDB();
+    const email = new URL(request.url).searchParams.get("email")?.trim().toLowerCase();
+
+    if (!email) {
+      return NextResponse.json(
+        { success: false, error: "Email is required." },
+        { status: 400 }
+      );
+    }
+
+    const participant = await ParticipantUser.exists({ email });
+    return NextResponse.json({ success: true, exists: Boolean(participant) });
+  } catch (error: any) {
+    console.error("Participant lookup error:", error);
+    return NextResponse.json(
+      { success: false, error: "Unable to verify email." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   await connectDB();
 

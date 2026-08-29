@@ -54,7 +54,7 @@ export default function Footer() {
       style={{ backgroundColor: "var(--color-bg-cream)" }}
       className="w-full border-t border-[--color-border]"
     >
-      <div className="container-site py-14">
+      <div className="container-site pt-32">
         {/* Main grid */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-12 md:gap-16">
 
@@ -70,7 +70,7 @@ export default function Footer() {
           {/* Col 2 — Navigation */}
           <div>
             <p
-              className="font-montserrat text-xs tracking-widest uppercase mb-5"
+              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
               style={{ color: "var(--color-text-primary)" }}
             >
               Navigation
@@ -89,7 +89,7 @@ export default function Footer() {
           {/* Col 3 — Recruitment */}
           <div>
             <p
-              className="font-montserrat text-xs tracking-widest uppercase mb-5"
+              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
               style={{ color: "var(--color-text-primary)" }}
             >
               Recruitment
@@ -108,7 +108,7 @@ export default function Footer() {
           {/* Col 4 — Connect */}
           <div>
             <p
-              className="font-montserrat text-xs tracking-widest uppercase mb-5"
+              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
               style={{ color: "var(--color-text-primary)" }}
             >
               Connect
@@ -132,8 +132,8 @@ export default function Footer() {
 
         {/* Divider + social icons */}
         <div
-          className="mt-12 pt-6 flex items-center justify-end gap-4"
-          style={{ borderTop: "1px solid var(--color-border)" }}
+          className="mt-8 pb-6 flex items-center justify-end gap-4"
+          style={{ borderBottom: "1px solid var(--color-border)" }}
         >
           <a
             href="https://github.com"

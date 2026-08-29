@@ -33,7 +33,7 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="bg-[#FFFEEF] pt-10 pb-24" id="faq">
+    <section className="bg-[#FFFEEF] border-t-[3px] border-[#1E1B24] pt-10 pb-24" id="faq">
       <div className="max-w-[800px] mx-auto flex flex-col items-center px-4">
         {/* Badge */}
         <div 

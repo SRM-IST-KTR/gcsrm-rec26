@@ -31,8 +31,8 @@ export default function NavBar() {
         <Image 
           src="/image.png" 
           alt="GitHub Community SRM" 
-          width={100} 
-          height={60} 
+          width={80} 
+          height={48} 
           className="object-contain object-left" 
           priority
         />
