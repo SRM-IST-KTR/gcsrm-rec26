@@ -1,4 +1,5 @@
 import NavBar from "@/components/shared/Nav";
+import { HeroSection } from "@/components/hero/hero";
 import PerksSection from "@/components/PerksSection";
 import TeamCultureSection from "@/components/TeamCultureSection";
 import RegisterSection from "@/components/RegisterSection";
@@ -10,6 +11,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#FAF7EE] text-[#1E1B24]">
       {/* ── Sections after 'MORE THAN JUST A CLUB' & Page Sections ── */}
       <NavBar/>
+      <HeroSection/>
       <PerksSection />
       <TeamCultureSection />
       <RegisterSection />
