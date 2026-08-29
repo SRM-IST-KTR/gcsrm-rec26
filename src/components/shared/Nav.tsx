@@ -25,15 +25,15 @@ export default function NavBar() {
 
   return (
     // Cleaned up the flex classes to ensure logo and Dropbox sit left and right on mobile
-    <nav className="p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 relative z-50">
+    <nav className="sticky top-0 z-50 h-20 px-4 bg-bg-cream w-full flex justify-between items-center md:px-8">
       
       {/* 1. Brand Icon */}
       <div className="flex-shrink-0">
         <Image 
           src="/image.png" 
           alt="GitHub Community SRM" 
-          width={100} 
-          height={60} 
+          width={80} 
+          height={48} 
           className="object-contain object-left" 
           priority
         />
