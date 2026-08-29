@@ -55,8 +55,12 @@ function validateField(field: FieldName, value: string) {
   }
 }
 
-export default function RegistrationForm() {
-  const [formData, setFormData] = useState(initialFormData);
+type RegistrationFormProps = {
+  initialEmail?: string;
+};
+
+export default function RegistrationForm({ initialEmail = "" }: RegistrationFormProps) {
+  const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail });
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,7 +140,7 @@ export default function RegistrationForm() {
           <div className="flex flex-col space-y-3">
             <label htmlFor="email" className="font-outfit-black text-[20px] text-[#1E1B24]">SRM email id</label>
             {fieldError("email")}
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} placeholder="e.g. ab1234@srmist.edu.in" className={inputClass("email")} />
+            <input type="email" id="email" name="email" value={formData.email} disabled aria-disabled="true" className={`${inputClass("email")} font-normal bg-[#E8E8E8] text-[#777777] border-[#AAAAAA] shadow-none cursor-not-allowed`} />
           </div>
           <div className="flex flex-col space-y-3">
             <label htmlFor="registrationNumber" className="font-outfit-black text-[20px] text-[#1E1B24]">Registration Number</label>
