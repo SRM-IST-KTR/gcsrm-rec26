@@ -8,14 +8,13 @@ import { Dropbox } from "../common/Dropbox";
 
 export default function NavBar() {
   
+  // Scrolls to specific sections with navbar height offset
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
     const nav = document.querySelector('nav');
     
     if (section && nav) {
-      // Get the exact physical height of the navbar
       const navHeight = nav.offsetHeight; 
-      // Calculate where the section is, and subtract the navbar height so it sits directly underneath it
       const sectionTop = section.getBoundingClientRect().top + window.scrollY;
       
       window.scrollTo({
@@ -23,6 +22,15 @@ export default function NavBar() {
         behavior: "smooth"
       });
     }
+  };
+
+  // Scrolls straight to the top of the page for the hero section
+  const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
@@ -35,7 +43,8 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
-      <div className="flex-shrink-0">
+      {/* 1. Brand Icon - Now acts as a link to the top */}
+      <Link href="/" onClick={scrollToTop} className="flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
         <Image 
           src="/image.png" 
           alt="GitHub Community SRM" 
@@ -44,8 +53,9 @@ export default function NavBar() {
           className="object-contain object-left" 
           priority
         />
-      </div>
+      </Link>
 
+      {/* 2. DESKTOP: Mapped Navigation Links */}
       <div className="hidden md:flex items-center gap-8">
         {navLinks.map((link, index) => (
           <Link 
@@ -59,6 +69,7 @@ export default function NavBar() {
         ))}
       </div>
 
+      {/* 3. DESKTOP: Call to Action Button */}
       <div className="hidden md:block flex-shrink-0">
         <ButtonLink 
           text="Join Us" 
@@ -67,6 +78,7 @@ export default function NavBar() {
         />
       </div>
 
+      {/* 4. MOBILE: Reusable Dropbox Component */}
       <div className="block md:hidden">
         <Dropbox 
           label="Go to" 
