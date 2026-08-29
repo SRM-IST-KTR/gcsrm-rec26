@@ -9,11 +9,14 @@ const participantSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		unique: true,
+		trim: true,
+		lowercase: true,
 	},
 	registrationNumber: {
 		type: String,
 		required: true,
 		unique: true,
+		trim: true,
 	},
 	phone: {
 		type: String,
@@ -60,8 +63,6 @@ const participantSchema = new mongoose.Schema({
 participantSchema.index({ domain: 1, year: 1 });
 participantSchema.index({ status: 1 });
 participantSchema.index({ name: 'text' });
-participantSchema.index({ email: 1 }, { unique: true });
-participantSchema.index({ registrationNumber: 1 }, { unique: true });
 
 const ParticipantUser = mongoose.models.recruitment26 || mongoose.model('recruitment26', participantSchema);
 
