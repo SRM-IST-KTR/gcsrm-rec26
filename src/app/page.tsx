@@ -11,7 +11,6 @@ export default function Home() {
       {/* ── Sections after 'MORE THAN JUST A CLUB' & Page Sections ── */}
       <PerksSection />
       <TeamCultureSection />
-      <RegisterSection />
       <FAQSection />
       <CTASection />
       <Footer />
