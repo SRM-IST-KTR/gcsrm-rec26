@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body style="display:flex; flex-direction:column;">
+<script>
+  fetch('/assets_list.txt').then(r => r.text()).then(t => {
+    t.split('\n').filter(Boolean).forEach(f => {
+      document.body.innerHTML += `<div style="display:flex; align-items:center; margin-bottom:10px;">
+        <img src="/assets/${f}" style="height:100px; margin-right:20px;">
+        <h2 style="font-family:monospace;">${f}</h2>
+      </div>`;
+    });
+  });
+</script>
+</body>
+</html>
