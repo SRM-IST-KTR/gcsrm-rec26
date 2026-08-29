@@ -1,0 +1,221 @@
+/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Overpass:wght@900&display=swap');
+
+@import 'tailwindcss';
+
+/* ─── Tailwind v4 Theme ──────────────────────────────────────────────────── */
+
+@theme {
+  /* Color Palette — extracted from Figma design */
+
+  /* Backgrounds */
+  --color-bg-cream: #FAF7EE;        /* main page background */
+  --color-bg-white: #FFFFFF;        /* cards, nav */
+  --color-bg-dark: #111111;         /* dark sections */
+
+  /* Primary — Vibrant Red (CTAs, labels, footer bg, highlights) */
+  --color-primary: #E8342A;
+  --color-primary-light: #FF5047;
+  --color-primary-dark: #B8271F;
+
+  /* Yellow — Accent (badges, highlights, pill labels) */
+  --color-yellow: #FFD600;
+  --color-yellow-light: #FFE452;
+  --color-yellow-dark: #CCAA00;
+
+  /* Blue — Cards, role badges, link accents */
+  --color-blue: #3B6FE8;
+  --color-blue-light: #6B97FF;
+  --color-blue-dark: #1A4DC0;
+
+  /* Green — Success states, some role cards */
+  --color-green: #2DC86A;
+  --color-green-light: #5EE896;
+  --color-green-dark: #1A9A48;
+
+  /* Orange — Some role/tag cards */
+  --color-orange: #FF8C00;
+  --color-orange-light: #FFB347;
+  --color-orange-dark: #CC6F00;
+
+  /* Purple — Some accent elements */
+  --color-purple: #7B4FD4;
+  --color-purple-light: #A87EF5;
+  --color-purple-dark: #5530A8;
+
+  /* Neutrals */
+  --color-text-primary: #111111;
+  --color-text-secondary: #555555;
+  --color-text-muted: #888888;
+  --color-border: #E5E0D4;
+  --color-border-dark: #CCCCCC;
+
+  /* Card border accents (colored outlines seen on role cards) */
+  --color-card-border-red: #E8342A;
+  --color-card-border-blue: #3B6FE8;
+  --color-card-border-green: #2DC86A;
+  --color-card-border-yellow: #FFD600;
+  --color-card-border-orange: #FF8C00;
+  --color-card-border-purple: #7B4FD4;
+
+  /* ─── Typography ─────────────────────────────────────────────────────── */
+
+  /* Font families — use Tailwind font-* utilities */
+  --font-outfit-extrabold: "Outfit", "Outfit", sans-serif;
+  --font-outfit-black: "Outfit", "Outfit", sans-serif;
+  --font-rubik: "Rubik", "Rubik", sans-serif;
+  --font-rubik-medium: "Rubik", "Rubik", sans-serif;
+  --font-montserrat: "Montserrat", "Montserrat", sans-serif;
+  --font-overpass: "Overpass", "Overpass", sans-serif;
+
+  /* ─── Spacing / Radius ───────────────────────────────────────────────── */
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+  --radius-badge: 8px;
+}
+
+/* ─── Base Styles ────────────────────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg-cream);
+  color: var(--color-text-primary);
+  font-family: var(--font-rubik);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Utility Layer ──────────────────────────────────────────────────────── */
+
+@layer utilities {
+  /* Typography shortcuts matching the design's font combos */
+  .font-outfit-extrabold {
+    font-family: var(--font-outfit-extrabold);
+    font-weight: 800;
+  }
+
+  .font-outfit-black {
+    font-family: var(--font-outfit-black);
+    font-weight: 900;
+  }
+
+  .font-rubik {
+    font-family: var(--font-rubik);
+    font-weight: 400;
+  }
+
+  .font-rubik-medium {
+    font-family: var(--font-rubik-medium);
+    font-weight: 500;
+  }
+
+  .font-montserrat {
+    font-family: var(--font-montserrat);
+    font-weight: 600;
+  }
+
+  .font-overpass-black {
+    font-family: var(--font-overpass);
+    font-weight: 900;
+  }
+
+  /* Card styles consistent with the design */
+  .card {
+    background-color: var(--color-bg-white);
+    border-radius: var(--radius-card);
+    border: 2px solid var(--color-border);
+  }
+
+  .card-red   { border-color: var(--color-card-border-red); }
+  .card-blue  { border-color: var(--color-card-border-blue); }
+  .card-green { border-color: var(--color-card-border-green); }
+  .card-yellow{ border-color: var(--color-card-border-yellow); }
+  .card-orange{ border-color: var(--color-card-border-orange); }
+  .card-purple{ border-color: var(--color-card-border-purple); }
+
+  /* Pill / badge label */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-rubik-medium);
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .badge-red    { background-color: var(--color-primary); color: #fff; }
+  .badge-yellow { background-color: var(--color-yellow); color: var(--color-text-primary); }
+  .badge-blue   { background-color: var(--color-blue); color: #fff; }
+  .badge-green  { background-color: var(--color-green); color: #fff; }
+
+  /* Buttons */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-family: var(--font-rubik-medium);
+    font-weight: 500;
+    border-radius: var(--radius-pill);
+    padding: 0.6rem 1.5rem;
+    transition: background-color 150ms ease, transform 100ms ease;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--color-text-primary);
+    font-family: var(--font-rubik-medium);
+    font-weight: 500;
+    border-radius: var(--radius-pill);
+    padding: 0.6rem 1.5rem;
+    border: 2px solid var(--color-text-primary);
+    transition: background-color 150ms ease, color 150ms ease;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background-color: var(--color-text-primary);
+    color: #fff;
+  }
+
+  /* Section wrappers */
+  .section-cream  { background-color: var(--color-bg-cream); }
+  .section-white  { background-color: var(--color-bg-white); }
+  .section-red    { background-color: var(--color-primary); color: #fff; }
+  .section-yellow { background-color: var(--color-yellow); }
+  .section-dark   { background-color: var(--color-bg-dark); color: #fff; }
+
+  /* Max-width content container */
+  .container-site {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
