@@ -8,7 +8,6 @@ import { Dropbox } from "../common/Dropbox";
 
 export default function NavBar() {
   
-  // Desktop scroll logic remains intact
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
     if (section) {
@@ -24,8 +23,8 @@ export default function NavBar() {
   };
 
   return (
-    // Cleaned up the flex classes to ensure logo and Dropbox sit left and right on mobile
-    <nav className="sticky top-0 z-50 h-20 px-4 bg-bg-cream w-full flex justify-between items-center md:px-8">
+    // Added 'sticky top-0' here so it locks to the viewport top on scroll
+    <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
       {/* 1. Brand Icon */}
       <div className="flex-shrink-0">
