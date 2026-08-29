@@ -10,15 +10,14 @@ export default function NavBar() {
   
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
-    if (section) {
-      // Find the navbar element to get its exact height dynamically
-      const navElement = document.querySelector('nav');
-      const navHeight = navElement ? navElement.offsetHeight : 80; 
-      
-      // Calculate the section's position relative to the top of the page, minus the nav height
+    const nav = document.querySelector('nav');
+    
+    if (section && nav) {
+      // Get the exact physical height of the navbar
+      const navHeight = nav.offsetHeight; 
+      // Calculate where the section is, and subtract the navbar height so it sits directly underneath it
       const sectionTop = section.getBoundingClientRect().top + window.scrollY;
       
-      // Use window.scrollTo instead of scrollIntoView to apply the offset
       window.scrollTo({
         top: sectionTop - navHeight,
         behavior: "smooth"
@@ -36,7 +35,6 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
-      {/* 1. Brand Icon */}
       <div className="flex-shrink-0">
         <Image 
           src="/image.png" 
@@ -48,7 +46,6 @@ export default function NavBar() {
         />
       </div>
 
-      {/* 2. DESKTOP: Mapped Navigation Links */}
       <div className="hidden md:flex items-center gap-8">
         {navLinks.map((link, index) => (
           <Link 
@@ -62,7 +59,6 @@ export default function NavBar() {
         ))}
       </div>
 
-      {/* 3. DESKTOP: Call to Action Button */}
       <div className="hidden md:block flex-shrink-0">
         <ButtonLink 
           text="Join Us" 
@@ -71,7 +67,6 @@ export default function NavBar() {
         />
       </div>
 
-      {/* 4. MOBILE: Reusable Dropbox Component */}
       <div className="block md:hidden">
         <Dropbox 
           label="Go to" 
