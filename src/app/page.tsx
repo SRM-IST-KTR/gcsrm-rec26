@@ -1,3 +1,5 @@
+import Footer from "@/components/Footer";
+
 export default function Home() {
   return (
     <main>
@@ -24,6 +26,8 @@ export default function Home() {
           <p className="font-rubik-medium text-base">Rubik Medium 500</p>
           <p className="font-overpass-black text-base">Overpass Black 900</p>
         </div>
+
+        <Footer />
       </div>
     </main>
   );
