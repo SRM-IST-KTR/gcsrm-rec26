@@ -3,6 +3,7 @@ import TeamCultureSection from "@/components/TeamCultureSection";
 import RegisterSection from "@/components/RegisterSection";
 import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
       <RegisterSection />
       <FAQSection />
       <CTASection />
+      <Footer />
     </main>
   );
 }
