@@ -46,7 +46,7 @@ export default function NavBar() {
             key={index}
             href={link.href}
             onClick={(e) => handleNavClick(e, link.href)}
-            className="font-montserrat font-bold text-text-primary hover:text-primary transition-colors duration-200 text-lg tracking-wide"
+            className="font-montserrat font-bold text-text-primary hover:text-blue transition-colors duration-200 text-lg tracking-wide"
           >
             {link.label}
           </Link>
@@ -57,8 +57,8 @@ export default function NavBar() {
       <div className="hidden md:block flex-shrink-0">
         <ButtonLink 
           text="Join Us" 
-          link="https://github.com/your-org" 
-          bgColor="bg-primary" 
+          link="/apply" 
+          bgColor="bg-blue" 
         />
       </div>
 
@@ -70,7 +70,7 @@ export default function NavBar() {
           bgColor="bg-blue" 
           cta={{
             text: "Join Us",
-            link: "https://github.com/your-org",
+            link: "/apply",
             bgColor: "bg-primary"
           }}
         />
