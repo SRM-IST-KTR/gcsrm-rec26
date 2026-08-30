@@ -3,7 +3,7 @@ import StepCard from "./StepCard";
 
 const HowWeHire = () => {
   return (
-    <section className="relative w-full border-t-[3px] border-[#1E1B24] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:h-[667px] lg:px-20 lg:py-[100px]">
+    <section id="process" className="relative w-full border-t-[3px] border-[#1E1B24] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:h-[667px] lg:px-20 lg:py-[100px]">
       <div className="mx-auto w-full max-w-[1440px]">
         <SectionHeader
         badge="Our Fun Process"

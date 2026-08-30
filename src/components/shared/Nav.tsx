@@ -29,17 +29,34 @@ export default function NavBar() {
 
   // Scrolls straight to the top of the page for the hero section
   const scrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+      window.history.pushState(null, "", "/");
+    }
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
-    if (link.startsWith("#")) {
-      e.preventDefault();
-      scrollToSection(link.substring(1));
+    if (link.startsWith("#") || link.startsWith("/#")) {
+      const targetId = link.replace(/^\/?#/, "");
+      const section = document.getElementById(targetId);
+      const nav = document.querySelector('nav');
+      
+      if (section && nav) {
+        e.preventDefault();
+        const navHeight = nav.offsetHeight; 
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        
+        window.scrollTo({
+          top: sectionTop - navHeight,
+          behavior: "smooth"
+        });
+
+        window.history.pushState(null, "", link.startsWith("/") ? link : `/${link}`);
+      }
     }
   };
 
@@ -59,7 +76,7 @@ export default function NavBar() {
       </Link>
 
       {/* 2. DESKTOP: Mapped Navigation Links */}
-      <div className="hidden md:flex items-center gap-8">
+      <div className="hidden md:flex items-center gap-7 lg:gap-8">
         {navLinks.map((link, index) => (
           <Link 
             key={index}
@@ -70,6 +87,16 @@ export default function NavBar() {
             {link.label}
           </Link>
         ))}
+
+        {isLoggedIn && (
+          <Link
+            href="/#status"
+            onClick={(e) => handleNavClick(e, "/#status")}
+            className="font-montserrat font-bold text-[#1E1B24] bg-[#4ade80] hover:bg-[#3dd776] border-2 border-[#1E1B24] rounded-xl px-3.5 py-1.5 text-[15px] sm:text-base shadow-[2.5px_2.5px_0px_#1E1B24] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-200 tracking-wide cursor-pointer"
+          >
+            Check Status
+          </Link>
+        )}
       </div>
 
       {/* 3. RIGHT SECTION: CTA / User Menu (Desktop) & User Menu + Dropbox (Mobile) */}

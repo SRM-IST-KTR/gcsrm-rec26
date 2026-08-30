@@ -42,6 +42,18 @@ export function Dropbox({
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setIsOpen(false); // Close the menu
+    if (href === "/" || href === "/#top" || href === "#top") {
+      if (typeof window !== "undefined" && window.location.pathname === "/") {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+        window.history.pushState(null, "", "/");
+        return;
+      }
+    }
+
     if (href.startsWith("#") || href.startsWith("/#")) {
       const targetId = href.replace(/^\/?#/, "");
       const section = document.getElementById(targetId);
@@ -56,6 +68,8 @@ export function Dropbox({
           top: sectionTop - navHeight,
           behavior: "smooth"
         });
+
+        window.history.pushState(null, "", href.startsWith("/") ? href : `/${href}`);
       }
     }
   };
