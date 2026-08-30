@@ -19,15 +19,26 @@ export default function Home() {
       {/* Recruitment sections - shown first */}
       <div className="flex w-full flex-col items-center overflow-x-hidden bg-[#fffdf0] font-outfit">
         <HeroSection />
-        <WhyWorkWithUs />
-        <OpenPositions />
+        <div id="about" className="w-full flex flex-col items-center">
+          <WhyWorkWithUs />
+        </div>
+        {/* <WhyWorkWithUs /> */}
+
+        <div id="domains" className="w-full flex flex-col items-center">
+          <OpenPositions />
+        </div>
+
+        {/* <OpenPositions /> */}
         <HowWeHire />
         <CompanyValues />
       </div>
       {/* Existing sections */}
       <PerksSection />
       <TeamCultureSection />
-      <FAQSection />
+      {/* <FAQSection /> */}
+      <div id="faqs">
+        <FAQSection />
+      </div>
       <CTASection />
       <Footer />
     </main>

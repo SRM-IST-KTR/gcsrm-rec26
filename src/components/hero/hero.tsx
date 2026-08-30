@@ -33,7 +33,7 @@ export function HeroSection() {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-4 mt-2">
           <Link
-            href="#apply"
+            href="/apply"
             className="px-8 py-3 bg-primary border-[3px] border-text-primary rounded-xl font-rubik font-bold text-bg-white text-lg shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all flex items-center gap-2"
           >
             APPLY NOW →

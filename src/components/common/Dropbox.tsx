@@ -38,17 +38,27 @@ export function Dropbox({
   }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    setIsOpen(false);
+    setIsOpen(false); // Close the menu
     if (href.startsWith("#")) {
       e.preventDefault();
       const section = document.getElementById(href.substring(1));
-      if (section) section.scrollIntoView({ behavior: "smooth" });
+      const nav = document.querySelector('nav');
+      
+      if (section && nav) {
+        // Exact same calculation for mobile so the section doesn't hide under the sticky nav
+        const navHeight = nav.offsetHeight;
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        
+        window.scrollTo({
+          top: sectionTop - navHeight,
+          behavior: "smooth"
+        });
+      }
     }
   };
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
-      {/* Toggle Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)} 
         className={`flex justify-between items-center gap-4 px-5 py-2 border-[3px] border-text-primary rounded-xl text-bg-white font-rubik text-lg shadow-[4px_4px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all ${bgColor}`}
@@ -65,7 +75,6 @@ export function Dropbox({
         )}
       </button>
 
-      {/* Dropdown Panel positioned cleanly BELOW the button */}
       <div 
         className={`
           absolute top-[calc(100%+12px)] right-0 w-[240px] flex flex-col gap-3 z-50 pointer-events-none
