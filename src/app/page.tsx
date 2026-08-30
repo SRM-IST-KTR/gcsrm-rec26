@@ -3,7 +3,7 @@ import WhyWorkWithUs from "@/components/recruitment/WhyWorkWithUs";
 import OpenPositions from "@/components/recruitment/OpenPositions";
 import HowWeHire from "@/components/recruitment/HowWeHire";
 // import CompanyValues from "@/components/recruitment/CompanyValues";
-import PerksSection from "@/components/PerksSection";
+// import PerksSection from "@/components/PerksSection";
 import TeamCultureSection from "@/components/TeamCultureSection";
 import LoginSection from "@/components/LoginSection";
 import FAQSection from "@/components/FAQSection";
@@ -38,8 +38,8 @@ export default function Home() {
           <CompanyValues />
         </div> */}
       </div>
-      {/* Existing sections */}
-      <PerksSection />
+      {/* Existing sections
+      <PerksSection /> */}
 
     <div id="story">
       <TeamCultureSection />
