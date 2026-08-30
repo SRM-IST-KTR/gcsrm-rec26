@@ -62,7 +62,7 @@ export function Dropbox({
     <div className="relative inline-block" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)} 
-        className={`flex justify-between items-center gap-4 px-5 py-2 border-[3px] border-text-primary rounded-xl text-bg-white font-rubik text-lg shadow-[4px_4px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all ${bgColor}`}
+        className={`flex justify-between items-center gap-4 px-5 py-2 border-[3px] border-text-primary rounded-xl text-bg-white font-rubik text-lg shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all duration-200 cursor-pointer ${bgColor}`}
       >
         <span>{label}</span>
         {isOpen ? (

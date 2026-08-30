@@ -88,7 +88,7 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
   };
 
   return (
-    <div className={`relative inline-block ${className}`} ref={menuRef}>
+    <div className={`relative inline-block translate-y-1 ${className}`} ref={menuRef}>
       {/* Trigger Button: Avatar with Name / Identifier Underneath */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
