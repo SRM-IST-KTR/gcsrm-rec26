@@ -34,9 +34,9 @@ export default function Home() {
         <div className="w-full flex justify-center bg-[#fffdf0]">
           <HowWeHire />
         </div>
-        <div className="w-full flex justify-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
+        {/* <div className="w-full flex justify-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
           <CompanyValues />
-        </div>
+        </div> */}
       </div>
       {/* Existing sections */}
       <PerksSection />
