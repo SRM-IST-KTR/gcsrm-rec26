@@ -4,17 +4,16 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Domains", href: "/domains" },
-  { label: "Events", href: "/events" },
-  { label: "Our Team", href: "/team" },
-  { label: "Recruitment", href: "/recruitment" },
-  { label: "Contact", href: "/contact" },
+  { label: "Beliefs", href: "/#beliefs" },
+  { label: "Perks", href: "/#perks" },
+  { label: "Life @GCSRM", href: "/#life" },
 ];
 
 const recruitmentLinks = [
   { label: "Apply", href: "/apply" },
   { label: "Check Status", href: "/status" },
-  { label: "FAQs", href: "/faqs" },
-  { label: "Selection Process", href: "/process" },
+  { label: "FAQs", href: "/#faqs" },
+  { label: "Selection Process", href: "/#process" },
   { label: "Privacy Policy", href: "/privacy" },
 ];
 
@@ -54,23 +53,25 @@ export default function Footer() {
       style={{ backgroundColor: "var(--color-bg-cream)" }}
       className="w-full border-t border-[--color-border]"
     >
-      <div className="container-site pt-32">
-        {/* Main grid */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto_auto] gap-12 md:gap-16">
-
-          {/* Col 1 — Brand */}
-          <div className="flex flex-col gap-5 max-w-xs">
-            <p className="font-rubik text-sm leading-relaxed footer-link">
+      <div className="container-site px-4 pt-8 pb-6 sm:px-6 md:pt-32">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-[1fr_auto_auto_auto] md:gap-16">
+          <div className="col-span-2 flex flex-col items-center text-center md:col-span-1 md:items-start md:text-left">
+            <p className="max-w-xs font-rubik text-sm leading-relaxed text-[#1E1B24] md:text-base">
               The official student-led community affiliated with GitHub.
               Spearheading the open-source revolution at SRMIST.
             </p>
-            <img src="/image.png" alt="GitHub Community SRM" width={100} height={60} className="object-contain object-left" />
+            <img
+              src="/image.png"
+              alt="GitHub Community SRM"
+              width={160}
+              height={160}
+              className="mt-4 h-[82px] w-[82px] object-contain sm:h-[96px] sm:w-[96px] md:h-[130px] md:w-[130px]"
+            />
           </div>
 
-          {/* Col 2 — Navigation */}
-          <div>
+          <div className="text-center md:text-left">
             <p
-              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
+              className="mb-5 font-montserrat text-xs font-extrabold uppercase tracking-widest text-[#1E1B24]"
               style={{ color: "var(--color-text-primary)" }}
             >
               Navigation
@@ -78,7 +79,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               {navLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="font-rubik text-sm footer-link">
+                  <a href={link.href} className="font-rubik text-sm text-[#1E1B24] md:text-sm">
                     {link.label}
                   </a>
                 </li>
@@ -86,10 +87,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 3 — Recruitment */}
-          <div>
+          <div className="text-center md:text-left">
             <p
-              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
+              className="mb-5 font-montserrat text-xs font-extrabold uppercase tracking-widest text-[#1E1B24]"
               style={{ color: "var(--color-text-primary)" }}
             >
               Recruitment
@@ -97,7 +97,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               {recruitmentLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="font-rubik text-sm footer-link">
+                  <a href={link.href} className="font-rubik text-sm text-[#1E1B24] md:text-sm">
                     {link.label}
                   </a>
                 </li>
@@ -105,60 +105,36 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 4 — Connect */}
-          <div>
-            <p
-              className="font-montserrat font-extrabold text-xs tracking-widest uppercase mb-5"
-              style={{ color: "var(--color-text-primary)" }}
-            >
-              Connect
-            </p>
-            <ul className="flex flex-col gap-3">
-              {connectLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-rubik text-sm footer-link"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
         </div>
 
-        {/* Divider + social icons */}
         <div
-          className="mt-8 pb-6 flex items-center justify-end gap-4"
+          className="mt-8 flex items-center justify-center gap-4 border-b border-[--color-border] pb-6 md:justify-end"
           style={{ borderBottom: "1px solid var(--color-border)" }}
         >
           <a
-            href="https://github.com"
+            href="https://github.com/SRM-IST-KTR"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="footer-link opacity-60 hover:opacity-100 transition-opacity duration-150"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[2px] border-[#1E1B24] bg-[#FFFEEF] text-[#1E1B24] shadow-[3px_3px_0_#1E1B24] transition-transform hover:-translate-y-0.5 sm:h-11 sm:w-11 md:h-11 md:w-11"
           >
             <GitHubIcon />
           </a>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/githubsrm/?hl=en"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram"
-            className="footer-link opacity-60 hover:opacity-100 transition-opacity duration-150"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[2px] border-[#1E1B24] bg-[#FFFEEF] text-[#1E1B24] shadow-[3px_3px_0_#1E1B24] transition-transform hover:-translate-y-0.5 sm:h-11 sm:w-11 md:h-11 md:w-11"
           >
             <InstagramIcon />
           </a>
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/company/githubsrm/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="footer-link opacity-60 hover:opacity-100 transition-opacity duration-150"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[2px] border-[#1E1B24] bg-[#FFFEEF] text-[#1E1B24] shadow-[3px_3px_0_#1E1B24] transition-transform hover:-translate-y-0.5 sm:h-11 sm:w-11 md:h-11 md:w-11"
           >
             <LinkedInIcon />
           </a>
