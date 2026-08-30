@@ -116,53 +116,59 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
       </button>
 
       {/* Neobrutalist Dropdown Menu */}
-      {isOpen && (
-        <div
-          className="absolute top-[calc(100%+8px)] right-0 w-[200px] sm:w-[220px] bg-white border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] p-3 z-50 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-100"
-          role="menu"
-        >
-          {/* User Details */}
-          <div className="px-2 py-1.5 flex flex-col text-left">
-            <span className="font-outfit-black text-sm text-[#1E1B24] truncate">
-              {participant.name || identifier}
+      <div
+        className={`
+          absolute top-[calc(100%+8px)] right-0 w-[200px] sm:w-[220px] bg-white border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] p-3 z-50 flex flex-col gap-2
+          transform transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-top
+          ${
+            isOpen
+              ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 scale-75 -translate-y-2 pointer-events-none"
+          }
+        `}
+        role="menu"
+      >
+        {/* User Details */}
+        <div className="px-2 py-1.5 flex flex-col text-left">
+          <span className="font-outfit-black text-sm text-[#1E1B24] truncate">
+            {participant.name || identifier}
+          </span>
+          <span className="font-rubik text-xs text-[#5C5866] truncate mt-0.5">
+            {participant.email}
+          </span>
+          {participant.domain && (
+            <span className="inline-block w-fit mt-1.5 text-[10px] font-outfit-black font-bold uppercase bg-[#FFD93D] text-[#1E1B24] border border-[#1E1B24] rounded-full px-2 py-0.5">
+              {participant.domain}
             </span>
-            <span className="font-rubik text-xs text-[#5C5866] truncate mt-0.5">
-              {participant.email}
-            </span>
-            {participant.domain && (
-              <span className="inline-block w-fit mt-1.5 text-[10px] font-outfit-black font-bold uppercase bg-[#FFD93D] text-[#1E1B24] border border-[#1E1B24] rounded-full px-2 py-0.5">
-                {participant.domain}
-              </span>
-            )}
-          </div>
-
-          <div className="h-[2px] bg-[#1E1B24]/10 my-0.5" />
-
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-[#FF4B4B] border-2 border-[#1E1B24] rounded-xl text-white font-outfit-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#1E1B24] transition-all cursor-pointer"
-            role="menuitem"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            Logout
-          </button>
+          )}
         </div>
-      )}
+
+        <div className="h-[2px] bg-[#1E1B24]/10 my-0.5" />
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-[#FF4B4B] border-2 border-[#1E1B24] rounded-xl text-white font-outfit-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_#1E1B24] transition-all cursor-pointer"
+          role="menuitem"
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Logout
+        </button>
+      </div>
     </div>
   );
 }
