@@ -8,7 +8,7 @@ export default function CTASection() {
         <SectionBadge label="Let's Roll!" variant="yellow" className="mb-6 md:mb-10" />
 
         {/* Heading */}
-        <h2 className="font-overpass-black text-4xl md:text-5xl lg:text-[64px] text-white leading-tight lg:leading-[81px] tracking-[-1.5px] mb-6 md:mb-8">
+        <h2 className="font-overpass-black text-4xl md:text-5xl lg:text-[64px] text-white leading-[105%] tracking-[-0.02em] [-webkit-text-stroke:4px_#1E1B24] md:[-webkit-text-stroke:5px_#1E1B24] lg:[-webkit-text-stroke:5.5px_#1E1B24] [paint-order:stroke_fill] mb-6 md:mb-8">
           Ready for Your Next Big<br className="hidden md:block" />
           Playground Adventure?
         </h2>

@@ -65,13 +65,13 @@ export async function POST(request: Request) {
     const body = await parseRequestBody(request);
     const now = new Date();
     const startDate = new Date(2026, 7, 25, 0, 0, 0);
-    const endDate = new Date(2026, 7, 30, 23, 59, 59);
+    const endDate = new Date(2026, 9, 11, 23, 59, 59);
 
     if (now.getTime() < startDate.getTime()) {
       return NextResponse.json(
         {
           success: false,
-          error: "Registration has not started yet. Please wait until August 25, 2025.",
+          error: "Registration has not started yet. Please wait until August 25, 2026.",
         },
         { status: 403 }
       );
