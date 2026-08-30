@@ -298,7 +298,16 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       <div className="max-w-[800px] mx-auto flex flex-col items-center px-4 relative z-10">
         <SectionBadge label="Registration form" variant="yellow" className="mb-8" />
         <h2 className="font-outfit-black text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">Registration Details</h2>
-        <p className="font-rubik text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-16 leading-relaxed">Ready to join the club? Fill out the details below and let&apos;s get you on board!</p>
+        
+        {/* Neobrutalist Introductory Banner */}
+        <div className="w-full max-w-[680px] bg-white border-[3px] border-[#1E1B24] shadow-[4px_4px_0px_#1E1B24] rounded-[20px] p-4 sm:p-5 text-center mb-12 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] shrink-0">
+            NOTICE
+          </span>
+          <p className="font-rubik text-[15px] sm:text-[16px] font-medium text-[#1E1B24] leading-relaxed">
+            Ready to join the club? Please fill out the form details below and let&apos;s get you on board!
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="w-full space-y-6" noValidate>
           <div className="flex flex-col space-y-3">
