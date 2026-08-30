@@ -125,22 +125,22 @@ export function ApplicationStatus({
   className = "",
   showParticipantInfo = false,
 }: ApplicationStatusProps) {
+  // 1. ALL HOOKS MUST BE DECLARED AT THE VERY TOP
   const { participant: authParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
 
-  // 1. CONDITIONAL RENDERING: Return null if no participant/status is provided (user not logged in)
-  if (!participant && !status) {
-    return null;
-  }
-
-  // Resolve active participant status
   const currentStatus: ParticipantStatus =
     status || participant?.status || "registered";
 
-  // 2. DYNAMIC STEP LOGIC: Compute visual states based on data model status
+  // Compute visual states dynamically unconditionally
   const steps = useMemo(() => {
     return computeDynamicSteps(currentStatus, customSteps);
   }, [currentStatus, customSteps]);
+
+  // 2. CONDITIONAL RENDERING AFTER ALL HOOKS: Return null if no participant/status is available
+  if (!participant && !status) {
+    return null;
+  }
 
   return (
     <section

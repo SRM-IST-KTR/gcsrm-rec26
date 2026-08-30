@@ -85,8 +85,8 @@ export default function NavBar() {
         )}
       </div>
 
-      {/* 4. MOBILE: Reusable Dropbox Component & User Account Menu */}
-      <div className="flex md:hidden items-center gap-3">
+      {/* 4. MOBILE: User Account Menu & Reusable Dropbox Component */}
+      <div className="flex md:hidden items-center gap-2.5 sm:gap-3">
         {isLoggedIn && <UserAccountMenu />}
         <Dropbox 
           label="Go to" 

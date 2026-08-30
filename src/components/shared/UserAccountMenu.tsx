@@ -48,8 +48,7 @@ export function getDomainAvatar(domain?: string | null): string {
 /**
  * UserAccountMenu Component
  *
- * Renders a circular Neobrutalist avatar based on the user's domain,
- * with the user's identifier displayed directly below it.
+ * Renders a horizontal Neobrutalist trigger with [Identifier Text] [Avatar].
  * Toggles a dropdown menu containing participant details and a Logout action.
  */
 export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
@@ -90,7 +89,7 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
 
   return (
     <div className={`relative inline-block ${className}`} ref={menuRef}>
-      {/* Avatar Button with Identifier Text Below */}
+      {/* Trigger Button: Avatar with Name / Identifier Underneath */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex flex-col items-center justify-center group focus:outline-none cursor-pointer select-none"
@@ -98,7 +97,8 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
         aria-haspopup="true"
         aria-label="User Account Menu"
       >
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-[#1E1B24] flex items-center justify-center shadow-[2px_2px_0px_#1E1B24] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0px_#1E1B24] overflow-hidden">
+        {/* Circular Avatar */}
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-[2.5px] border-[#1E1B24] flex items-center justify-center shadow-[2px_2px_0px_#1E1B24] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0px_#1E1B24] overflow-hidden shrink-0">
           <Image
             src={avatarSrc}
             alt={participant.name || identifier}
@@ -109,8 +109,8 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
           />
         </div>
 
-        {/* User Identifier (e.g., "ss3110") */}
-        <span className="font-rubik font-bold text-[11px] sm:text-xs text-[#1E1B24] tracking-tight text-center leading-none mt-1 group-hover:text-blue transition-colors">
+        {/* User Name / Identifier Text Under Avatar */}
+        <span className="font-rubik font-bold text-[11px] sm:text-xs text-[#1E1B24] tracking-tight text-center leading-none mt-1 group-hover:text-blue transition-colors max-w-[80px] truncate">
           {identifier}
         </span>
       </button>
