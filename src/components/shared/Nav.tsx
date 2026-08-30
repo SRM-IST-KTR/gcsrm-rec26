@@ -46,8 +46,8 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
-      {/* 1. Brand Icon - Now acts as a link to the top */}
-      <Link href="/" onClick={scrollToTop} className="flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
+      {/* 1. Brand Icon */}
+      <Link href="/" onClick={scrollToTop} className="flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity min-w-[70px] sm:min-w-[80px]">
         <Image 
           src="/image.png" 
           alt="GitHub Community SRM" 
@@ -72,22 +72,8 @@ export default function NavBar() {
         ))}
       </div>
 
-      {/* 3. DESKTOP: Call to Action Button / User Account Menu */}
-      <div className="hidden md:block flex-shrink-0">
-        {isLoggedIn ? (
-          <UserAccountMenu />
-        ) : (
-          <ButtonLink 
-            text="Join Us" 
-            link="/apply" 
-            bgColor="bg-blue" 
-          />
-        )}
-      </div>
-
-      {/* 4. MOBILE: User Account Menu & Reusable Dropbox Component */}
-      <div className="flex md:hidden items-center gap-2.5 sm:gap-3">
-        {isLoggedIn && <UserAccountMenu />}
+      {/* 3. MOBILE CENTER: Reusable Dropbox Component ("Go to") */}
+      <div className="flex md:hidden items-center justify-center flex-1 mx-2">
         <Dropbox 
           label="Go to" 
           links={navLinks} 
@@ -102,6 +88,24 @@ export default function NavBar() {
                 }
           }
         />
+      </div>
+
+      {/* 4. DESKTOP RIGHT: Call to Action Button / User Account Menu */}
+      <div className="hidden md:block flex-shrink-0">
+        {isLoggedIn ? (
+          <UserAccountMenu />
+        ) : (
+          <ButtonLink 
+            text="Join Us" 
+            link="/apply" 
+            bgColor="bg-blue" 
+          />
+        )}
+      </div>
+
+      {/* 5. MOBILE RIGHT: User Account Menu */}
+      <div className="flex md:hidden items-center justify-end min-w-[70px] sm:min-w-[80px] shrink-0">
+        {isLoggedIn && <UserAccountMenu />}
       </div>
 
     </nav>

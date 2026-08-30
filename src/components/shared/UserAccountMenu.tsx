@@ -98,19 +98,19 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
         aria-label="User Account Menu"
       >
         {/* Circular Avatar */}
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-[2.5px] border-[#1E1B24] flex items-center justify-center shadow-[2px_2px_0px_#1E1B24] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0px_#1E1B24] overflow-hidden shrink-0">
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border-[2.5px] border-[#1E1B24] flex items-center justify-center shadow-[2px_2px_0px_#1E1B24] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0px_#1E1B24] overflow-hidden shrink-0">
           <Image
             src={avatarSrc}
             alt={participant.name || identifier}
-            width={40}
-            height={40}
+            width={44}
+            height={44}
             className="w-full h-full object-cover"
             priority
           />
         </div>
 
-        {/* User Name / Identifier Text Under Avatar */}
-        <span className="font-rubik font-bold text-[11px] sm:text-xs text-[#1E1B24] tracking-tight text-center leading-none mt-1 group-hover:text-blue transition-colors max-w-[80px] truncate">
+        {/* User Name / Identifier Text Under Avatar - slightly smaller than "Go to" (text-lg) */}
+        <span className="font-rubik font-bold text-[15px] sm:text-[16px] text-[#1E1B24] tracking-tight text-center leading-none mt-1 group-hover:text-blue transition-colors max-w-[120px] truncate">
           {identifier}
         </span>
       </button>
