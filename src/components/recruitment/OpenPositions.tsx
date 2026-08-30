@@ -4,7 +4,7 @@ import JobCard from "./JobCard";
 
 const OpenPositions = () => {
   return (
-    <section className="relative w-full lg:w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible border-t-[3px] border-[#1E1B24]">
+    <section className="relative w-full lg:w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible">
       <SectionHeader
         badge="Job Board"
         badgeClass="bg-[#3e9fff]"
