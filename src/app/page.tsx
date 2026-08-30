@@ -5,7 +5,7 @@ import HowWeHire from "@/components/recruitment/HowWeHire";
 import CompanyValues from "@/components/recruitment/CompanyValues";
 import PerksSection from "@/components/PerksSection";
 import TeamCultureSection from "@/components/TeamCultureSection";
-import RegisterSection from "@/components/RegisterSection";
+import LoginSection from "@/components/LoginSection";
 import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
