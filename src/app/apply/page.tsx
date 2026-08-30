@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import RegistrationForm from "@/components/RegistrationForm";
-import RegisterSection from "@/components/RegisterSection";
+import LoginSection from "@/components/LoginSection";
 
 export default function ApplyPage() {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export default function ApplyPage() {
       {verifiedEmail ? (
         <RegistrationForm initialEmail={verifiedEmail} />
       ) : (
-        <RegisterSection onProceed={setVerifiedEmail} />
+        <LoginSection onProceed={setVerifiedEmail} />
       )}
     </main>
   );

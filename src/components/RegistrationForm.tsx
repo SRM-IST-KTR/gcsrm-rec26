@@ -123,8 +123,46 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
   ) : null;
 
   return (
-    <section className="bg-[#FFFEEF] py-24" id="apply">
-      <div className="max-w-[800px] mx-auto flex flex-col items-center px-4">
+    <section
+      className="relative overflow-hidden bg-[#FFFEEF] py-24"
+      id="apply"
+      style={{
+        backgroundImage: "url('/login/icon.svg')",
+        backgroundRepeat: "repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <img
+        src="/login/char-laptop.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute"
+        style={{ left: "-30px", top: "20px", width: "clamp(130px, 17vw, 230px)", zIndex: 1 }}
+      />
+      <img
+        src="/login/char-bee.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute"
+        style={{ right: "-30px", top: "-10px", width: "clamp(140px, 18vw, 250px)", zIndex: 1 }}
+      />
+      <img
+        src="/login/char-action-kamen.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute"
+        style={{ left: "-10px", bottom: "-20px", width: "clamp(150px, 20vw, 280px)", zIndex: 1 }}
+      />
+      <img
+        src="/login/char-robot.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none select-none absolute"
+        style={{ right: "-20px", bottom: "-20px", width: "clamp(140px, 19vw, 260px)", zIndex: 1 }}
+      />
+
+      <div className="max-w-[800px] mx-auto flex flex-col items-center px-4 relative z-10">
         <div className="bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-full px-6 py-2 mb-8 shadow-[3px_3px_0px_#1E1B24]">
           <span className="font-outfit-black text-[14px] text-[#1E1B24] uppercase tracking-[1.5px]">Registration form</span>
         </div>
