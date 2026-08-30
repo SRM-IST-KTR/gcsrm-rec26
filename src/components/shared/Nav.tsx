@@ -6,9 +6,10 @@ import { navLinks } from "@/components/shared/navlinks";
 import { useAuth } from "@/context/AuthContext";
 import { ButtonLink } from "../common/Button";
 import { Dropbox } from "../common/Dropbox";
+import { UserAccountMenu } from "./UserAccountMenu";
 
 export default function NavBar() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn } = useAuth();
   
   // Scrolls to specific sections with navbar height offset
   const scrollToSection = (id: string) => {
@@ -71,15 +72,10 @@ export default function NavBar() {
         ))}
       </div>
 
-      {/* 3. DESKTOP: Call to Action Button */}
+      {/* 3. DESKTOP: Call to Action Button / User Account Menu */}
       <div className="hidden md:block flex-shrink-0">
         {isLoggedIn ? (
-          <button
-            onClick={logout}
-            className="inline-flex items-center justify-center px-8 py-3 rounded-full border-[3px] border-text-primary font-rubik-medium font-bold text-bg-cream tracking-wider uppercase shadow-[4px_4px_0_var(--color-text-primary)] transition-all duration-150 ease-in-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--color-text-primary)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none bg-primary cursor-pointer"
-          >
-            Logout
-          </button>
+          <UserAccountMenu />
         ) : (
           <ButtonLink 
             text="Join Us" 
@@ -89,20 +85,16 @@ export default function NavBar() {
         )}
       </div>
 
-      {/* 4. MOBILE: Reusable Dropbox Component */}
-      <div className="block md:hidden">
+      {/* 4. MOBILE: Reusable Dropbox Component & User Account Menu */}
+      <div className="flex md:hidden items-center gap-3">
+        {isLoggedIn && <UserAccountMenu />}
         <Dropbox 
           label="Go to" 
           links={navLinks} 
           bgColor="bg-blue" 
           cta={
             isLoggedIn
-              ? {
-                  text: "Logout",
-                  link: "#",
-                  bgColor: "bg-primary",
-                  onClick: logout,
-                }
+              ? undefined
               : {
                   text: "Join Us",
                   link: "/apply",
