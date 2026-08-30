@@ -3,10 +3,13 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { navLinks } from "@/components/shared/navlinks";
+import { useAuth } from "@/context/AuthContext";
 import { ButtonLink } from "../common/Button";
 import { Dropbox } from "../common/Dropbox";
+import { UserAccountMenu } from "./UserAccountMenu";
 
 export default function NavBar() {
+  const { isLoggedIn } = useAuth();
   
   // Scrolls to specific sections with navbar height offset
   const scrollToSection = (id: string) => {
@@ -43,8 +46,8 @@ export default function NavBar() {
   return (
     <nav className="sticky top-0 p-4 bg-bg-cream w-full flex justify-between items-center md:px-8 z-50 border-b-[3px] border-text-primary shadow-sm">
       
-      {/* 1. Brand Icon - Now acts as a link to the top */}
-      <Link href="/" onClick={scrollToTop} className="flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
+      {/* 1. Brand Icon */}
+      <Link href="/" onClick={scrollToTop} className="flex-shrink-0 cursor-pointer hover:opacity-90 transition-opacity min-w-[70px] sm:min-w-[80px]">
         <Image 
           src="/image.png" 
           alt="GitHub Community SRM" 
@@ -69,27 +72,40 @@ export default function NavBar() {
         ))}
       </div>
 
-      {/* 3. DESKTOP: Call to Action Button */}
-      <div className="hidden md:block flex-shrink-0">
-        <ButtonLink 
-          text="Join Us" 
-          link="/apply" 
-          bgColor="bg-blue" 
-        />
-      </div>
-
-      {/* 4. MOBILE: Reusable Dropbox Component */}
-      <div className="block md:hidden">
+      {/* 3. MOBILE CENTER: Reusable Dropbox Component ("Go to") */}
+      <div className="flex md:hidden items-center justify-center flex-1 mx-2">
         <Dropbox 
           label="Go to" 
           links={navLinks} 
           bgColor="bg-blue" 
-          cta={{
-            text: "Join Us",
-            link: "/apply",
-            bgColor: "bg-primary"
-          }}
+          cta={
+            isLoggedIn
+              ? undefined
+              : {
+                  text: "Join Us",
+                  link: "/apply",
+                  bgColor: "bg-primary",
+                }
+          }
         />
+      </div>
+
+      {/* 4. DESKTOP RIGHT: Call to Action Button / User Account Menu */}
+      <div className="hidden md:block flex-shrink-0">
+        {isLoggedIn ? (
+          <UserAccountMenu />
+        ) : (
+          <ButtonLink 
+            text="Join Us" 
+            link="/apply" 
+            bgColor="bg-blue" 
+          />
+        )}
+      </div>
+
+      {/* 5. MOBILE RIGHT: User Account Menu */}
+      <div className="flex md:hidden items-center justify-end min-w-[70px] sm:min-w-[80px] shrink-0">
+        {isLoggedIn && <UserAccountMenu />}
       </div>
 
     </nav>

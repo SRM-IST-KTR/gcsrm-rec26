@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -64,6 +66,8 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -107,7 +111,10 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
       setFormData(initialFormData);
       setErrors({});
-      alert("Application submitted successfully!");
+      if (result.user) {
+        login(result.user);
+      }
+      router.push("/");
     } catch {
       setSubmitError("Unable to submit your application. Please try again.");
     } finally {

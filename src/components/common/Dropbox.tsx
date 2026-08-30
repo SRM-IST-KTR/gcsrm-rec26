@@ -15,6 +15,7 @@ interface DropboxProps {
     text: string;
     link: string;
     bgColor?: string;
+    onClick?: () => void;
   };
 }
 
@@ -119,6 +120,12 @@ export function Dropbox({
           >
             <Link 
               href={cta.link}
+              onClick={(e) => {
+                if (cta.onClick) {
+                  cta.onClick();
+                }
+                setIsOpen(false);
+              }}
               className={`block w-full text-center py-2 px-4 border-[3px] border-text-primary rounded-full shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all text-bg-white font-bold text-lg ${cta.bgColor || 'bg-primary'}`}
             >
               {cta.text}

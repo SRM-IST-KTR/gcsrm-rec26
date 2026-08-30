@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { ButtonLink } from "@/components/common/Button";
 
 type LoginSectionProps = {
@@ -11,12 +13,12 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isChecking, setIsChecking] = useState(false);
-  const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
+  const router = useRouter();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     setError("");
-    setIsAlreadyRegistered(false);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -30,7 +32,6 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
     setIsChecking(true);
     setError("");
-    setIsAlreadyRegistered(false);
 
     try {
       const response = await fetch(`/api/participants?email=${encodeURIComponent(normalizedEmail)}`);
@@ -41,8 +42,9 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
         return;
       }
 
-      if (result.exists) {
-        setIsAlreadyRegistered(true);
+      if (result.exists && result.user) {
+        login(result.user);
+        router.push("/");
         return;
       }
 
@@ -54,8 +56,8 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
     }
   };
 
-  const hasError = error || isAlreadyRegistered;
-  const errorMessage = isAlreadyRegistered ? "This email is already registered." : error;
+  const hasError = Boolean(error);
+  const errorMessage = error;
 
   return (
     <>

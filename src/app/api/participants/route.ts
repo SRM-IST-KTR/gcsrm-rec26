@@ -44,8 +44,12 @@ export async function GET(request: Request) {
       );
     }
 
-    const participant = await ParticipantUser.exists({ email });
-    return NextResponse.json({ success: true, exists: Boolean(participant) });
+    const participant = await ParticipantUser.findOne({ email }).lean();
+    return NextResponse.json({
+      success: true,
+      exists: Boolean(participant),
+      user: participant || null,
+    });
   } catch (error: any) {
     console.error("Participant lookup error:", error);
     return NextResponse.json(
