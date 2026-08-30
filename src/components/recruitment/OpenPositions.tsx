@@ -3,7 +3,7 @@ import JobCard from "./JobCard";
 
 const OpenPositions = () => {
   return (
-    <section className="relative w-full lg:w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible">
+    <section className="relative w-full lg:w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible border-t-[3px] border-[#1E1B24]">
       <SectionHeader
         badge="Job Board"
         badgeClass="bg-[#3e9fff]"
@@ -44,7 +44,7 @@ const OpenPositions = () => {
         />
       </div>
       <img
-        className="absolute top-[-70px] left-[-70px] w-[170px] h-auto lg:top-[-120px] lg:left-[-130px] lg:w-[443px] lg:h-[786px] pointer-events-none"
+        className="absolute top-[-70px] left-[-70px] w-[170px] h-auto lg:top-[-120px] lg:left-[-130px] lg:w-[443px] lg:h-[786px] pointer-events-none z-10"
         src="/images/recruitment/action-punch-mascot.png"
         alt="Action punch mascot"
       />
