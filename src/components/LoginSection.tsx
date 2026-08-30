@@ -157,7 +157,7 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
 <style>{`
   @keyframes drive-around-box {
-    /* 1. TOP EDGE (Left to Right) */
+    /* 1. TOP EDGE (Driving Left to Right) */
     0% {
       top: 0%;
       left: 0%;
@@ -168,47 +168,47 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
       left: 100%;
       transform: translate(-50%, -60%) scaleX(-1) rotate(0deg);
     }
-    /* Top-Right Corner Turn */
+    /* Turn Top-Right Corner (rotate to -90deg so nose points DOWN and wheels stay on card border) */
     32% {
       top: 0%;
       left: 100%;
-      transform: translate(-35%, -50%) scaleX(-1) rotate(90deg);
+      transform: translate(-40%, -50%) scaleX(-1) rotate(-90deg);
     }
-    /* 2. RIGHT EDGE (Top to Bottom) */
+    /* 2. RIGHT EDGE (Driving Top to Bottom) */
     48% {
       top: 100%;
       left: 100%;
-      transform: translate(-35%, -50%) scaleX(-1) rotate(90deg);
+      transform: translate(-40%, -50%) scaleX(-1) rotate(-90deg);
     }
-    /* Bottom-Right Corner Turn */
+    /* Turn Bottom-Right Corner (rotate to -180deg so nose points LEFT and wheels stay on card border) */
     52% {
       top: 100%;
       left: 100%;
-      transform: translate(-50%, -35%) scaleX(-1) rotate(180deg);
+      transform: translate(-50%, -40%) scaleX(-1) rotate(-180deg);
     }
-    /* 3. BOTTOM EDGE (Right to Left) */
+    /* 3. BOTTOM EDGE (Driving Right to Left) */
     78% {
       top: 100%;
       left: 0%;
-      transform: translate(-50%, -35%) scaleX(-1) rotate(180deg);
+      transform: translate(-50%, -40%) scaleX(-1) rotate(-180deg);
     }
-    /* Bottom-Left Corner Turn */
+    /* Turn Bottom-Left Corner (rotate to -270deg so nose points UP and wheels stay on card border) */
     82% {
       top: 100%;
       left: 0%;
-      transform: translate(-65%, -50%) scaleX(-1) rotate(270deg);
+      transform: translate(-60%, -50%) scaleX(-1) rotate(-270deg);
     }
-    /* 4. LEFT EDGE (Bottom to Top) */
+    /* 4. LEFT EDGE (Driving Bottom to Top) */
     96% {
       top: 0%;
       left: 0%;
-      transform: translate(-65%, -50%) scaleX(-1) rotate(270deg);
+      transform: translate(-60%, -50%) scaleX(-1) rotate(-270deg);
     }
-    /* Top-Left Corner Turn back to start */
+    /* Turn Top-Left Corner back to start (complete 360deg loop) */
     100% {
       top: 0%;
       left: 0%;
-      transform: translate(-50%, -60%) scaleX(-1) rotate(360deg);
+      transform: translate(-50%, -60%) scaleX(-1) rotate(-360deg);
     }
   }
 `}</style>
