@@ -13,7 +13,7 @@ import { StatusStepCard } from "./StatusStepCard";
 import { ParticipantSummary } from "./ParticipantSummary";
 
 /**
- * Standard recruitment pipeline steps configuration (Level 01 to Level 04)
+ * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
  */
 export const DEFAULT_STEP_CONFIGS: StepConfig[] = [
   {
@@ -27,41 +27,48 @@ export const DEFAULT_STEP_CONFIGS: StepConfig[] = [
   {
     id: "level-02",
     level: "Level 02",
-    title: "Application Review",
+    title: "Task Round",
     activeDescription:
-      "Our recruitment coordinators are currently reviewing your application details.",
+      "Your task has been assigned. Please complete and submit your task solutions before the deadline.",
     rank: 2,
   },
   {
     id: "level-03",
     level: "Level 03",
-    title: "Shortlisting",
-    subtitle: "Shortlisting",
+    title: "Interview Shortlisting",
     activeDescription:
-      "We are currently reviewing your profile to see if you are a match. Hang tight!",
+      "We are currently reviewing your task submissions to shortlist candidates for the interview phase.",
     rank: 3,
   },
   {
     id: "level-04",
     level: "Level 04",
-    title: "Task Round",
+    title: "Interview Phase",
     activeDescription:
-      "Congratulations on reaching the next phase! Follow the instructions sent to your SRM email to complete your task.",
+      "You have been shortlisted for the personal interview round! Check your SRM email for schedule details.",
     rank: 4,
+  },
+  {
+    id: "level-05",
+    level: "Level 05",
+    title: "Onboarding",
+    activeDescription:
+      "Congratulations on reaching the final phase! Follow the onboarding instructions sent to your SRM email.",
+    rank: 5,
   },
 ];
 
 /**
  * Maps participant.model.ts status enum values to progression rank
- * - 'registered': Application submitted (Level 01 active, Levels 02-04 locked)
- * - 'taskSubmitted': Application review completed / shortlisting in progress (Level 01 completed, Level 02 active)
- * - 'interviewShortlisted': Shortlisted, interview/task round active (Levels 01-02 completed, Level 03 active)
- * - 'onboarding': Successfully completed all recruitment rounds (All levels completed)
+ * - 'registered': Application submitted, Task Round active (Level 01 completed, Level 02 active)
+ * - 'taskSubmitted': Task submitted, Interview Shortlisting active (Levels 01-02 completed, Level 03 active)
+ * - 'interviewShortlisted': Shortlisted, Interview Phase active (Levels 01-03 completed, Level 04 active)
+ * - 'onboarding': Interview cleared, Onboarding active (Levels 01-04 completed, Level 05 active)
  */
 export const STATUS_RANK_MAP: Record<ParticipantStatus, number> = {
-  registered: 1,
-  taskSubmitted: 2,
-  interviewShortlisted: 3,
+  registered: 2,
+  taskSubmitted: 3,
+  interviewShortlisted: 4,
   onboarding: 5,
 };
 
@@ -72,7 +79,7 @@ export function computeDynamicSteps(
   status: ParticipantStatus,
   stepConfigs: StepConfig[] = DEFAULT_STEP_CONFIGS
 ): StatusStep[] {
-  const currentRank = STATUS_RANK_MAP[status] ?? 1;
+  const currentRank = STATUS_RANK_MAP[status] ?? 2;
 
   return stepConfigs.map((config) => {
     if (config.rank < currentRank) {

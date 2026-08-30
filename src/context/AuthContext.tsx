@@ -26,21 +26,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [participant, setParticipant] = useState<ParticipantData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from localStorage on initial load
+  // Restore session from localStorage on initial load and fetch latest DB status in background
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored) as ParticipantData;
-        setParticipant(parsed);
+    let isMounted = true;
+
+    const restoreAndRefreshSession = async () => {
+      let cachedUser: ParticipantData | null = null;
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          cachedUser = JSON.parse(stored) as ParticipantData;
+          if (isMounted) {
+            setParticipant(cachedUser);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to restore auth session from localStorage:", err);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem("gcsrm_registration_cache");
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      console.error("Failed to restore auth session from localStorage:", err);
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem("gcsrm_registration_cache");
-    } finally {
-      setIsLoading(false);
-    }
+
+      // Background fetch to sync latest status from database
+      if (cachedUser?.email) {
+        try {
+          const res = await fetch(
+            `/api/participants?email=${encodeURIComponent(cachedUser.email)}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.user && isMounted) {
+              setParticipant(data.user);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
+            }
+          }
+        } catch (err) {
+          console.error("Failed to refresh participant session from DB:", err);
+        }
+      }
+    };
+
+    restoreAndRefreshSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = useCallback((userData: ParticipantData) => {
