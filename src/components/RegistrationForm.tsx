@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import SectionBadge from "@/components/common/SectionBadge";
+import Popup from "@/components/common/Popup";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -96,8 +96,19 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
   }, [formData]);
 
   const [errors, setErrors] = useState<Errors>({});
-  const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [popup, setPopup] = useState<{
+    isOpen: boolean;
+    type: "success" | "error" | "info";
+    title?: string;
+    message: string;
+    autoCloseMs?: number;
+  }>({
+    isOpen: false,
+    type: "info",
+    message: "",
+  });
+
   const router = useRouter();
   const { login } = useAuth();
 
@@ -111,7 +122,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
-    setSubmitError("");
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -124,7 +134,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
     ) as Errors;
 
     setErrors(nextErrors);
-    setSubmitError("");
     if (Object.values(nextErrors).some(Boolean)) return;
 
     setIsSubmitting(true);
@@ -134,24 +143,91 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const result = await response.json();
 
-      if (!response.ok) {
-        setSubmitError(result.error || "Unable to submit your application.");
+      let result: any = null;
+      try {
+        result = await response.json();
+      } catch {
+        result = null;
+      }
+
+      if (response.ok) {
+        // 1. Trigger success popup first
+        setPopup({
+          isOpen: true,
+          type: "success",
+          title: "Registration Successful!",
+          message: "Registration Successful!",
+          autoCloseMs: 3000,
+        });
+        setFormData(initialFormData);
+        setErrors({});
+        try {
+          localStorage.removeItem(CACHE_KEY);
+        } catch (e) {}
+
+        // 2. Delay login and redirect by 2500ms while keeping button in disabled/submitting state
+        setTimeout(() => {
+          if (result?.user) {
+            login(result.user);
+          }
+          router.push("/");
+        }, 2500);
         return;
       }
 
-      setFormData(initialFormData);
-      setErrors({});
-      try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
-      if (result.user) {
-        login(result.user);
-      }
-      router.push("/");
-    } catch {
-      setSubmitError("Unable to submit your application. Please try again.");
-    } finally {
       setIsSubmitting(false);
+
+      const errorText = typeof result?.error === "string" ? result.error : "";
+      const isRegistrationClosed =
+        errorText.toLowerCase().includes("registration period has ended") ||
+        errorText.toLowerCase().includes("registration has ended") ||
+        errorText.toLowerCase().includes("no new registrations are being accepted");
+
+      if (isRegistrationClosed) {
+        setPopup({
+          isOpen: true,
+          type: "error",
+          title: "Registration Ended",
+          message: errorText || "Registration period has ended. No new registrations are being accepted.",
+        });
+        return;
+      }
+
+      if (response.status >= 500) {
+        setPopup({
+          isOpen: true,
+          type: "error",
+          title: "Server Error",
+          message: "An error occurred: It's our fault. Please try again later.",
+        });
+        return;
+      }
+
+      if (response.status >= 400 && response.status < 500) {
+        setPopup({
+          isOpen: true,
+          type: "error",
+          title: "Client Error",
+          message: "An error occurred: Check your network or input details.",
+        });
+        return;
+      }
+
+      setPopup({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "An error occurred: Check your network or input details.",
+      });
+    } catch {
+      setIsSubmitting(false);
+      setPopup({
+        isOpen: true,
+        type: "error",
+        title: "Error",
+        message: "An error occurred: Check your network or input details.",
+      });
     }
   };
 
@@ -163,9 +239,18 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
   ) : null;
 
   return (
-    <section
-      className="relative overflow-hidden bg-[#FFFEEF] py-24"
-      id="apply"
+    <>
+      <Popup
+        isOpen={popup.isOpen}
+        type={popup.type}
+        title={popup.title}
+        message={popup.message}
+        autoCloseMs={popup.autoCloseMs}
+        onClose={() => setPopup((prev) => ({ ...prev, isOpen: false }))}
+      />
+      <section
+        className="relative overflow-hidden bg-[#FFFEEF] py-24"
+        id="apply"
       style={{
         backgroundImage: "url('/login/icon.svg')",
         backgroundRepeat: "repeat",
@@ -249,7 +334,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
             {fieldError("degreeWithBranch")}
             <input id="degreeWithBranch" name="degreeWithBranch" value={formData.degreeWithBranch} onChange={handleChange} placeholder="e.g. B.Tech CSE" className={inputClass("degreeWithBranch")} />
           </div>
-          {submitError && <p className="font-rubik text-center font-medium text-[#D92323]" role="alert">{submitError}</p>}
           <div className="pt-8 flex justify-center">
             <button type="submit" disabled={isSubmitting} className="bg-[#3E9FFF] border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] px-10 py-4 font-outfit-black text-[18px] text-white tracking-[1px] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#1E1B24] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
               {isSubmitting ? "Submitting..." : "Apply Now!"}
@@ -258,5 +342,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         </form>
       </div>
     </section>
+  </>
   );
 }
