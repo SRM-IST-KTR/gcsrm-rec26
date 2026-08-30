@@ -13,7 +13,7 @@ interface UserAccountMenuProps {
  * Maps participant domain to its corresponding avatar image path
  */
 export function getDomainAvatar(domain?: string | null): string {
-  if (!domain) return "/avatars/web-developer.png";
+  if (!domain) return "/images/recruitment/web-developer.png";
 
   const normalized = domain.trim().toLowerCase();
 
@@ -22,7 +22,7 @@ export function getDomainAvatar(domain?: string | null): string {
     normalized.includes("web") ||
     normalized.includes("dev")
   ) {
-    return "/avatars/web-developer.png";
+    return "/images/recruitment/web-developer.png";
   }
 
   if (
@@ -31,7 +31,7 @@ export function getDomainAvatar(domain?: string | null): string {
     normalized.includes("ui") ||
     normalized.includes("ux")
   ) {
-    return "/avatars/crayon-creator.png";
+    return "/images/recruitment/crayon-creator.png";
   }
 
   if (
@@ -39,10 +39,10 @@ export function getDomainAvatar(domain?: string | null): string {
     normalized.includes("operation") ||
     normalized.includes("manage")
   ) {
-    return "/avatars/operations-lead.png";
+    return "/images/recruitment/operations-lead.png";
   }
 
-  return "/avatars/web-developer.png";
+  return "/images/recruitment/web-developer.png";
 }
 
 /**

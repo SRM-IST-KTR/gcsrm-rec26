@@ -34,7 +34,7 @@ const DEFAULT_NAV_LINKS: NavItem[] = [
 
 const DEFAULT_USER: UserProfile = {
   name: "Alex Morgan",
-  avatarUrl: "/avatars/web-developer.png",
+  avatarUrl: "/images/recruitment/web-developer.png",
   email: "alex.morgan@example.com",
 };
 
