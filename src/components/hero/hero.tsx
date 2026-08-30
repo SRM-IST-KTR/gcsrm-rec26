@@ -71,7 +71,7 @@ export function HeroSection() {
       </div>
 
       {/* Right Mascot Column */}
-      <div className="relative z-10 flex flex-col items-center justify-center w-full lg:min-w-[380px] gap-6 mt-8 lg:mt-0">
+      <div className="relative z-10 flex flex-col items-center justify-center w-full lg:w-auto lg:min-w-[380px] lg:ml-auto gap-6 mt-8 lg:mt-0">
         
         {/* Shinchan Avatar Image */}
         <div className="relative w-[280px] h-[310px] sm:w-[340px] sm:h-[380px] drop-shadow-[8px_8px_0_var(--color-text-primary)]">

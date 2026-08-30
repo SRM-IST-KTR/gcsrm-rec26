@@ -53,15 +53,15 @@ export const DEFAULT_STEP_CONFIGS: StepConfig[] = [
 
 /**
  * Maps participant.model.ts status enum values to progression rank
- * - 'registered': Application submitted, currently under review (Level 02 active)
- * - 'taskSubmitted': Review completed, shortlisting in progress (Level 03 active)
- * - 'interviewShortlisted': Shortlisted, task/interview round active (Level 04 active)
+ * - 'registered': Application submitted (Level 01 active, Levels 02-04 locked)
+ * - 'taskSubmitted': Application review completed / shortlisting in progress (Level 01 completed, Level 02 active)
+ * - 'interviewShortlisted': Shortlisted, interview/task round active (Levels 01-02 completed, Level 03 active)
  * - 'onboarding': Successfully completed all recruitment rounds (All levels completed)
  */
 export const STATUS_RANK_MAP: Record<ParticipantStatus, number> = {
-  registered: 2,
-  taskSubmitted: 3,
-  interviewShortlisted: 4,
+  registered: 1,
+  taskSubmitted: 2,
+  interviewShortlisted: 3,
   onboarding: 5,
 };
 
@@ -72,7 +72,7 @@ export function computeDynamicSteps(
   status: ParticipantStatus,
   stepConfigs: StepConfig[] = DEFAULT_STEP_CONFIGS
 ): StatusStep[] {
-  const currentRank = STATUS_RANK_MAP[status] ?? 2;
+  const currentRank = STATUS_RANK_MAP[status] ?? 1;
 
   return stepConfigs.map((config) => {
     if (config.rank < currentRank) {
