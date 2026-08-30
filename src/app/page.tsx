@@ -21,18 +21,22 @@ export default function Home() {
       <div className="flex w-full flex-col items-center overflow-x-hidden bg-[#fffdf0] font-outfit">
         <HeroSection />
         <ApplicationStatus/>
-        <div id="about" className="w-full flex flex-col items-center">
+        <div id="about" className="w-full flex flex-col items-center bg-[#fffdf0] border-t-[3px] border-[#1E1B24]">
           <WhyWorkWithUs />
         </div>
         {/* <WhyWorkWithUs /> */}
 
-        <div id="domains" className="w-full flex flex-col items-center">
+        <div id="domains" className="w-full flex flex-col items-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
           <OpenPositions />
         </div>
 
         {/* <OpenPositions /> */}
-        <HowWeHire />
-        <CompanyValues />
+        <div className="w-full flex justify-center bg-[#fffdf0]">
+          <HowWeHire />
+        </div>
+        <div className="w-full flex justify-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
+          <CompanyValues />
+        </div>
       </div>
       {/* Existing sections */}
       <PerksSection />

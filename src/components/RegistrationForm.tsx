@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
@@ -62,7 +63,37 @@ type RegistrationFormProps = {
 };
 
 export default function RegistrationForm({ initialEmail = "" }: RegistrationFormProps) {
-  const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail });
+  const searchParams = useSearchParams();
+  const domainQuery = searchParams.get("domain") || "";
+  const validDomain = domains.includes(domainQuery) ? domainQuery : "";
+  const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail, domain: validDomain });
+  const CACHE_KEY = "gcsrm_registration_cache";
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setFormData(prev => ({
+          ...prev,
+          ...parsed,
+          email: initialEmail,
+          domain: validDomain || parsed.domain || ""
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to parse cached registration data", e);
+    }
+  }, [initialEmail, validDomain]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(formData));
+    } catch (e) {
+      console.error("Failed to cache registration data", e);
+    }
+  }, [formData]);
+
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,6 +142,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
       setFormData(initialFormData);
       setErrors({});
+      try { localStorage.removeItem(CACHE_KEY); } catch (e) {}
       if (result.user) {
         login(result.user);
       }

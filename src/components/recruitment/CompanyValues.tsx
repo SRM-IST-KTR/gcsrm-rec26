@@ -3,7 +3,7 @@ import ValueCard from "./ValueCard";
 
 const CompanyValues = () => {
   return (
-    <section className="flex flex-col gap-10 lg:gap-16 items-center w-full lg:w-[1440px] h-fit bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 border-t-[3px] border-[#1E1B24]">
+    <section className="flex flex-col gap-10 lg:gap-16 items-center w-full lg:w-[1440px] h-fit bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20">
       <div className="flex flex-col gap-4 items-center self-stretch h-fit">
         <SectionBadge label="Core Beliefs" className="bg-[#3e9fff]" />
         <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-center text-[#1e1b24] leading-[1.1] self-stretch h-fit">
