@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -9,7 +12,6 @@ const navLinks = [
 
 const recruitmentLinks = [
   { label: "Apply", href: "/apply" },
-  { label: "Check Status", href: "/status" },
   { label: "FAQs", href: "/#faqs" },
   { label: "Selection Process", href: "/#process" },
   // { label: "Privacy Policy", href: "/privacy" },
@@ -46,6 +48,13 @@ function LinkedInIcon() {
 }
 
 export default function Footer() {
+  const { isLoggedIn } = useAuth();
+
+  const currentNavLinks = [
+    ...navLinks,
+    ...(isLoggedIn ? [{ label: "Check Status", href: "/#status" }] : []),
+  ];
+
   return (
     <footer
       style={{ backgroundColor: "var(--color-bg-cream)" }}
@@ -75,7 +84,7 @@ export default function Footer() {
               Navigation
             </p>
             <ul className="flex flex-col gap-3">
-              {navLinks.map((link) => (
+              {currentNavLinks.map((link) => (
                 <li key={link.label}>
                   <a href={link.href} className="font-rubik text-sm text-[#1E1B24] md:text-sm">
                     {link.label}
