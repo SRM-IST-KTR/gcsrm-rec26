@@ -1,4 +1,3 @@
-// src/components/hero/hero.tsx
 "use client"
 import Image from "next/image";
 import { ActionButton } from "@/components/common/actionButton"; 
@@ -35,8 +34,8 @@ export function HeroSection() {
       {/* Left Content Column */}
       <div className="relative z-10 flex flex-col items-start max-w-2xl gap-6">
         
-        {/* Top Badge */}
-        <div className="inline-block px-5 py-2 bg-yellow border-[3px] border-text-primary rounded-xl shadow-[4px_4px_0_var(--color-text-primary)] font-rubik font-bold text-sm md:text-base text-text-primary transform -rotate-1">
+        {/* Top Badge - Made flat and fully rounded to match the reference */}
+        <div className="inline-block px-6 py-2 bg-yellow border-[3px] border-text-primary rounded-full shadow-[4px_4px_0_var(--color-text-primary)] font-rubik font-bold text-sm md:text-base text-text-primary">
           WE&apos;RE HIRING, TROUBLEMAKERS!
         </div>
 
@@ -52,7 +51,7 @@ export function HeroSection() {
           <strong className="text-yellow font-bold">GitHub Community SRM</strong> is looking for curious minds, creators, builders, and leaders ready to learn, collaborate and build something meaningful.
         </p>
 
-        {/* Action Buttons using the new reusable component */}
+        {/* Action Buttons using the reusable component */}
         <div className="flex flex-wrap items-center gap-4 mt-2">
           <ActionButton 
             href="/apply" 
@@ -72,15 +71,8 @@ export function HeroSection() {
       </div>
 
       {/* Right Mascot Column */}
-      <div className="relative z-10 hidden lg:flex flex-col items-center justify-center min-w-[380px]">
+      <div className="relative z-10 hidden lg:flex flex-col items-center justify-center min-w-[380px] gap-6">
         
-        {/* Speech Bubble / Quote Box (Bounce removed) */}
-        <div className="absolute -top-12 -left-6 z-20 max-w-[260px] p-4 bg-yellow border-[3px] border-text-primary rounded-2xl shadow-[4px_4px_0_var(--color-text-primary)] font-rubik text-xs md:text-sm font-bold text-text-primary transform rotate-[-3deg]">
-          &quot;To be a true hero, you must master the art of the afternoon nap!&quot;
-          {/* Speech bubble pointer triangle */}
-          <div className="absolute -bottom-3 right-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-yellow" />
-        </div>
-
         {/* Shinchan Avatar Image */}
         <div className="relative w-[340px] h-[380px] drop-shadow-[8px_8px_0_var(--color-text-primary)]">
           <Image
@@ -90,6 +82,11 @@ export function HeroSection() {
             className="object-contain"
             priority
           />
+        </div>
+
+        {/* Quote Box - Moved below the mascot, made static, flat, and full width */}
+        <div className="w-full max-w-[340px] p-3 bg-yellow border-[3px] border-text-primary rounded-md shadow-[4px_4px_0_var(--color-text-primary)] font-rubik text-xs md:text-sm font-bold text-text-primary text-left">
+          &quot;To be a true hero, you must master the art of the afternoon nap!&quot;
         </div>
 
       </div>
