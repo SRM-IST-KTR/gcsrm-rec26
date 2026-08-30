@@ -65,13 +65,13 @@ export default function FAQSection() {
           className="bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-full px-6 py-2 mb-8 shadow-[3px_3px_0px_#1E1B24]"
         >
           <span className="font-outfit-black text-[14px] text-[#1E1B24] uppercase tracking-[1.5px]">
-            FAQ Info
+            FAQ
           </span>
         </div>
 
         {/* Heading */}
         <h2 className="font-outfit-black text-4xl md:text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">
-          Queries (FAQ)
+          Queries
         </h2>
         
         {/* Subheading */}

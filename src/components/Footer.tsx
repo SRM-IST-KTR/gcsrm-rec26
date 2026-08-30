@@ -4,8 +4,6 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Domains", href: "/domains" },
-  { label: "Beliefs", href: "/#beliefs" },
-  { label: "Perks", href: "/#perks" },
   { label: "Life @GCSRM", href: "/#life" },
 ];
 
@@ -14,7 +12,7 @@ const recruitmentLinks = [
   { label: "Check Status", href: "/status" },
   { label: "FAQs", href: "/#faqs" },
   { label: "Selection Process", href: "/#process" },
-  { label: "Privacy Policy", href: "/privacy" },
+  // { label: "Privacy Policy", href: "/privacy" },
 ];
 
 const connectLinks = [

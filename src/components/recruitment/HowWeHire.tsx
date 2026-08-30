@@ -3,8 +3,9 @@ import StepCard from "./StepCard";
 
 const HowWeHire = () => {
   return (
-    <section className="relative w-full lg:w-[1440px] lg:h-[667px] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20">
-      <SectionHeader
+    <section className="relative w-full border-t-[3px] border-[#1E1B24] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:h-[667px] lg:px-20 lg:py-[100px]">
+      <div className="mx-auto w-full max-w-[1440px]">
+        <SectionHeader
         badge="Our Fun Process"
         badgeClass="bg-[#4ec37b]"
         badgeLeftClass="lg:left-[558px]"
@@ -36,15 +37,16 @@ const HowWeHire = () => {
           title="CONNECT"
           description="Shortlisted applicants interact with the respective domain teams."
         />
-        <StepCard
-          className="lg:absolute lg:left-[978px]"
-          step="04"
-          stepBg="#3e9fff"
-          stepTextClass="text-white"
-          title="JOIN"
-          description="Get selected, meet your team and start building with GCSRM."
-          showLine={false}
-        />
+          <StepCard
+            className="lg:absolute lg:left-[978px]"
+            step="04"
+            stepBg="#3e9fff"
+            stepTextClass="text-white"
+            title="JOIN"
+            description="Get selected, meet your team and start building with GCSRM."
+            showLine={false}
+          />
+        </div>
       </div>
       <img
         className="absolute top-[-50px] left-[-100px] w-[280px] lg:top-[-140px] lg:left-[-260px] lg:w-[800px] h-auto pointer-events-none z-10 object-contain rotate-[55deg]"
