@@ -3,7 +3,7 @@ import FeatureCard from "./FeatureCard";
 
 const WhyWorkWithUs = () => {
   return (
-    <section className="relative w-full lg:w-[1440px] lg:h-[725px] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-hidden">
+    <section className="relative w-full lg:w-[1440px] lg:h-[725px] bg-[#fffdf0] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible border-t-[3px] border-[#1E1B24]">
       <SectionHeader
         badge="environment in gcsrm"
         badgeClass="bg-[#ff4b4b]"
