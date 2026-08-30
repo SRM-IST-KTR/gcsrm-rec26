@@ -24,7 +24,7 @@ export default function TeamCultureSection() {
       
       {/* Badge & Title */}
       <div className="w-full flex flex-col items-center px-4 mb-12">
-        <div className="w-[110px] h-[34px] bg-[#FFD93D] border-[3px] border-[#1E1B24] shadow-[3px_3px_0px_#1E1B24] rounded-[30px] flex items-center justify-center mb-6">
+        <div className="w-fit rounded-[30px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] bg-[#FFD93D] py-1.5 px-5 flex items-center justify-center mb-6">
           <span className="font-outfit font-extrabold text-[14px] leading-[18px] uppercase text-[#1E1B24]">
             LIFE @ GCSRM
           </span>
