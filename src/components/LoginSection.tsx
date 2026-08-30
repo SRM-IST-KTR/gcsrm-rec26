@@ -157,58 +157,58 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
 <style>{`
   @keyframes drive-around-box {
-    /* 1. TOP EDGE (Driving Left to Right) */
+    /* 1. TOP EDGE (Driving Left to Right - tyres directly on top border) */
     0% {
       top: 0%;
       left: 0%;
-      transform: translate(-50%, -60%) scaleX(-1) rotate(0deg);
+      transform: translate(-50%, -82%) scaleX(-1) rotate(0deg);
     }
     28% {
       top: 0%;
       left: 100%;
-      transform: translate(-50%, -60%) scaleX(-1) rotate(0deg);
+      transform: translate(-50%, -82%) scaleX(-1) rotate(0deg);
     }
-    /* Turn Top-Right Corner (rotate to -90deg so nose points DOWN and wheels stay on card border) */
+    /* Turn Top-Right Corner (smooth turn around the rounded corner) */
     32% {
       top: 0%;
       left: 100%;
-      transform: translate(-40%, -50%) scaleX(-1) rotate(-90deg);
+      transform: translate(-18%, -50%) scaleX(-1) rotate(-90deg);
     }
-    /* 2. RIGHT EDGE (Driving Top to Bottom) */
+    /* 2. RIGHT EDGE (Driving Top to Bottom - tyres directly on right border) */
     48% {
       top: 100%;
       left: 100%;
-      transform: translate(-40%, -50%) scaleX(-1) rotate(-90deg);
+      transform: translate(-18%, -50%) scaleX(-1) rotate(-90deg);
     }
-    /* Turn Bottom-Right Corner (rotate to -180deg so nose points LEFT and wheels stay on card border) */
+    /* Turn Bottom-Right Corner */
     52% {
       top: 100%;
       left: 100%;
-      transform: translate(-50%, -40%) scaleX(-1) rotate(-180deg);
+      transform: translate(-50%, -18%) scaleX(-1) rotate(-180deg);
     }
-    /* 3. BOTTOM EDGE (Driving Right to Left) */
+    /* 3. BOTTOM EDGE (Driving Right to Left - tyres directly on bottom border) */
     78% {
       top: 100%;
       left: 0%;
-      transform: translate(-50%, -40%) scaleX(-1) rotate(-180deg);
+      transform: translate(-50%, -18%) scaleX(-1) rotate(-180deg);
     }
-    /* Turn Bottom-Left Corner (rotate to -270deg so nose points UP and wheels stay on card border) */
+    /* Turn Bottom-Left Corner */
     82% {
       top: 100%;
       left: 0%;
-      transform: translate(-60%, -50%) scaleX(-1) rotate(-270deg);
+      transform: translate(-82%, -50%) scaleX(-1) rotate(-270deg);
     }
-    /* 4. LEFT EDGE (Driving Bottom to Top) */
+    /* 4. LEFT EDGE (Driving Bottom to Top - tyres directly on left border) */
     96% {
       top: 0%;
       left: 0%;
-      transform: translate(-60%, -50%) scaleX(-1) rotate(-270deg);
+      transform: translate(-82%, -50%) scaleX(-1) rotate(-270deg);
     }
-    /* Turn Top-Left Corner back to start (complete 360deg loop) */
+    /* Turn Top-Left Corner back to start */
     100% {
       top: 0%;
       left: 0%;
-      transform: translate(-50%, -60%) scaleX(-1) rotate(-360deg);
+      transform: translate(-50%, -82%) scaleX(-1) rotate(-360deg);
     }
   }
 `}</style>
