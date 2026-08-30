@@ -1,15 +1,11 @@
+import SectionBadge from "@/components/common/SectionBadge";
+
 export default function CTASection() {
   return (
     <section className="bg-[#FF4B4B] border-y-[1px] border-[#1E1B24] py-16 md:py-[110px] text-center flex flex-col items-center justify-center px-4" id="cta">
       <div className="w-full max-w-[800px] mx-auto flex flex-col items-center">
         {/* Badge */}
-        <div 
-          className="bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-full px-6 py-2 mb-6 md:mb-10 shadow-[3px_3px_0px_#1E1B24]"
-        >
-          <span className="font-outfit-black text-[14px] text-[#1E1B24] uppercase tracking-[1.5px]">
-            Let's Roll!
-          </span>
-        </div>
+        <SectionBadge label="Let's Roll!" variant="yellow" className="mb-6 md:mb-10" />
 
         {/* Heading */}
         <h2 className="font-overpass-black text-4xl md:text-5xl lg:text-[64px] text-white leading-tight lg:leading-[81px] tracking-[-1.5px] mb-6 md:mb-8">

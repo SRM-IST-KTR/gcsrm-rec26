@@ -1,6 +1,7 @@
 import Image from "next/image";
 import fs from "fs";
 import path from "path";
+import SectionBadge from "@/components/common/SectionBadge";
 
 export default function TeamCultureSection() {
   let images: string[] = [];
@@ -24,11 +25,7 @@ export default function TeamCultureSection() {
       
       {/* Badge & Title */}
       <div className="w-full flex flex-col items-center px-4 mb-12">
-        <div className="w-fit rounded-[30px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] bg-[#FFD93D] py-1.5 px-5 flex items-center justify-center mb-6">
-          <span className="font-outfit font-extrabold text-[14px] leading-[18px] uppercase text-[#1E1B24]">
-            LIFE @ GCSRM
-          </span>
-        </div>
+        <SectionBadge label="LIFE @ GCSRM" variant="yellow" className="mb-6" />
         
         <h2 className="font-outfit font-black text-[36px] md:text-[48px] leading-[110%] text-center text-[#1E1B24] mb-4">
           Our Journey So far

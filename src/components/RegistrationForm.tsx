@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import SectionBadge from "@/components/common/SectionBadge";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -202,9 +203,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       />
 
       <div className="max-w-[800px] mx-auto flex flex-col items-center px-4 relative z-10">
-        <div className="bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-full px-6 py-2 mb-8 shadow-[3px_3px_0px_#1E1B24]">
-          <span className="font-outfit-black text-[14px] text-[#1E1B24] uppercase tracking-[1.5px]">Registration form</span>
-        </div>
+        <SectionBadge label="Registration form" variant="yellow" className="mb-8" />
         <h2 className="font-outfit-black text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">Registration Details</h2>
         <p className="font-rubik text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-16 leading-relaxed">Ready to join the club? Fill out the details below and let&apos;s get you on board!</p>
 

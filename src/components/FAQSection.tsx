@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SectionBadge from "@/components/common/SectionBadge";
 
 const faqs = [
   {
@@ -61,19 +62,13 @@ export default function FAQSection() {
     <section className="bg-[#FFFEEF] border-t-[3px] border-[#1E1B24] pt-10 pb-24" id="faq">
       <div className="max-w-[800px] mx-auto flex flex-col items-center px-4">
         {/* Badge */}
-        <div 
-          className="bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-full px-6 py-2 mb-8 shadow-[3px_3px_0px_#1E1B24]"
-        >
-          <span className="font-outfit-black text-[14px] text-[#1E1B24] uppercase tracking-[1.5px]">
-            FAQ
-          </span>
-        </div>
+        <SectionBadge label="FAQ" variant="yellow" className="mb-8" />
 
         {/* Heading */}
         <h2 className="font-outfit-black text-4xl md:text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">
           Queries
         </h2>
-        
+
         {/* Subheading */}
         <p className="font-rubik text-[16px] md:text-[14px] md:text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-12 md:mb-16 leading-relaxed">
           Everything you need to know before applying to GitHub Community SRM Recruitment 2026-27.
@@ -84,7 +79,7 @@ export default function FAQSection() {
           {faqs.map((faq, index) => {
             const isOpen = openIndex === index;
             return (
-              <div 
+              <div
                 key={index}
                 className="bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[4px_4px_0px_#1E1B24] overflow-hidden transition-all duration-300"
               >
@@ -103,11 +98,10 @@ export default function FAQSection() {
                     {isOpen ? "−" : "+"}
                   </span>
                 </button>
-                
-                <div 
-                  className={`px-5 md:px-8 text-[#5C5866] font-rubik font-medium text-[14px] md:text-[18px] overflow-hidden transition-all duration-300 ${
-                    isOpen ? "max-h-96 pb-8 opacity-100" : "max-h-0 opacity-0 pb-0"
-                  }`}
+
+                <div
+                  className={`px-5 md:px-8 text-[#5C5866] font-rubik font-medium text-[14px] md:text-[18px] overflow-hidden transition-all duration-300 ${isOpen ? "max-h-96 pb-8 opacity-100" : "max-h-0 opacity-0 pb-0"
+                    }`}
                 >
                   {faq.answer}
                 </div>

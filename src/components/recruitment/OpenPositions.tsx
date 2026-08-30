@@ -1,4 +1,5 @@
 import SectionHeader from "./SectionHeader";
+import SectionBadge from "@/components/common/SectionBadge";
 import { ActionButton } from "@/components/common/actionButton";
 import JobCard from "./JobCard";
 
@@ -59,11 +60,7 @@ const OpenPositions = () => {
           {/* Technical */}
           <div className="absolute w-[656px] h-80 bg-white rounded-3xl border-[3px] border-[#1e1b24] shadow-[6px_6px_0px_0px_rgb(30_27_36)] p-8">
             <div className="absolute top-[32px] left-[32px] flex flex-row justify-between items-center w-fit h-fit">
-              <div className="relative w-fit h-[42px] bg-[#ff4b4b] rounded-[30px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] py-2 px-[18px]">
-                <p className="text-base font-extrabold text-left text-[#1e1b24] uppercase">
-                  Technical
-                </p>
-              </div>
+              <SectionBadge label="Technical" variant="red" className="!py-2 !px-[18px]" />
             </div>
             <div className="absolute top-[98px] left-[32px] w-[408px] h-24">
               <p className="absolute text-[28px] font-black text-left text-[#1e1b24] w-[408px]">
@@ -92,12 +89,8 @@ const OpenPositions = () => {
           </div>
           {/* Corporate */}
           <div className="absolute left-[688px] w-[592px] h-80 bg-white rounded-3xl border-[3px] border-[#1e1b24] shadow-[6px_6px_0px_0px_rgb(30_27_36)] p-8">
-            <div className="absolute top-[32px] left-[32px] w-[125px] h-[34px]">
-              <div className="absolute w-36 h-[42px] bg-[#ffd93d] rounded-[30px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] py-2 px-[18px]">
-                <p className="absolute top-[11px] left-[22px] text-base font-extrabold text-left text-[#1e1b24] uppercase">
-                  corporate
-                </p>
-              </div>
+            <div className="absolute top-[32px] left-[32px] flex flex-row justify-between items-center w-fit h-fit">
+              <SectionBadge label="Corporate" variant="yellow" className="!py-2 !px-[18px]" />
             </div>
             <div className="absolute top-[85px] left-[32px] w-[402px] h-24">
               <p className="absolute top-[-6px] left-[3px] text-2xl font-black text-left text-[#1e1b24] w-[471px]">
@@ -128,12 +121,8 @@ const OpenPositions = () => {
         {/* Creatives */}
         <div className="absolute top-[352px] left-[328px] w-[624px] h-80">
           <div className="absolute w-[624px] h-80 bg-white rounded-3xl border-[3px] border-[#1e1b24] shadow-[6px_6px_0px_0px_rgb(30_27_36)] p-8">
-            <div className="absolute top-[32px] left-[32px] w-[114px] h-[34px]">
-              <div className="absolute w-36 h-[42px] bg-[#3e9fff] rounded-[30px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] py-2 px-[18px]">
-                <p className="absolute top-[11px] left-[28px] text-base font-extrabold text-left text-[#1e1b24] uppercase">
-                  CREATIVES
-                </p>
-              </div>
+            <div className="absolute top-[32px] left-[32px] flex flex-row justify-between items-center w-fit h-fit">
+              <SectionBadge label="Creatives" variant="blue" className="!py-2 !px-[18px]" />
             </div>
             <div className="absolute top-[90px] left-[32px] w-[409px] h-24">
               <p className="absolute text-[28px] font-black text-left text-[#1e1b24] w-[409px]">
