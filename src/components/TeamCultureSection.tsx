@@ -1,15 +1,19 @@
 import Image from "next/image";
+import fs from "fs";
+import path from "path";
 
 export default function TeamCultureSection() {
-  const images = [
-    "event1.jpg",
-    "event2.jpg",
-    "event3.jpg",
-    "event4.jpg",
-    "event5.jpg"
-  ];
+  let images: string[] = [];
+  try {
+    const eventsDir = path.join(process.cwd(), "public", "events");
+    images = fs.readdirSync(eventsDir).filter(file => 
+      file.match(/\.(jpg|jpeg|png|webp|gif)$/i)
+    );
+  } catch (error) {
+    console.error("Error reading events directory:", error);
+  }
 
-  // We duplicate the array to create a seamless infinite scroll effect
+  // Duplicate the array to create a seamless infinite scroll effect
   const marqueeImages = [...images, ...images];
 
   return (
