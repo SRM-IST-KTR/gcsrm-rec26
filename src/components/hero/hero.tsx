@@ -83,8 +83,8 @@ export function HeroSection() {
         {/* Shinchan Avatar Image */}
         <div className="relative w-[280px] h-[310px] sm:w-[340px] sm:h-[380px] drop-shadow-[8px_8px_0_var(--color-text-primary)]">
           <Image
-            src="/assets/shinchan w logo.png"
-            alt="Shinchan GitHub Avatar"
+            src="/assets/snlogo.png"
+            alt="Sn GitHub Avatar"
             fill
             className="object-contain"
             priority
