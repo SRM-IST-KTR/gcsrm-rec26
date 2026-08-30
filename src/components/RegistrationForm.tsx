@@ -172,7 +172,15 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
             login(result.user);
           }
           router.push("/");
-        }, 2500);
+
+          // Allow React time to render the conditionally mounted status section
+          setTimeout(() => {
+            const statusSection = document.getElementById("status");
+            if (statusSection) {
+              statusSection.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 400);
+        }, 2000);
         return;
       }
 
