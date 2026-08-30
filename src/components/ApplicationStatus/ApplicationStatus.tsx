@@ -144,6 +144,7 @@ export function ApplicationStatus({
 
   return (
     <section
+      id="status"
       className={`w-full bg-[#FFFEEF] py-16 sm:py-20 md:py-24 px-4 sm:px-6 md:px-8 flex flex-col items-center ${className}`}
       aria-label="Application Status Section"
     >
