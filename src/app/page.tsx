@@ -10,6 +10,7 @@ import FAQSection from "@/components/FAQSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 import { HeroSection } from "@/components/hero/hero";
+import ApplicationStatus from "@/components/ApplicationStatus";
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
       {/* Recruitment sections - shown first */}
       <div className="flex w-full flex-col items-center overflow-x-hidden bg-[#fffdf0] font-outfit">
         <HeroSection />
+        <ApplicationStatus/>
         <div id="about" className="w-full flex flex-col items-center">
           <WhyWorkWithUs />
         </div>
