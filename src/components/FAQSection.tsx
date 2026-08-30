@@ -75,7 +75,7 @@ export default function FAQSection() {
         </h2>
         
         {/* Subheading */}
-        <p className="font-rubik text-[16px] md:text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-12 md:mb-16 leading-relaxed">
+        <p className="font-rubik text-[16px] md:text-[14px] md:text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-12 md:mb-16 leading-relaxed">
           Everything you need to know before applying to GitHub Community SRM Recruitment 2026-27.
         </p>
 
@@ -90,12 +90,12 @@ export default function FAQSection() {
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full flex items-center justify-between px-8 py-8 text-left focus:outline-none cursor-pointer"
-                  style={{ minHeight: '94px' }}
+                  className="w-full flex items-center justify-between px-5 py-5 md:px-8 md:py-8 text-left focus:outline-none cursor-pointer"
+                  style={{ minHeight: '74px' }}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-3 h-3 rounded-full border-[2px] border-[#1E1B24] ${faq.dotColor}`}></div>
-                    <span className="font-outfit-black text-[20px] text-[#1E1B24]">
+                    <span className="font-outfit-black text-[16px] md:text-[20px] text-[#1E1B24]">
                       {faq.question}
                     </span>
                   </div>
@@ -105,7 +105,7 @@ export default function FAQSection() {
                 </button>
                 
                 <div 
-                  className={`px-8 text-[#5C5866] font-rubik font-medium text-[18px] overflow-hidden transition-all duration-300 ${
+                  className={`px-5 md:px-8 text-[#5C5866] font-rubik font-medium text-[14px] md:text-[18px] overflow-hidden transition-all duration-300 ${
                     isOpen ? "max-h-96 pb-8 opacity-100" : "max-h-0 opacity-0 pb-0"
                   }`}
                 >
