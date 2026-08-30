@@ -140,32 +140,76 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
         {/* Form card */}
         <div className="relative w-full max-w-md">
-{/* Car that drives a loop around the card border */}
+{/* Car that drives smoothly around the card border in a clockwise loop */}
 <img
   src="/login/char-pixel-car.png"
   alt=""
   aria-hidden="true"
-  className="pointer-events-none select-none"
+  className="pointer-events-none select-none z-20"
   style={{
     position: "absolute",
-    width: "min(13vw, 110px)",
-    maxWidth: "110px",
-    minWidth: "80px",
-    zIndex: 20,
-    animation: "drive-around-box 8s linear infinite",
+    width: "clamp(54px, 10vw, 76px)",
+    height: "auto",
+    animation: "drive-around-box 10s linear infinite",
+    willChange: "top, left, transform",
   }}
 />
 
 <style>{`
   @keyframes drive-around-box {
-    0%      { top: 0%;   left: 0%;   transform: translate(-50%, -50%) scaleX(-1) rotate(90deg); }
-    25%     { top: 100%; left: 0%;   transform: translate(-50%, -50%) scaleX(-1) rotate(90deg); }
-    25.01%  { top: 100%; left: 0%;   transform: translate(-50%, -50%) scaleX(-1) rotate(0deg); }
-    50%     { top: 100%; left: 100%; transform: translate(-50%, -50%) scaleX(-1) rotate(0deg); }
-    50.01%  { top: 100%; left: 100%; transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg); }
-    75%     { top: 0%;   left: 100%; transform: translate(-50%, -50%) scaleX(-1) rotate(-90deg); }
-    75.01%  { top: 0%;   left: 100%; transform: translate(-50%, -50%) scaleX(1)  rotate(0deg); }
-    100%    { top: 0%;   left: 0%;   transform: translate(-50%, -50%) scaleX(1)  rotate(0deg); }
+    /* 1. TOP EDGE (Left to Right) */
+    0% {
+      top: 0%;
+      left: 0%;
+      transform: translate(-50%, -60%) scaleX(-1) rotate(0deg);
+    }
+    28% {
+      top: 0%;
+      left: 100%;
+      transform: translate(-50%, -60%) scaleX(-1) rotate(0deg);
+    }
+    /* Top-Right Corner Turn */
+    32% {
+      top: 0%;
+      left: 100%;
+      transform: translate(-35%, -50%) scaleX(-1) rotate(90deg);
+    }
+    /* 2. RIGHT EDGE (Top to Bottom) */
+    48% {
+      top: 100%;
+      left: 100%;
+      transform: translate(-35%, -50%) scaleX(-1) rotate(90deg);
+    }
+    /* Bottom-Right Corner Turn */
+    52% {
+      top: 100%;
+      left: 100%;
+      transform: translate(-50%, -35%) scaleX(-1) rotate(180deg);
+    }
+    /* 3. BOTTOM EDGE (Right to Left) */
+    78% {
+      top: 100%;
+      left: 0%;
+      transform: translate(-50%, -35%) scaleX(-1) rotate(180deg);
+    }
+    /* Bottom-Left Corner Turn */
+    82% {
+      top: 100%;
+      left: 0%;
+      transform: translate(-65%, -50%) scaleX(-1) rotate(270deg);
+    }
+    /* 4. LEFT EDGE (Bottom to Top) */
+    96% {
+      top: 0%;
+      left: 0%;
+      transform: translate(-65%, -50%) scaleX(-1) rotate(270deg);
+    }
+    /* Top-Left Corner Turn back to start */
+    100% {
+      top: 0%;
+      left: 0%;
+      transform: translate(-50%, -60%) scaleX(-1) rotate(360deg);
+    }
   }
 `}</style>
 
