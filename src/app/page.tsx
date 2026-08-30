@@ -2,7 +2,7 @@ import NavBar from "@/components/shared/Nav";
 import WhyWorkWithUs from "@/components/recruitment/WhyWorkWithUs";
 import OpenPositions from "@/components/recruitment/OpenPositions";
 import HowWeHire from "@/components/recruitment/HowWeHire";
-import CompanyValues from "@/components/recruitment/CompanyValues";
+// import CompanyValues from "@/components/recruitment/CompanyValues";
 import PerksSection from "@/components/PerksSection";
 import TeamCultureSection from "@/components/TeamCultureSection";
 import LoginSection from "@/components/LoginSection";

@@ -45,10 +45,10 @@ export default function TeamCultureSection() {
           100% { transform: translateX(-50%); }
         }
         .animate-marquee {
-          animation: marquee 30s linear infinite;
+          animation: marquee 42s linear infinite;
         }
         .animate-marquee-reverse {
-          animation: marquee 30s linear infinite reverse;
+          animation: marquee 42s linear infinite reverse;
         }
         .animate-marquee:hover, .animate-marquee-reverse:hover {
           animation-play-state: paused;
