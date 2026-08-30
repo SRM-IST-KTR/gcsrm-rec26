@@ -4,24 +4,49 @@ import { useState } from "react";
 
 const faqs = [
   {
-    question: "Who can apply?",
-    answer: "Any student of SRMIST passionate about tech, open source, and building cool things. From kindergarteners to seniors!",
+    question: "Who can apply for GitHub Community SRM Recruitment 2026-27?",
+    answer: "First-year and second-year B.Tech students from the Kattankulathur (KTR) campus are eligible to apply.",
     dotColor: "bg-[#FF4B4B]",
   },
   {
-    question: "Do I need prior experience?",
-    answer: "Not necessarily! We value curiosity and willingness to learn over prior experience. Bring your passion and we'll help you grow.",
+    question: "Can I apply for multiple domains?",
+    answer: "No. You can apply for only one domain during the recruitment process. Choose the domain that best matches your interests and skills.",
     dotColor: "bg-[#3E9FFF]",
   },
   {
-    question: "Can I apply for multiple domains?",
-    answer: "Yes, you can apply for multiple domains. However, we recommend focusing on the ones you are most passionate about.",
+    question: "Can students from any branch apply?",
+    answer: "Yes. B.Tech students from all branches at the KTR campus can apply.",
     dotColor: "bg-[#4EC37B]",
   },
   {
-    question: "Which domain should I choose?",
-    answer: "Choose the domain that aligns with your interests and where you want to build your skills. Feel free to explore our domain descriptions for more clarity.",
+    question: "Can I apply if I have no previous club experience?",
+    answer: "Yes. Previous club or community experience is not mandatory.",
     dotColor: "bg-[#FDE53E]",
+  },
+  {
+    question: "How will I know if I am selected?",
+    answer: "Selected candidates will be notified through the official communication channels.",
+    dotColor: "bg-[#FF8A4C]",
+  },
+  {
+    question: "Will there be a task during the recruitment process?",
+    answer: "Yes. Candidates will be given a domain-specific task to help us understand their skills, creativity, and approach.",
+    dotColor: "bg-[#A78BFA]",
+  },
+  {
+    question: "Is the recruitment task mandatory?",
+    answer: "Yes. If a task is assigned to you, completing it within the given deadline is an essential part of the selection process.",
+    dotColor: "bg-[#34D399]",
+  },
+  {
+    question: "Do I need to be an expert to join?",
+    answer: "Not at all! We're looking for students who are eager to learn, build, contribute, and grow.",
+    dotColor: "bg-[#F472B6]",
+  },
+  {
+    question: "Why should I join GitHub Community SRM?",
+    answer: "To learn beyond the classroom, work with like-minded people, build meaningful projects, and grow as a contributor to the community.",
+    dotColor: "bg-[#FACC15]",
   }
 ];
 
@@ -51,8 +76,7 @@ export default function FAQSection() {
         
         {/* Subheading */}
         <p className="font-rubik text-[16px] md:text-[18px] text-[#5C5866] font-medium text-center max-w-[640px] mb-12 md:mb-16 leading-relaxed">
-          Got questions about our kindergarten culture, play hours, or nap shifts?<br className="hidden md:block" />
-          Here are the cheeky answers.
+          Everything you need to know before applying to GitHub Community SRM Recruitment 2026-27.
         </p>
 
         {/* Accordion */}
