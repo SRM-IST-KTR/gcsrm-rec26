@@ -40,7 +40,10 @@ export default function Home() {
       </div>
       {/* Existing sections */}
       <PerksSection />
+
+    <div id="story">
       <TeamCultureSection />
+    </div>
       {/* <FAQSection /> */}
       <div id="faqs">
         <FAQSection />
