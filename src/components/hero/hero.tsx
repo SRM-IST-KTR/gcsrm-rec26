@@ -1,7 +1,28 @@
+"use client"
 import Image from "next/image";
-import Link from "next/link";
+import { ActionButton } from "@/components/common/actionButton"; 
 
 export function HeroSection() {
+  
+  // Reusing our trusty scroll offset logic so the button doesn't hide under the nav
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (id.startsWith("#")) {
+      e.preventDefault();
+      const section = document.getElementById(id.substring(1));
+      const nav = document.querySelector('nav');
+      
+      if (section && nav) {
+        const navHeight = nav.offsetHeight;
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        
+        window.scrollTo({
+          top: sectionTop - navHeight,
+          behavior: "smooth"
+        });
+      }
+    }
+  };
+
   return (
     <section className="relative w-full min-h-[85vh] flex items-center justify-between px-8 md:px-16 py-12 overflow-hidden border-b-[4px] border-text-primary bg-blue">
       {/* Background Pattern Layer */}
@@ -13,8 +34,8 @@ export function HeroSection() {
       {/* Left Content Column */}
       <div className="relative z-10 flex flex-col items-start max-w-2xl gap-6">
         
-        {/* Top Badge */}
-        <div className="inline-block px-5 py-2 bg-yellow border-[3px] border-text-primary rounded-xl shadow-[4px_4px_0_var(--color-text-primary)] font-rubik font-bold text-sm md:text-base text-text-primary transform -rotate-1">
+        {/* Top Badge - Made flat and fully rounded to match the reference */}
+        <div className="inline-block px-6 py-2 bg-yellow border-[3px] border-text-primary rounded-full shadow-[4px_4px_0_var(--color-text-primary)] font-rubik font-bold text-sm md:text-base text-text-primary">
           WE&apos;RE HIRING, TROUBLEMAKERS!
         </div>
 
@@ -30,44 +51,42 @@ export function HeroSection() {
           <strong className="text-yellow font-bold">GitHub Community SRM</strong> is looking for curious minds, creators, builders, and leaders ready to learn, collaborate and build something meaningful.
         </p>
 
-        {/* Action Buttons */}
+        {/* Action Buttons using the reusable component */}
         <div className="flex flex-wrap items-center gap-4 mt-2">
-          <Link
-            href="/apply"
-            className="px-8 py-3 bg-primary border-[3px] border-text-primary rounded-xl font-rubik font-bold text-bg-white text-lg shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all flex items-center gap-2"
-          >
-            APPLY NOW →
-          </Link>
-
-          <Link
-            href="#domains"
-            className="px-8 py-3 bg-yellow border-[3px] border-text-primary rounded-xl font-rubik font-bold text-text-primary text-lg shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all"
-          >
-            EXPLORE DOMAINS
-          </Link>
+          <ActionButton 
+            href="/apply" 
+            text="APPLY NOW →" 
+            bgColor="bg-primary" 
+            textColor="text-bg-white" 
+          />
+          <ActionButton 
+            href="#domains" 
+            text="EXPLORE DOMAINS" 
+            bgColor="bg-yellow" 
+            textColor="text-text-primary" 
+            onClick={(e) => scrollToSection(e, "#domains")}
+          />
         </div>
 
       </div>
 
       {/* Right Mascot Column */}
-      <div className="relative z-10 hidden lg:flex flex-col items-center justify-center min-w-[380px]">
+      <div className="relative z-10 hidden lg:flex flex-col items-center justify-center min-w-[380px] gap-6">
         
-        {/* Speech Bubble / Quote Box */}
-        <div className="absolute -top-12 -left-6 z-20 max-w-[260px] p-4 bg-yellow border-[3px] border-text-primary rounded-2xl shadow-[4px_4px_0_var(--color-text-primary)] font-rubik text-xs md:text-sm font-bold text-text-primary transform rotate-[-3deg] animate-bounce duration-1000">
-          &quot;To be a true hero, you must master the art of the afternoon nap!&quot;
-          {/* Speech bubble pointer triangle */}
-          <div className="absolute -bottom-3 right-10 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-yellow" />
-        </div>
-
         {/* Shinchan Avatar Image */}
         <div className="relative w-[340px] h-[380px] drop-shadow-[8px_8px_0_var(--color-text-primary)]">
           <Image
-            src="/assets/38446f3e72a370c408cee164431c8ec26a59c631.png"
+            src="/assets/shinchan w logo.png"
             alt="Shinchan GitHub Avatar"
             fill
             className="object-contain"
             priority
           />
+        </div>
+
+        {/* Quote Box - Moved below the mascot, made static, flat, and full width */}
+        <div className="w-full max-w-[340px] p-3 bg-yellow border-[3px] border-text-primary rounded-md shadow-[4px_4px_0_var(--color-text-primary)] font-rubik text-xs md:text-sm font-bold text-text-primary text-left">
+          &quot;To be a true hero, you must master the art of the afternoon nap!&quot;
         </div>
 
       </div>
