@@ -37,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Failed to restore auth session from localStorage:", err);
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("gcsrm_registration_cache");
     } finally {
       setIsLoading(false);
     }
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setParticipant(null);
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("gcsrm_registration_cache");
     } catch (err) {
       console.error("Failed to remove session from localStorage:", err);
     }
