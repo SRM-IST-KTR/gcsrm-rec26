@@ -1,3 +1,4 @@
+import Link from "next/link";
 const JobCard = ({
   badge,
   badgeBg,
@@ -32,12 +33,12 @@ const JobCard = ({
     </div>
     <p className="text-sm font-rubik font-medium text-[#5c5866] leading-normal">{description}</p>
     <div className="w-full h-0 border-2 border-dashed border-[#1e1b24]" />
-    <button
+    <Link href={`/apply?domain=${badge}`}
       className="w-fit rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-3 px-6"
       style={{ backgroundColor: accent }}
     >
       <span className={`text-base font-extrabold uppercase ${buttonTextClass}`}>Apply Now</span>
-    </button>
+    </Link>
   </div>
 );
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
@@ -62,7 +63,10 @@ type RegistrationFormProps = {
 };
 
 export default function RegistrationForm({ initialEmail = "" }: RegistrationFormProps) {
-  const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail });
+  const searchParams = useSearchParams();
+  const domainQuery = searchParams.get("domain") || "";
+  const validDomain = domains.includes(domainQuery) ? domainQuery : "";
+  const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail, domain: validDomain });
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

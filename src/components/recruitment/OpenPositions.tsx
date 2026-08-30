@@ -1,4 +1,5 @@
 import SectionHeader from "./SectionHeader";
+import Link from "next/link";
 import JobCard from "./JobCard";
 
 const OpenPositions = () => {
@@ -75,11 +76,11 @@ const OpenPositions = () => {
             </div>
             <div className="absolute top-[228px] left-[32px] w-[592px] h-0 border-2 border-dashed border-[#1e1b24]" />
             <div className="absolute top-[241px] left-[32px] w-[592px] h-14">
-              <button className="absolute flex flex-row justify-center items-center w-fit h-fit bg-[#ff4b4b] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
+              <Link href="/apply?domain=Technical" className="absolute flex flex-row justify-center items-center w-fit h-fit bg-[#ff4b4b] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
                 <span className="text-lg font-extrabold text-left text-white uppercase w-fit h-fit">
                   Apply Now
                 </span>
-              </button>
+              </Link>
             </div>
             <img
               className="absolute top-[28px] left-[459px] w-44 h-44"
@@ -107,11 +108,11 @@ const OpenPositions = () => {
             </div>
             <div className="absolute top-[223px] left-[32px] w-[528px] h-0 border-2 border-dashed border-[#1e1b24]" />
             <div className="absolute top-[239px] left-[32px] flex flex-row justify-between items-center w-[528px] h-14">
-              <button className="flex flex-row justify-center items-center w-fit h-fit bg-[#ffd93d] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
+              <Link href="/apply?domain=Corporate" className="flex flex-row justify-center items-center w-fit h-fit bg-[#ffd93d] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
                 <span className="text-lg font-extrabold text-left text-[#33260d] uppercase w-fit h-fit">
                   Apply Now
                 </span>
-              </button>
+              </Link>
             </div>
             <img
               className="absolute top-[22px] left-[401px] w-48 h-48"
@@ -141,11 +142,11 @@ const OpenPositions = () => {
             </div>
             <div className="absolute top-[219px] left-[32px] w-[560px] h-0 border-2 border-dashed border-[#1e1b24]" />
             <div className="absolute top-[239px] left-[32px] w-[560px] h-14">
-              <button className="absolute flex flex-row justify-center items-center w-fit h-fit bg-[#3e9fff] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
+              <Link href="/apply?domain=Creatives" className="absolute flex flex-row justify-center items-center w-fit h-fit bg-[#3e9fff] rounded-[20px] border-[3px] border-[#1e1b24] shadow-[4px_4px_0px_0px_rgb(30_27_36)] py-4 px-8">
                 <span className="text-lg font-extrabold text-left text-white uppercase w-fit h-fit">
                   Apply Now
                 </span>
-              </button>
+              </Link>
             </div>
             <img
               className="absolute top-[27px] left-[447px] w-[135px] h-[182px]"
