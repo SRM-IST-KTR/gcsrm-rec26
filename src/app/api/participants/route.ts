@@ -56,9 +56,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  await connectDB();
-
   try {
+    await connectDB();
     const body = await parseRequestBody(request);
     const now = new Date();
     const startDate = new Date(2026, 7, 25, 0, 0, 0);
