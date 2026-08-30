@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import NavBar from "@/components/shared/Nav";
 import WhyWorkWithUs from "@/components/recruitment/WhyWorkWithUs";
 import OpenPositions from "@/components/recruitment/OpenPositions";
@@ -11,23 +9,7 @@ import Footer from "@/components/Footer";
 import { HeroSection } from "@/components/hero/hero";
 import ApplicationStatus from "@/components/ApplicationStatus";
 
-export default async function Home() {
-  const gateEnabled = process.env.ACCESS_GATE_ENABLED === "true" || process.env.NEXT_PUBLIC_ACCESS_GATE_ENABLED === "true";
-
-  if (gateEnabled) {
-    const cookieStore = await cookies();
-    const savedPassword = cookieStore.get("gcsrm_team_password")?.value;
-
-    if (!savedPassword) {
-      redirect("/locked");
-    }
-
-    const expectedPassword = process.env.RECRUITMENT_PASSWORD;
-    if (!expectedPassword || savedPassword !== expectedPassword) {
-      redirect("/locked");
-    }
-  }
-
+export default function Home() {
   return (
     <main className="min-h-screen bg-[#FAF7EE] text-[#1E1B24]">
       <NavBar />

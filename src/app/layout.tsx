@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { AuthProvider } from "@/context/AuthContext";
-import PasswordGate from "@/components/PasswordGate";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body suppressHydrationWarning>
-        <AuthProvider>
-          <PasswordGate>{children}</PasswordGate>
-        </AuthProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
