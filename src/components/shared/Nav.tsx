@@ -3,10 +3,12 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { navLinks } from "@/components/shared/navlinks";
+import { useAuth } from "@/context/AuthContext";
 import { ButtonLink } from "../common/Button";
 import { Dropbox } from "../common/Dropbox";
 
 export default function NavBar() {
+  const { isLoggedIn, logout } = useAuth();
   
   // Scrolls to specific sections with navbar height offset
   const scrollToSection = (id: string) => {
@@ -71,11 +73,20 @@ export default function NavBar() {
 
       {/* 3. DESKTOP: Call to Action Button */}
       <div className="hidden md:block flex-shrink-0">
-        <ButtonLink 
-          text="Join Us" 
-          link="/apply" 
-          bgColor="bg-blue" 
-        />
+        {isLoggedIn ? (
+          <button
+            onClick={logout}
+            className="inline-flex items-center justify-center px-8 py-3 rounded-full border-[3px] border-text-primary font-rubik-medium font-bold text-bg-cream tracking-wider uppercase shadow-[4px_4px_0_var(--color-text-primary)] transition-all duration-150 ease-in-out hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--color-text-primary)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none bg-primary cursor-pointer"
+          >
+            Logout
+          </button>
+        ) : (
+          <ButtonLink 
+            text="Join Us" 
+            link="/apply" 
+            bgColor="bg-blue" 
+          />
+        )}
       </div>
 
       {/* 4. MOBILE: Reusable Dropbox Component */}
@@ -84,11 +95,20 @@ export default function NavBar() {
           label="Go to" 
           links={navLinks} 
           bgColor="bg-blue" 
-          cta={{
-            text: "Join Us",
-            link: "/apply",
-            bgColor: "bg-primary"
-          }}
+          cta={
+            isLoggedIn
+              ? {
+                  text: "Logout",
+                  link: "#",
+                  bgColor: "bg-primary",
+                  onClick: logout,
+                }
+              : {
+                  text: "Join Us",
+                  link: "/apply",
+                  bgColor: "bg-primary",
+                }
+          }
         />
       </div>
 

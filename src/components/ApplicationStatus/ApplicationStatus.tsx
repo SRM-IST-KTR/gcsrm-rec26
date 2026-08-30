@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
 import {
   ApplicationStatusProps,
   ParticipantStatus,
@@ -115,7 +116,7 @@ export function computeDynamicSteps(
  * - Computes completed, active, and locked states dynamically.
  */
 export function ApplicationStatus({
-  participant,
+  participant: propParticipant,
   status,
   customSteps = DEFAULT_STEP_CONFIGS,
   badgeText = "PROGRESS",
@@ -124,6 +125,9 @@ export function ApplicationStatus({
   className = "",
   showParticipantInfo = false,
 }: ApplicationStatusProps) {
+  const { participant: authParticipant } = useAuth();
+  const participant = propParticipant !== undefined ? propParticipant : authParticipant;
+
   // 1. CONDITIONAL RENDERING: Return null if no participant/status is provided (user not logged in)
   if (!participant && !status) {
     return null;

@@ -1,11 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import RegistrationForm from "@/components/RegistrationForm";
 import LoginSection from "@/components/LoginSection";
 
 export default function ApplyPage() {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
+  const { isLoggedIn, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isLoggedIn) {
+      router.replace("/");
+    }
+  }, [isLoggedIn, isLoading, router]);
+
+  if (!isLoading && isLoggedIn) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-[#FFFEEF] text-[#1E1B24]">
