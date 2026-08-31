@@ -6,19 +6,32 @@ import { useAuth } from "@/context/AuthContext";
 import RegistrationForm from "@/components/RegistrationForm";
 import EmailOtpForm from "@/components/EmailOtpForm";
 import { api, ApiError } from "@/lib/api";
+import { getOtpSession, clearOtpSession } from "@/lib/otpSession";
 
 export default function ApplyPage() {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const verifiedRef = useRef<string | null>(null);
+  const restoredRef = useRef(false);
   const { isLoggedIn, isLoading, login } = useAuth();
   const router = useRouter();
 
+  // Redirect already-logged-in users, and restore an OTP-verified session.
   useEffect(() => {
-    if (!isLoading && isLoggedIn) {
+    if (isLoading) return;
+    if (isLoggedIn) {
       router.replace("/");
+      return;
     }
-  }, [isLoggedIn, isLoading, router]);
+    if (!restoredRef.current) {
+      restoredRef.current = true;
+      const session = getOtpSession();
+      if (session?.email) {
+        handleVerified(session.email);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, isLoggedIn]);
 
   const handleVerified = useCallback(
     async (email: string) => {
@@ -29,6 +42,8 @@ export default function ApplyPage() {
 
         // Existing user → login and redirect home
         if (exists && user) {
+          // Clear the OTP session since the user is now fully logged in.
+          clearOtpSession();
           login(user);
           router.push("/");
           return;

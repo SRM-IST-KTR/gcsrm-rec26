@@ -7,6 +7,7 @@ import SectionBadge from "@/components/common/SectionBadge";
 import Popup from "@/components/common/Popup";
 import Dropdown from "@/components/common/Dropdown";
 import { api, ApiError } from "@/lib/api";
+import { getOtpSession, clearOtpSession } from "@/lib/otpSession";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -145,7 +146,15 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
     setIsSubmitting(true);
     try {
-      const { user } = await api.applyForRecruitment({
+      const session = getOtpSession();
+      if (!session?.token) {
+        throw new ApiError(0, {
+          success: false,
+          message: "Email verification required. Please verify your email first.",
+        });
+      }
+
+      const { user } = await api.applyForRecruitment(session.token, {
         name: formData.name,
         email: formData.email,
         registrationNumber: formData.registrationNumber,
@@ -154,6 +163,9 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         domain: formData.domain,
         degreeWithBranch: formData.degreeWithBranch,
       });
+
+      // Registration completed → the OTP session is no longer needed.
+      clearOtpSession();
 
       setPopup({
         isOpen: true,

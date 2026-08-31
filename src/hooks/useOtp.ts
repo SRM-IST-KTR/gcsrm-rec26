@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { saveOtpSession } from "@/lib/otpSession";
 
 export type OtpPhase =
   | "idle"      // email not yet submitted
@@ -113,7 +114,12 @@ export function useOtp(): UseOtpResult {
       setPhase("verifying");
 
       try {
-        await api.verifyOtp(email, otp);
+        const result = await api.verifyOtp(email, otp);
+        saveOtpSession({
+          token: result.token,
+          email,
+          expiresAt: Date.now() + (result.expiresInSeconds ?? 3600) * 1000,
+        });
         setPhase("verified");
         return true;
       } catch (err) {

@@ -5,6 +5,7 @@ import { useOtp } from "@/hooks/useOtp";
 import { OtpInput } from "@/components/OtpInput";
 import { SendOtpButton } from "@/components/SendOtpButton";
 import { ResendOtpLink } from "@/components/ResendOtpLink";
+import { clearOtpSession } from "@/lib/otpSession";
 
 interface EmailOtpFormProps {
   /** Prefill the email input when arriving from the login step. */
@@ -355,7 +356,10 @@ export function EmailOtpForm({
                   <div className="mt-3 text-center">
                     <button
                       type="button"
-                      onClick={reset}
+                      onClick={() => {
+                        clearOtpSession();
+                        reset();
+                      }}
                       className="text-sm font-medium text-[#555555] hover:text-[#1E1B24] underline underline-offset-2 transition-colors cursor-pointer bg-transparent border-none"
                     >
                       Use a different email

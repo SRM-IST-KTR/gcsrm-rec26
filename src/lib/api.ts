@@ -6,6 +6,10 @@
  * - `NEXT_PUBLIC_API_URL` empty (default in dev) → same-origin relative paths;
  *   Next.js rewrites forward `/api/otp/*`, `/api/email/*`, `/api/recruitment/*`
  *   to the backend, avoiding CORS during development.
+ *
+ * The backend is cookie-free for these endpoints, so `credentials` is not sent;
+ * every request is a JSON POST with `Content-Type: application/json`. If auth
+ * tokens are ever needed, add a single header interceptor inside `request`.
  */
 
 import type { ParticipantData } from "@/components/ApplicationStatus/types";
@@ -27,6 +31,9 @@ export interface OtpRateLimited {
 export interface OtpVerifySuccess {
   success: true;
   message: string;
+  /** JWT proving this email passed OTP verification. */
+  token: string;
+  expiresInSeconds?: number;
 }
 
 // ── Error shapes ──────────────────────────────────────────────────────────
@@ -104,16 +111,19 @@ interface BackendApplyUser {
   createdAt: string;
 }
 
-// ── Transport ─────────────────────────────────────────────────────────────
-
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+
+/** Headers shared by every backend call. */
+function jsonHeaders(): Record<string, string> {
+  return { "Content-Type": "application/json" };
+}
 
 async function post<T>(path: string, payload: Record<string, unknown>): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { ...jsonHeaders() },
       body: JSON.stringify(payload),
     });
   } catch {
@@ -140,6 +150,17 @@ async function post<T>(path: string, payload: Record<string, unknown>): Promise<
   }
 
   return data as T;
+}
+
+/** Read the `user` field out of an unknown parsed JSON body. */
+function extractApplyUser(data: Record<string, unknown> | null): BackendApplyUser {
+  if (data !== null && typeof data === "object" && "user" in data) {
+    return data.user as BackendApplyUser;
+  }
+  throw new ApiError(0, {
+    success: false,
+    message: "Unexpected response from server.",
+  });
 }
 
 // ── Mappers ───────────────────────────────────────────────────────────────
@@ -178,7 +199,7 @@ export const api = {
     return post<OtpSendSuccess>("/api/otp/send", { email });
   },
 
-  /** POST /api/otp/verify — throws ApiError on failure. */
+  /** POST /api/otp/verify — throws ApiError on failure; returns the verified-session JWT. */
   verifyOtp(email: string, otp: string) {
     return post<OtpVerifySuccess>("/api/otp/verify", { email, otp });
   },
@@ -193,7 +214,7 @@ export const api = {
     const url = `${BASE_URL}/api/recruitment?email=${encodeURIComponent(email)}`;
     let response: Response;
     try {
-      response = await fetch(url, { headers: { "Content-Type": "application/json" } });
+      response = await fetch(url, { headers: { ...jsonHeaders() } });
     } catch {
       throw new ApiError(0, {
         success: false,
@@ -227,23 +248,56 @@ export const api = {
 
   /**
    * Register a new participant via `POST /api/recruitment/apply`.
+   * Requires the OTP-verified JWT (Bearer token) to prove email ownership.
    * Throws ApiError on failure; the body contains `error` and optionally `errors`.
    */
-  async applyForRecruitment(payload: {
-    name: string;
-    email: string;
-    registrationNumber: string;
-    phone: string;
-    year: string;
-    domain: string;
-    degreeWithBranch: string;
-    links?: { github?: string | null; demo?: string | null; deployment?: string | null };
-    submissionTime?: string;
-  }): Promise<{ user: ParticipantData }> {
-    const data = await post<{ success: true; message: string; user: BackendApplyUser }>(
-      "/api/recruitment/apply",
-      payload as unknown as Record<string, unknown>,
-    );
-    return { user: mapBackendApplyUser(data.user) };
+  async applyForRecruitment(
+    token: string,
+    payload: {
+      name: string;
+      email: string;
+      registrationNumber: string;
+      phone: string;
+      year: string;
+      domain: string;
+      degreeWithBranch: string;
+      links?: { github?: string | null; demo?: string | null; deployment?: string | null };
+      submissionTime?: string;
+    },
+  ): Promise<{ user: ParticipantData }> {
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}/api/recruitment/apply`, {
+        method: "POST",
+        headers: {
+          ...jsonHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      throw new ApiError(0, {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      });
+    }
+
+    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+    const isError =
+      !response.ok ||
+      (data !== null && typeof data === "object" && data.success === false);
+
+    if (isError) {
+      throw new ApiError(
+        response.status,
+        (data as unknown as ApiErrorBody) ?? {
+          success: false,
+          message: `Request failed with status ${response.status}`,
+        },
+      );
+    }
+
+    return { user: mapBackendApplyUser(extractApplyUser(data)) };
   },
 };
