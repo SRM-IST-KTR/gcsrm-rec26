@@ -13,6 +13,7 @@
  */
 
 import type { ParticipantData } from "@/components/ApplicationStatus/types";
+import { getOtpEmailHtml } from "@/lib/emailTemplate";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -208,7 +209,12 @@ function mapBackendApplyUser(user: any): ParticipantData {
 export const api = {
   /** POST /api/otp/send — throws ApiError on failure (429 carries retryAfterSeconds). */
   sendOtp(email: string) {
-    return post<OtpSendSuccess>("/api/otp/send", { email });
+    const emailTemplate = getOtpEmailHtml({ otpCode: "{{otp}}" });
+    return post<OtpSendSuccess>("/api/otp/send", {
+      email,
+      emailTemplate,
+      subject: "Your GCSRM Login OTP",
+    });
   },
 
   /** POST /api/otp/verify — throws ApiError on failure; returns the verified-session JWT. */
