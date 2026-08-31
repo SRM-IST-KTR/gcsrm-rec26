@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import { ParticipantData } from "@/components/ApplicationStatus/types";
+import { api } from "@/lib/api";
 
 interface AuthContextType {
   participant: ParticipantData | null;
@@ -53,18 +54,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Background fetch to sync latest status from database
       if (cachedUser?.email) {
         try {
-          const res = await fetch(
-            `/api/participants?email=${encodeURIComponent(cachedUser.email)}`
-          );
-          if (res.ok) {
-            const data = await res.json();
-            if (data.success && data.user && isMounted) {
-              setParticipant(data.user);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(data.user));
-            }
+          const { exists, user } = await api.lookupParticipant(cachedUser.email);
+          if (exists && user && isMounted) {
+            setParticipant(user);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
           }
         } catch (err) {
-          console.error("Failed to refresh participant session from DB:", err);
+          console.error("Failed to refresh participant session from backend:", err);
         }
       }
     };

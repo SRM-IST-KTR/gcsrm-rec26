@@ -1,6 +1,6 @@
 /**
  * Types and interfaces for the ApplicationStatus component.
- * Data models are strictly aligned with src/models/participant.model.ts
+ * Data models are strictly aligned with the backend participant schema.
  */
 
 export type ParticipantStatus =
@@ -52,7 +52,7 @@ export interface StatusStep {
 
 export interface ApplicationStatusProps {
   /**
-   * Participant data matching participant.model.ts schema.
+   * Participant data mapped from the backend participant schema.
    * If null or undefined (e.g. user not logged in), the component renders null.
    */
   participant?: Partial<ParticipantData> | null;
