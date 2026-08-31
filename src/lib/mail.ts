@@ -1,22 +1,24 @@
 import nodemailer from "nodemailer";
 
-export async function sendOtpEmail(toEmail: string, otpCode: string) {
-  // Generate test SMTP account dynamically using Ethereal
-  const testAccount = await nodemailer.createTestAccount();
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
-  // Create transporter with Ethereal test credentials
-  const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    },
-  });
+export async function sendOtpEmail(toEmail: string, otpCode: string) {
+  const fromEmail = process.env.SMTP_FROM || process.env.SMTP_USER;
+
+  if (!fromEmail) {
+    throw new Error("Sender email environment variable is missing.");
+  }
 
   const mailOptions = {
-    from: '"GitHub Community SRM" <noreply@gcsrm.com>',
+    from: fromEmail,
     to: toEmail,
     subject: "Your GCSRM Login OTP",
     text: `Your GCSRM login OTP is: ${otpCode}\n\nThis code is valid for 5 minutes (300 seconds). If you did not request this OTP, please ignore this email.`,
@@ -87,9 +89,5 @@ export async function sendOtpEmail(toEmail: string, otpCode: string) {
     `,
   };
 
-  const info = await transporter.sendMail(mailOptions);
-
-  console.log("✉️ Ethereal Preview URL: %s", nodemailer.getTestMessageUrl(info));
-
-  return info;
+  return await transporter.sendMail(mailOptions);
 }
