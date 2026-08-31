@@ -3,7 +3,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SRM GitHub Community",
+  title: "GCSRM Recruitments 2026",
   description: "Join the GitHub SRM Community — your path to the playground.",
   icons: {
     icon: [
