@@ -5,9 +5,13 @@
 
 export type ParticipantStatus =
   | "registered"
+  | "task_assigned"
   | "taskSubmitted"
   | "interviewShortlisted"
-  | "onboarding";
+  | "interviewShortlist"
+  | "onboarding"
+  | "rejected"
+  | "underReview";
 
 export type StepState = "completed" | "active" | "locked";
 
@@ -68,6 +72,6 @@ export interface ApplicationStatusProps {
   cardTitle?: string;
   /** Additional container CSS class names */
   className?: string;
-  /** Toggle displaying participant info banner (defaults to false) */
+  /** Toggle displaying participant info banner (defaults to true) */
   showParticipantInfo?: boolean;
 }
