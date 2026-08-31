@@ -24,7 +24,7 @@ export function ParticipantSummary({
       <div className="flex flex-col">
         <span className="font-rubik text-xs font-medium text-[#5C5866]">Applicant</span>
         <span className="font-outfit-black text-sm font-bold text-[#1E1B24]">
-          {participant.name || "Candidate"}
+          {participant.name?.trim() || (participant.email ? participant.email.split("@")[0] : "Candidate")}
         </span>
       </div>
 
