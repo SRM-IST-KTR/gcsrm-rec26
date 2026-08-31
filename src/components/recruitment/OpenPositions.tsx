@@ -46,7 +46,7 @@ const OpenPositions = () => {
         />
       </div>
       <img
-        className="absolute top-[10px] left-[-70px] w-[170px] h-auto lg:top-[30px] lg:left-[20px] lg:w-[350px] lg:h-auto pointer-events-none z-10"
+        className="absolute top-[-40px] left-[-30px] w-[170px] h-auto lg:top-[-110px] lg:left-[-20px] lg:w-[350px] lg:h-auto pointer-events-none z-10"
         src="/images/recruitment/action-punch-mascot.png"
         alt="Action punch mascot"
       />
