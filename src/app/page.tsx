@@ -22,7 +22,7 @@ export default function Home() {
         <div id="domains" className="w-full flex flex-col items-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
           <OpenPositions />
         </div>
-        <div className="w-full flex justify-center bg-[#fffdf0]">
+        <div className="w-full flex flex-col items-center bg-[#fffeef] border-t-[3px] border-[#1E1B24]">
           <HowWeHire />
         </div>
       </div>
