@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import SectionBadge from "@/components/common/SectionBadge";
 import Popup from "@/components/common/Popup";
+import Dropdown from "@/components/common/Dropdown";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -120,6 +121,11 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       ? event.target.value.replace(/\D/g, "").slice(0, 10)
       : event.target.value;
 
+    setFormData((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
+  };
+
+  const handleDropdownChange = (field: FieldName, value: string) => {
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
   };
@@ -330,21 +336,31 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
             {fieldError("phone")}
             <input type="tel" id="phone" name="phone" inputMode="numeric" maxLength={10} value={formData.phone} onChange={handleChange} placeholder="10-digit phone number" className={inputClass("phone")} />
           </div>
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-3 relative z-30">
             <label htmlFor="year" className="font-outfit-black text-[20px] text-[#1E1B24]">Year</label>
             {fieldError("year")}
-            <select id="year" name="year" value={formData.year} onChange={handleChange} className={`${inputClass("year")} cursor-pointer`}>
-              <option value="" disabled>Select your year</option>
-              {years.map((year) => <option key={year} value={year}>{year}</option>)}
-            </select>
+            <Dropdown
+              id="year"
+              name="year"
+              value={formData.year}
+              options={years}
+              placeholder="Select your year"
+              error={errors.year}
+              onChange={(val) => handleDropdownChange("year", val)}
+            />
           </div>
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-3 relative z-20">
             <label htmlFor="domain" className="font-outfit-black text-[20px] text-[#1E1B24]">Domain</label>
             {fieldError("domain")}
-            <select id="domain" name="domain" value={formData.domain} onChange={handleChange} className={`${inputClass("domain")} cursor-pointer`}>
-              <option value="" disabled>Select a domain</option>
-              {domains.map((domain) => <option key={domain} value={domain}>{domain}</option>)}
-            </select>
+            <Dropdown
+              id="domain"
+              name="domain"
+              value={formData.domain}
+              options={domains}
+              placeholder="Select a domain"
+              error={errors.domain}
+              onChange={(val) => handleDropdownChange("domain", val)}
+            />
           </div>
           <div className="flex flex-col space-y-3">
             <label htmlFor="degreeWithBranch" className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
