@@ -5,7 +5,7 @@ const HowWeHire = () => {
   return (
     <section
       id="process"
-      className="relative w-full border-t-[3px] border-[#1E1B24] bg-[#fffdf0] py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
+      className="relative w-full border-t-[3px] border-[#1E1B24] bg-[#fffdf0] py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-visible"
     >
       <div className="w-full max-w-7xl mx-auto flex flex-col items-center relative z-20">
         {/* Section Header */}
@@ -54,7 +54,7 @@ const HowWeHire = () => {
       </div>
 
       <img
-        className="absolute top-4 -left-12 sm:top-6 sm:-left-10 md:top-0 md:-left-16 lg:top-2 lg:-left-24 xl:-left-20 w-56 sm:w-64 md:w-80 lg:w-[26rem] xl:w-[30rem] h-auto pointer-events-none z-0 object-contain rotate-45"
+        className="absolute top-[-50px] left-[-120px] w-[300px] lg:top-[-180px] lg:left-[-280px] lg:w-[750px] h-auto pointer-events-none z-10 object-contain rotate-[55deg]"
         src="/images/recruitment/journey-robot.png"
         alt="Green robot mascot"
       />

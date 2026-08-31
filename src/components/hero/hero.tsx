@@ -53,9 +53,9 @@ export function HeroSection() {
         {/* Subtitle / Description */}
         <p className="font-rubik text-bg-white text-base md:text-lg max-w-lg opacity-90 leading-relaxed font-medium">
           <strong className="text-[#FFD600] font-extrabold [-webkit-text-stroke:1.8px_#1E1B24] [paint-order:stroke_fill] tracking-wide">
-            GitHub Community SRM
+            We
           </strong>{" "}
-          is looking for curious minds, creators, builders, and leaders ready to learn, collaborate and build something meaningful.
+          are looking for curious minds, creators, builders, and leaders ready to learn, collaborate and build something meaningful.
         </p>
 
         {/* Action Buttons using the reusable component */}
