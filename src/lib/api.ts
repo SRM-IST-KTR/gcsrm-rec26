@@ -81,34 +81,32 @@ export class ApiError extends Error {
 // ── Participant shapes (backend → frontend mapping) ───────────────────────
 
 /**
- * Response from `GET /api/recruitment?email=` (getParticipantTasks).
- * Fields differ from the frontend ParticipantData shape.
+ * Backend response shape from `GET /api/recruitment/email/:email`.
  */
-interface BackendParticipantLookup {
-  success: true;
-  name: string;
-  regNo: string;
-  email: string;
-  year: string;
-  dept: string;
-  phone: string;
-  domain: string;
-  status: string;
-}
-
-/**
- * User payload returned by `POST /api/recruitment/apply` on success.
- * Uses `id` instead of `_id`, and no `links`/`phone`/`degreeWithBranch`.
- */
-interface BackendApplyUser {
-  id: string;
-  name: string;
-  email: string;
-  registrationNumber: string;
-  domain: string;
-  year: string;
-  status: string;
-  createdAt: string;
+export interface BackendParticipantLookupResponse {
+  success: boolean;
+  verified: boolean;
+  message?: string;
+  data: {
+    _id?: string;
+    id?: string;
+    name?: string;
+    email?: string;
+    registrationNumber?: string;
+    regNo?: string;
+    phone?: string;
+    year?: string;
+    domain?: string;
+    degreeWithBranch?: string;
+    dept?: string;
+    status?: string;
+    links?: {
+      github?: string | null;
+      demo?: string | null;
+      deployment?: string | null;
+    };
+    createdAt?: string;
+  } | null;
 }
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
@@ -154,17 +152,20 @@ async function post<T>(path: string, payload: Record<string, unknown>): Promise<
 
 // ── Mappers ───────────────────────────────────────────────────────────────
 
-function mapBackendLookup(raw: any): ParticipantData {
-  const source = raw?.user || raw?.participant || raw?.data || raw || {};
+function mapBackendLookup(data: any): ParticipantData {
+  const source = data || {};
   return {
+    _id: source._id || source.id,
     name: source.name || "",
     email: source.email || "",
-    registrationNumber: source.regNo || source.registrationNumber || "",
+    registrationNumber: source.registrationNumber || source.regNo || "",
     phone: source.phone || "",
     year: source.year || "",
     domain: source.domain || "",
-    degreeWithBranch: source.dept || source.degreeWithBranch || "",
+    degreeWithBranch: source.degreeWithBranch || source.dept || "",
+    links: source.links,
     status: (source.status || "registered") as ParticipantData["status"],
+    createdAt: source.createdAt,
   };
 }
 
@@ -172,6 +173,9 @@ function extractApplyUser(data: Record<string, unknown> | null): Record<string, 
   if (data !== null && typeof data === "object") {
     if ("user" in data && data.user && typeof data.user === "object") {
       return data.user as Record<string, unknown>;
+    }
+    if ("data" in data && data.data && typeof data.data === "object") {
+      return data.data as Record<string, unknown>;
     }
     if ("participant" in data && data.participant && typeof data.participant === "object") {
       return data.participant as Record<string, unknown>;
@@ -213,13 +217,15 @@ export const api = {
   },
 
   /**
-   * Look up a participant by email via the backend `GET /api/recruitment?email=`.
-   * If the participant is found (200) → `{ exists: true, user }`.
-   * If not found (404) → `{ exists: false, user: null }`.
-   * Network / unexpected status → throws ApiError.
+   * Look up a participant by email via the backend `GET /api/recruitment/email/:email`.
+   * Backend response shape:
+   * `{ success: true, verified: boolean, message: string, data: ParticipantObject | null }`
+   *
+   * If verified is true and data exists -> `{ exists: true, user: mapBackendLookup(data) }`.
+   * If verified is false or data is null (or 404) -> `{ exists: false, user: null }`.
    */
   async lookupParticipant(email: string): Promise<{ exists: boolean; user: ParticipantData | null }> {
-    const url = `${BASE_URL}/api/recruitment?email=${encodeURIComponent(email)}`;
+    const url = `${BASE_URL}/api/recruitment/email/${encodeURIComponent(email)}`;
     let response: Response;
     try {
       response = await fetch(url, { headers: { ...jsonHeaders() } });
@@ -230,28 +236,40 @@ export const api = {
       });
     }
 
-    // 404 means the email is not registered yet — not an error.
+    // 404 means the email is not registered yet
     if (response.status === 404) {
       return { exists: false, user: null };
     }
 
-    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+    const json = (await response.json().catch(() => null)) as
+      | BackendParticipantLookupResponse
+      | Record<string, unknown>
+      | null;
 
     const isError =
       !response.ok ||
-      (data !== null && typeof data === "object" && data.success === false);
+      (json !== null && typeof json === "object" && json.success === false);
 
     if (isError) {
       throw new ApiError(
         response.status,
-        (data as unknown as ApiErrorBody) ?? {
+        (json as unknown as ApiErrorBody) ?? {
           success: false,
           message: `Request failed with status ${response.status}`,
         },
       );
     }
 
-    return { exists: true, user: mapBackendLookup(data as unknown as BackendParticipantLookup) };
+    if (json && typeof json === "object") {
+      const isVerified = (json as any).verified === true;
+      const data = (json as any).data;
+
+      if (isVerified && data) {
+        return { exists: true, user: mapBackendLookup(data) };
+      }
+    }
+
+    return { exists: false, user: null };
   },
 
   /**
