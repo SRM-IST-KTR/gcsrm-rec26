@@ -7,15 +7,13 @@
 
 export interface EmailTemplateOptions {
   otpCode: string;
-  domainUrl?: string;
 }
 
 export function getOtpEmailHtml({
   otpCode,
-  domainUrl = "https://your-production-domain.com",
+
 }: EmailTemplateOptions): string {
-  const normalizedDomain = domainUrl.trim().replace(/\/+$/, "");
-  const mascotUrl = `${normalizedDomain}/assets/snlogo.png`;
+  const mascotUrl = `https://raw.githubusercontent.com/SRM-IST-KTR/gcsrm-rec26/staging/public/assets/snlogo.png`;
 
   return `<!DOCTYPE html>
 <html lang="en">
