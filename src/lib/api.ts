@@ -13,7 +13,7 @@
  */
 
 import type { ParticipantData } from "@/components/ApplicationStatus/types";
-import { getOtpEmailHtml } from "@/lib/emailTemplate";
+import { getOtpEmailHtml, getRegistrationSuccessEmailHtml } from "@/lib/emailTemplate";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -207,7 +207,7 @@ function mapBackendApplyUser(user: any): ParticipantData {
 // ── Public API ────────────────────────────────────────────────────────────
 
 export const api = {
-  /** POST /api/otp/send — throws ApiError on failure (429 carries retryAfterSeconds). */
+  /** POST /api/otp/send — sends email with the custom Neobrutalist template and subject. */
   sendOtp(email: string) {
     const emailTemplate = getOtpEmailHtml({ otpCode: "{{otp}}" });
     return post<OtpSendSuccess>("/api/otp/send", {
@@ -220,6 +220,16 @@ export const api = {
   /** POST /api/otp/verify — throws ApiError on failure; returns the verified-session JWT. */
   verifyOtp(email: string, otp: string) {
     return post<OtpVerifySuccess>("/api/otp/verify", { email, otp });
+  },
+
+  /** POST /api/email/send — sends registration confirmation email to applicant. */
+  sendConfirmationEmail(email: string, name: string) {
+    const emailTemplate = getRegistrationSuccessEmailHtml(name);
+    return post<{ success: boolean; message?: string }>("/api/email/send", {
+      email,
+      emailTemplate,
+      subject: "Application Confirmed - GCSRM '26",
+    });
   },
 
   /**
