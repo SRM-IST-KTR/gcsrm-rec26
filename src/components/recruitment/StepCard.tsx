@@ -21,7 +21,7 @@ const StepCard = ({
         className="flex flex-row justify-center items-center w-14 h-14 rounded-[28px] border-[3px] border-[#1e1b24] shadow-[3px_3px_0px_0px_rgb(30_27_36)] shrink-0"
         style={{ backgroundColor: stepBg }}
       >
-        <p className={`text-xl font-black text-left w-fit h-fit ${stepTextClass}`}>{step}</p>
+        <p className={`text-xl font-black text-center w-fit h-fit ${stepTextClass}`}>{step}</p>
       </div>
       {showLine ? (
         <div className="flex flex-row items-start flex-1 h-2 bg-[#1e1b24] rounded" />
