@@ -152,10 +152,31 @@ async function post<T>(path: string, payload: Record<string, unknown>): Promise<
   return data as T;
 }
 
-/** Read the `user` field out of an unknown parsed JSON body. */
-function extractApplyUser(data: Record<string, unknown> | null): BackendApplyUser {
-  if (data !== null && typeof data === "object" && "user" in data) {
-    return data.user as BackendApplyUser;
+// ── Mappers ───────────────────────────────────────────────────────────────
+
+function mapBackendLookup(raw: any): ParticipantData {
+  const source = raw?.user || raw?.participant || raw?.data || raw || {};
+  return {
+    name: source.name || "",
+    email: source.email || "",
+    registrationNumber: source.regNo || source.registrationNumber || "",
+    phone: source.phone || "",
+    year: source.year || "",
+    domain: source.domain || "",
+    degreeWithBranch: source.dept || source.degreeWithBranch || "",
+    status: (source.status || "registered") as ParticipantData["status"],
+  };
+}
+
+function extractApplyUser(data: Record<string, unknown> | null): Record<string, unknown> {
+  if (data !== null && typeof data === "object") {
+    if ("user" in data && data.user && typeof data.user === "object") {
+      return data.user as Record<string, unknown>;
+    }
+    if ("participant" in data && data.participant && typeof data.participant === "object") {
+      return data.participant as Record<string, unknown>;
+    }
+    return data;
   }
   throw new ApiError(0, {
     success: false,
@@ -163,30 +184,17 @@ function extractApplyUser(data: Record<string, unknown> | null): BackendApplyUse
   });
 }
 
-// ── Mappers ───────────────────────────────────────────────────────────────
-
-function mapBackendLookup(raw: BackendParticipantLookup): ParticipantData {
+function mapBackendApplyUser(user: any): ParticipantData {
   return {
-    name: raw.name,
-    email: raw.email,
-    registrationNumber: raw.regNo,
-    phone: raw.phone,
-    year: raw.year,
-    domain: raw.domain,
-    degreeWithBranch: raw.dept,
-    status: raw.status as ParticipantData["status"],
-  };
-}
-
-function mapBackendApplyUser(user: BackendApplyUser): ParticipantData {
-  return {
-    _id: user.id,
-    name: user.name,
-    email: user.email,
-    registrationNumber: user.registrationNumber,
-    domain: user.domain,
-    year: user.year,
-    status: user.status as ParticipantData["status"],
+    _id: user.id || user._id,
+    name: user.name || "",
+    email: user.email || "",
+    registrationNumber: user.registrationNumber || user.regNo || "",
+    domain: user.domain || "",
+    year: user.year || "",
+    phone: user.phone || "",
+    degreeWithBranch: user.degreeWithBranch || user.dept || "",
+    status: (user.status || "registered") as ParticipantData["status"],
     createdAt: user.createdAt,
   };
 }
