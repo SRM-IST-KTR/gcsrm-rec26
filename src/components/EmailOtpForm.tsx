@@ -82,7 +82,7 @@ export function EmailOtpForm({
   const isSending = phase === "sending";
   const isVerifying = phase === "verifying";
   const showOtpStep = email !== null;
-  const heading = showOtpStep ? "Check your email" : "Verify your email";
+  const heading = showOtpStep ? "Check your email" : "Login with your email";
 
   return (
     <>
