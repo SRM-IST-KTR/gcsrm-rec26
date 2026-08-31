@@ -56,8 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const { exists, user } = await api.lookupParticipant(cachedUser.email);
           if (exists && user && isMounted) {
-            setParticipant(user);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+            const updated = { ...cachedUser, ...user };
+            setParticipant(updated);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
           }
         } catch (err) {
           console.error("Failed to refresh participant session from backend:", err);
