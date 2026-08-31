@@ -18,12 +18,19 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    setError("");
+    if (error) {
+      setError("");
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setError("Please enter a valid SRM Email ID before proceeding.");
+      return;
+    }
 
     if (!emailPattern.test(normalizedEmail)) {
       setError("Please enter a valid SRM email ending with @srmist.edu.in.");
@@ -132,11 +139,23 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
         {/* Login heading */}
         <h1
-          className="text-[#1e1b24] text-center mb-8 leading-tight"
+          className="text-[#1e1b24] text-center mb-6 leading-tight"
           style={{ fontWeight: 900, fontSize: "clamp(2rem, 6vw, 3.5rem)" }}
         >
           Login!!!
         </h1>
+
+        {/* Conditional Neobrutalist Error Banner */}
+        {hasError && (
+          <div className="w-full max-w-md bg-[#FFF5F5] border-[3px] border-[#1E1B24] shadow-[4px_4px_0px_#1E1B24] rounded-[20px] p-4 sm:p-5 text-center mb-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#EF4444] shrink-0">
+              ERROR
+            </span>
+            <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
+              {errorMessage || "Please enter a valid SRM Email ID before proceeding."}
+            </p>
+          </div>
+        )}
 
         {/* Form card */}
         <div className="relative w-full max-w-md">
@@ -215,6 +234,7 @@ export default function LoginSection({ onProceed }: LoginSectionProps) {
 
           <form
             onSubmit={handleSubmit}
+            noValidate
             className="bg-white rounded-3xl p-8 w-full"
             style={{
               border: "3px solid #1e1b24",

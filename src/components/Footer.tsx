@@ -1,18 +1,21 @@
+"use client";
+
+import React from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Domains", href: "/domains" },
-  { label: "Life @GCSRM", href: "/#life" },
+  { label: "About", href: "/#about" },
+  { label: "Domains", href: "/#domains" },
+  { label: "Story", href: "/#story" },
 ];
 
 const recruitmentLinks = [
   { label: "Apply", href: "/apply" },
-  { label: "Check Status", href: "/status" },
-  { label: "FAQs", href: "/#faqs" },
   { label: "Selection Process", href: "/#process" },
-  // { label: "Privacy Policy", href: "/privacy" },
+  { label: "FAQs", href: "/#faqs" },
 ];
 
 const connectLinks = [
@@ -46,6 +49,45 @@ function LinkedInIcon() {
 }
 
 export default function Footer() {
+  const { isLoggedIn } = useAuth();
+
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href === "/" || href === "/#top" || href === "#top") {
+      if (typeof window !== "undefined" && window.location.pathname === "/") {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+        window.history.pushState(null, "", "/");
+        return;
+      }
+    }
+
+    if (href.startsWith("#") || href.startsWith("/#")) {
+      const targetId = href.replace(/^\/?#/, "");
+      const section = document.getElementById(targetId);
+      if (section) {
+        e.preventDefault();
+        const nav = document.querySelector("nav");
+        const navHeight = nav ? nav.offsetHeight : 0;
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+
+        window.scrollTo({
+          top: sectionTop - navHeight,
+          behavior: "smooth",
+        });
+
+        window.history.pushState(null, "", href);
+      }
+    }
+  };
+
+  const currentNavLinks = [
+    ...navLinks,
+    ...(isLoggedIn ? [{ label: "Check Status", href: "/#status" }] : []),
+  ];
+
   return (
     <footer
       style={{ backgroundColor: "var(--color-bg-cream)" }}
@@ -75,11 +117,15 @@ export default function Footer() {
               Navigation
             </p>
             <ul className="flex flex-col gap-3">
-              {navLinks.map((link) => (
+              {currentNavLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="font-rubik text-sm text-[#1E1B24] md:text-sm">
+                  <Link
+                    href={link.href}
+                    onClick={(e) => handleAnchorClick(e, link.href)}
+                    className="font-rubik text-sm text-[#1E1B24] hover:text-blue transition-colors duration-200 md:text-sm"
+                  >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -95,9 +141,13 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               {recruitmentLinks.map((link) => (
                 <li key={link.label}>
-                  <a href={link.href} className="font-rubik text-sm text-[#1E1B24] md:text-sm">
+                  <Link
+                    href={link.href}
+                    onClick={(e) => handleAnchorClick(e, link.href)}
+                    className="font-rubik text-sm text-[#1E1B24] hover:text-blue transition-colors duration-200 md:text-sm"
+                  >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

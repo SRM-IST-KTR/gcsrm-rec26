@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export interface DropboxItem {
   label: string;
@@ -25,6 +26,7 @@ export function Dropbox({
   bgColor = "bg-blue",
   cta 
 }: DropboxProps) {
+  const { isLoggedIn } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,13 +42,25 @@ export function Dropbox({
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setIsOpen(false); // Close the menu
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      const section = document.getElementById(href.substring(1));
+    if (href === "/" || href === "/#top" || href === "#top") {
+      if (typeof window !== "undefined" && window.location.pathname === "/") {
+        e.preventDefault();
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+        window.history.pushState(null, "", "/");
+        return;
+      }
+    }
+
+    if (href.startsWith("#") || href.startsWith("/#")) {
+      const targetId = href.replace(/^\/?#/, "");
+      const section = document.getElementById(targetId);
       const nav = document.querySelector('nav');
       
       if (section && nav) {
-        // Exact same calculation for mobile so the section doesn't hide under the sticky nav
+        e.preventDefault();
         const navHeight = nav.offsetHeight;
         const sectionTop = section.getBoundingClientRect().top + window.scrollY;
         
@@ -54,6 +68,8 @@ export function Dropbox({
           top: sectionTop - navHeight,
           behavior: "smooth"
         });
+
+        window.history.pushState(null, "", href.startsWith("/") ? href : `/${href}`);
       }
     }
   };
@@ -105,10 +121,33 @@ export function Dropbox({
           </div>
         ))}
 
-        {cta && (
+        {isLoggedIn && (
           <div
             style={{ 
               transitionDelay: isOpen ? `${(links.length + 1) * 50}ms` : '0ms' 
+            }}
+            className={`
+              transform transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-top
+              ${isOpen 
+                ? "opacity-100 scale-100 translate-y-0 pointer-events-auto" 
+                : "opacity-0 scale-75 -translate-y-4 pointer-events-none"
+              }
+            `}
+          >
+            <Link 
+              href="/#status"
+              onClick={(e) => handleNavClick(e, "/#status")}
+              className="block w-full text-center py-2 px-4 border-[3px] border-text-primary rounded-xl text-[#1E1B24] font-rubik font-bold text-lg bg-[#4ade80] shadow-[4px_4px_0_var(--color-text-primary)] hover:-translate-y-1 hover:shadow-[6px_6px_0_var(--color-text-primary)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0_var(--color-text-primary)] transition-all duration-150 cursor-pointer"
+            >
+              Check Status
+            </Link>
+          </div>
+        )}
+
+        {cta && (
+          <div
+            style={{ 
+              transitionDelay: isOpen ? `${(links.length + (isLoggedIn ? 2 : 1)) * 50}ms` : '0ms' 
             }}
             className={`
               transform transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] origin-top mt-1
