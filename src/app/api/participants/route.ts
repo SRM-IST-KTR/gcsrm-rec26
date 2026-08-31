@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/db";
-import ParticipantUser from "@/models/participant.model";
+
+const BACKEND_URL = "https://octacore-beta.githubsrmist.in";
 
 async function parseRequestBody(request: Request) {
   const contentType = request.headers.get("content-type") || "";
@@ -34,7 +34,6 @@ async function parseRequestBody(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    await connectDB();
     const email = new URL(request.url).searchParams.get("email")?.trim().toLowerCase();
 
     if (!email) {
@@ -44,11 +43,27 @@ export async function GET(request: Request) {
       );
     }
 
-    const participant = await ParticipantUser.findOne({ email }).lean();
+    const response = await fetch(`${BACKEND_URL}/api/recruitment?email=${email}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            return NextResponse.json({
+                success: true,
+                exists: false,
+                user: null
+            });
+        }
+        return NextResponse.json(
+            { success: false, error: data.message || "Failed to fetch participant." },
+            { status: response.status }
+        );
+    }
+
     return NextResponse.json({
       success: true,
-      exists: Boolean(participant),
-      user: participant || null,
+      exists: true,
+      user: data.participant || data.user || {},
     });
   } catch (error: any) {
     console.error("Participant lookup error:", error);
@@ -61,136 +76,33 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await connectDB();
     const body = await parseRequestBody(request);
-    const now = new Date();
-    const startDate = new Date(2026, 7, 25, 0, 0, 0);
-    const endDate = new Date(2026, 7, 30, 23, 59, 59);
-
-    if (now.getTime() < startDate.getTime()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Registration has not started yet. Please wait until August 25, 2025.",
+    const response = await fetch(`${BACKEND_URL}/api/recruitment/apply`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
         },
-        { status: 403 }
-      );
-    }
+        body: JSON.stringify(body)
+    });
 
-    if (now.getTime() > endDate.getTime()) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Registration period has ended. No new registrations are being accepted.",
-        },
-        { status: 403 }
-      );
-    }
+    const data = await response.json();
 
-    if (body.submissionTime) {
-      const submissionTime = new Date(body.submissionTime);
-      if (submissionTime.getTime() > endDate.getTime()) {
+    if (!response.ok) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Registration period has ended. Submission timestamp is invalid.",
-          },
-          { status: 403 }
+            { success: false, error: data.error || "Failed to register participant." },
+            { status: response.status }
         );
-      }
     }
-
-    const {
-      submissionTime,
-      name,
-      email,
-      registrationNumber,
-      phone,
-      year,
-      domain,
-      degreeWithBranch,
-      ...rest
-    } = body;
-
-    const links = body.links || {};
-    const { github, demo, deployment } = links;
-
-    if (
-      !name ||
-      !email ||
-      !registrationNumber ||
-      !phone ||
-      !year ||
-      !domain ||
-      !degreeWithBranch
-    ) {
-      return NextResponse.json(
-        { success: false, error: "All required fields are required." },
-        { status: 400 }
-      );
-    }
-
-    const existingUser = await ParticipantUser.findOne({
-      $or: [{ email }, { registrationNumber }],
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: existingUser.email === email
-            ? "This email address is already registered."
-            : "This registration number is already registered.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const participant = await ParticipantUser.create({
-      name,
-      email,
-      registrationNumber,
-      phone,
-      year,
-      domain,
-      degreeWithBranch,
-      links: {
-        github: github || null,
-        demo: demo || null,
-        deployment: deployment || null,
-      },
-      status: "registered",
-      ...rest,
-    });
 
     return NextResponse.json(
       {
         success: true,
-        user: participant,
+        user: data.user,
       },
       { status: 201 }
     );
   } catch (error: any) {
     console.error("Registration error:", error);
-
-    if (error?.code === 11000) {
-      const message = error.message || "";
-
-      if (message.includes("regNo_1") || message.includes("registrationNumber")) {
-        return NextResponse.json(
-          { success: false, error: "This registration number is already registered." },
-          { status: 400 }
-        );
-      }
-
-      if (message.includes("email")) {
-        return NextResponse.json(
-          { success: false, error: "This email address is already registered." },
-          { status: 400 }
-        );
-      }
-    }
-
     return NextResponse.json(
       {
         success: false,
