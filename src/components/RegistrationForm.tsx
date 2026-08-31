@@ -6,6 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import SectionBadge from "@/components/common/SectionBadge";
 import Popup from "@/components/common/Popup";
 import Dropdown from "@/components/common/Dropdown";
+import { api, ApiError } from "@/lib/api";
+import { getOtpSession, clearOtpSession } from "@/lib/otpSession";
 
 const emailPattern = /^[^\s@]+@srmist\.edu\.in$/i;
 const registrationNumberPattern = /^RA\d+$/;
@@ -144,55 +146,63 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/participants", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+      const session = getOtpSession();
+      if (!session?.token) {
+        throw new ApiError(0, {
+          success: false,
+          message: "Email verification required. Please verify your email first.",
+        });
+      }
+
+      const { user } = await api.applyForRecruitment(session.token, {
+        name: formData.name,
+        email: formData.email,
+        registrationNumber: formData.registrationNumber,
+        phone: formData.phone,
+        year: formData.year,
+        domain: formData.domain,
+        degreeWithBranch: formData.degreeWithBranch,
       });
 
-      let result: any = null;
+      // Registration completed → the OTP session is no longer needed.
+      clearOtpSession();
+
+      setPopup({
+        isOpen: true,
+        type: "success",
+        title: "Registration Successful!",
+        message: "Registration Successful!",
+        autoCloseMs: 3000,
+      });
+      setFormData(initialFormData);
+      setErrors({});
       try {
-        result = await response.json();
-      } catch {
-        result = null;
-      }
+        localStorage.removeItem(CACHE_KEY);
+      } catch (e) {}
 
-      if (response.ok) {
-        // 1. Trigger success popup first
-        setPopup({
-          isOpen: true,
-          type: "success",
-          title: "Registration Successful!",
-          message: "Registration Successful!",
-          autoCloseMs: 3000,
-        });
-        setFormData(initialFormData);
-        setErrors({});
-        try {
-          localStorage.removeItem(CACHE_KEY);
-        } catch (e) {}
+      setTimeout(() => {
+        login(user);
+        router.push("/");
 
-        // 2. Delay login and redirect by 2500ms while keeping button in disabled/submitting state
         setTimeout(() => {
-          if (result?.user) {
-            login(result.user);
+          const statusSection = document.getElementById("status");
+          if (statusSection) {
+            statusSection.scrollIntoView({ behavior: "smooth" });
           }
-          router.push("/");
-
-          // Allow React time to render the conditionally mounted status section
-          setTimeout(() => {
-            const statusSection = document.getElementById("status");
-            if (statusSection) {
-              statusSection.scrollIntoView({ behavior: "smooth" });
-            }
-          }, 400);
-        }, 2000);
-        return;
-      }
-
+        }, 400);
+      }, 2000);
+    } catch (err) {
       setIsSubmitting(false);
 
-      const errorText = typeof result?.error === "string" ? result.error : "";
+      let errorText = "";
+      let status = 0;
+      if (err instanceof ApiError) {
+        errorText = err.error || err.message;
+        status = err.status;
+      } else {
+        errorText = "An error occurred: Check your network or input details.";
+      }
+
       const isRegistrationClosed =
         errorText.toLowerCase().includes("registration period has ended") ||
         errorText.toLowerCase().includes("registration has ended") ||
@@ -208,7 +218,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         return;
       }
 
-      if (response.status >= 500) {
+      if (status >= 500 || status === 0) {
         setPopup({
           isOpen: true,
           type: "error",
@@ -218,28 +228,10 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         return;
       }
 
-      if (response.status >= 400 && response.status < 500) {
-        setPopup({
-          isOpen: true,
-          type: "error",
-          title: "Client Error",
-          message: "An error occurred: Check your network or input details.",
-        });
-        return;
-      }
-
       setPopup({
         isOpen: true,
         type: "error",
-        title: "Error",
-        message: "An error occurred: Check your network or input details.",
-      });
-    } catch {
-      setIsSubmitting(false);
-      setPopup({
-        isOpen: true,
-        type: "error",
-        title: "Error",
+        title: "Client Error",
         message: "An error occurred: Check your network or input details.",
       });
     }

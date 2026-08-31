@@ -59,7 +59,7 @@ export const DEFAULT_STEP_CONFIGS: StepConfig[] = [
 ];
 
 /**
- * Maps participant.model.ts status enum values to progression rank
+ * Maps backend participant status values to progression rank
  * - 'registered': Application submitted, Task Round active (Level 01 completed, Level 02 active)
  * - 'taskSubmitted': Task submitted, Interview Shortlisting active (Levels 01-02 completed, Level 03 active)
  * - 'interviewShortlisted': Shortlisted, Interview Phase active (Levels 01-03 completed, Level 04 active)
@@ -117,7 +117,7 @@ export function computeDynamicSteps(
  * ApplicationStatus Component
  *
  * Data-driven Neobrutalist status tracking component for Next.js App Router.
- * Dynamically reflects the applicant's real-time stage from participant.model.ts.
+ * Dynamically reflects the applicant's real-time stage from the backend participant schema.
  *
  * - Returns `null` if the participant is not logged in / undefined.
  * - Computes completed, active, and locked states dynamically.
