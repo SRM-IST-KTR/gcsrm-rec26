@@ -71,6 +71,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
   const domainQuery = searchParams.get("domain") || "";
   const validDomain = domains.includes(domainQuery) ? domainQuery : "";
   const [formData, setFormData] = useState({ ...initialFormData, email: initialEmail, domain: validDomain });
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const CACHE_KEY = "gcsrm_registration_cache";
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
     setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = Object.fromEntries(
       Object.entries(formData).map(([field, value]) => [
@@ -144,6 +145,12 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
     setErrors(nextErrors);
     if (Object.values(nextErrors).some(Boolean)) return;
 
+    // Intercept with confirmation modal before API dispatch
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false);
     setIsSubmitting(true);
     try {
       const session = getOtpSession();
@@ -178,7 +185,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       setErrors({});
       try {
         localStorage.removeItem(CACHE_KEY);
-      } catch (e) {}
+      } catch {}
 
       setTimeout(() => {
         login(user);
@@ -254,119 +261,191 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         autoCloseMs={popup.autoCloseMs}
         onClose={() => setPopup((prev) => ({ ...prev, isOpen: false }))}
       />
+
+      {/* Neobrutalist Confirmation Modal */}
+      {showConfirmModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1E1B24]/70 backdrop-blur-xs animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-modal-title"
+        >
+          <div className="w-full max-w-[520px] bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[8px_8px_0px_#1E1B24] p-6 sm:p-8 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center gap-3">
+              <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] shrink-0">
+                CONFIRMATION
+              </span>
+              <h3 id="confirm-modal-title" className="font-outfit-black text-[22px] sm:text-[24px] text-[#1E1B24] tracking-tight">
+                Submit Application?
+              </h3>
+            </div>
+
+            <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#5C5866] leading-relaxed">
+              Please double-check your application details. Once submitted, your registration domain and responses cannot be changed.
+            </p>
+
+            {/* Application Summary Box */}
+            <div className="bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-[18px] p-4 flex flex-col gap-2.5 shadow-[3px_3px_0px_#1E1B24]">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-rubik text-[#5C5866]">Name:</span>
+                <span className="font-outfit-black text-[#1E1B24] text-right">{formData.name}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-rubik text-[#5C5866]">Email:</span>
+                <span className="font-rubik font-semibold text-[#1E1B24] text-right">{formData.email}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-rubik text-[#5C5866]">Reg. Number:</span>
+                <span className="font-rubik font-semibold text-[#1E1B24] text-right">{formData.registrationNumber}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-rubik text-[#5C5866]">Domain:</span>
+                <span className="font-outfit-black text-xs uppercase px-2.5 py-0.5 rounded-full bg-[#4EC37B] border border-[#1E1B24] text-white">
+                  {formData.domain}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-rubik text-[#5C5866]">Year & Branch:</span>
+                <span className="font-rubik font-medium text-[#1E1B24] text-right">Year {formData.year} • {formData.degreeWithBranch}</span>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="px-5 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#FAF7EE] text-[#1E1B24] font-rubik font-bold text-sm shadow-[2px_2px_0px_#1E1B24] hover:bg-[#E5E0D4] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              >
+                Review Again
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                disabled={isSubmitting}
+                className="px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isSubmitting ? "Submitting..." : "Yes, Submit!"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section
         className="relative overflow-hidden bg-[#FFFEEF] py-24"
         id="apply"
-      style={{
-        backgroundImage: "url('/login/icon.svg')",
-        backgroundRepeat: "repeat",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
-      <img
-        src="/login/char-laptop.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute"
-        style={{ left: "-30px", top: "20px", width: "clamp(130px, 17vw, 230px)", zIndex: 1 }}
-      />
-      <img
-        src="/login/char-bee.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute"
-        style={{ right: "-30px", top: "-10px", width: "clamp(140px, 18vw, 250px)", zIndex: 1 }}
-      />
-      <img
-        src="/login/char-action-kamen.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute"
-        style={{ left: "-10px", bottom: "-20px", width: "clamp(150px, 20vw, 280px)", zIndex: 1 }}
-      />
-      <img
-        src="/login/char-robot.png"
-        alt=""
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute"
-        style={{ right: "-20px", bottom: "-20px", width: "clamp(140px, 19vw, 260px)", zIndex: 1 }}
-      />
+        style={{
+          backgroundImage: "url('/login/icon.svg')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <img
+          src="/login/char-laptop.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute"
+          style={{ left: "-30px", top: "20px", width: "clamp(130px, 17vw, 230px)", zIndex: 1 }}
+        />
+        <img
+          src="/login/char-bee.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute"
+          style={{ right: "-30px", top: "-10px", width: "clamp(140px, 18vw, 250px)", zIndex: 1 }}
+        />
+        <img
+          src="/login/char-action-kamen.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute"
+          style={{ left: "-10px", bottom: "-20px", width: "clamp(150px, 20vw, 280px)", zIndex: 1 }}
+        />
+        <img
+          src="/login/char-robot.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute"
+          style={{ right: "-20px", bottom: "-20px", width: "clamp(140px, 19vw, 260px)", zIndex: 1 }}
+        />
 
-      <div className="max-w-[800px] mx-auto flex flex-col items-center px-4 relative z-10">
-        <SectionBadge label="Registration form" variant="yellow" className="mb-8" />
-        <h2 className="font-outfit-black text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">Registration Details</h2>
-        
-        {/* Neobrutalist Introductory Banner */}
-        <div className="w-full max-w-[680px] bg-white border-[3px] border-[#1E1B24] shadow-[4px_4px_0px_#1E1B24] rounded-[20px] p-4 sm:p-5 text-center mb-12 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] shrink-0">
-            NOTICE
-          </span>
-          <p className="font-rubik text-[15px] sm:text-[16px] font-medium text-[#1E1B24] leading-relaxed">
-            Ready to join the club? Please fill out the form details below and let&apos;s get you on board!
-          </p>
+        <div className="max-w-[800px] mx-auto flex flex-col items-center px-4 relative z-10">
+          <SectionBadge label="Registration form" variant="yellow" className="mb-8" />
+          <h2 className="font-outfit-black text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] leading-tight">Registration Details</h2>
+          
+          {/* Neobrutalist Introductory Banner */}
+          <div className="w-full max-w-[680px] bg-white border-[3px] border-[#1E1B24] shadow-[4px_4px_0px_#1E1B24] rounded-[20px] p-4 sm:p-5 text-center mb-12 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] shrink-0">
+              NOTICE
+            </span>
+            <p className="font-rubik text-[15px] sm:text-[16px] font-medium text-[#1E1B24] leading-relaxed">
+              Ready to join the club? Please fill out the form details below and let&apos;s get you on board!
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="w-full space-y-6" noValidate>
+            <div className="flex flex-col space-y-3">
+              <label htmlFor="name" className="font-outfit-black text-[20px] text-[#1E1B24]">Full Name</label>
+              {fieldError("name")}
+              <input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your full name" className={inputClass("name")} />
+            </div>
+            <div className="flex flex-col space-y-3">
+              <label htmlFor="email" className="font-outfit-black text-[20px] text-[#1E1B24]">SRM email id</label>
+              {fieldError("email")}
+              <input type="email" id="email" name="email" value={formData.email} disabled aria-disabled="true" className={`${inputClass("email")} font-normal bg-[#E8E8E8] text-[#777777] border-[#AAAAAA] shadow-none cursor-not-allowed`} />
+            </div>
+            <div className="flex flex-col space-y-3">
+              <label htmlFor="registrationNumber" className="font-outfit-black text-[20px] text-[#1E1B24]">Registration Number</label>
+              {fieldError("registrationNumber")}
+              <input id="registrationNumber" name="registrationNumber" value={formData.registrationNumber} onChange={handleChange} placeholder="e.g. RA2411003010079" className={inputClass("registrationNumber")} />
+            </div>
+            <div className="flex flex-col space-y-3">
+              <label htmlFor="phone" className="font-outfit-black text-[20px] text-[#1E1B24]">Phone Number</label>
+              {fieldError("phone")}
+              <input type="tel" id="phone" name="phone" inputMode="numeric" maxLength={10} value={formData.phone} onChange={handleChange} placeholder="10-digit phone number" className={inputClass("phone")} />
+            </div>
+            <div className="flex flex-col space-y-3 relative z-30">
+              <label htmlFor="year" className="font-outfit-black text-[20px] text-[#1E1B24]">Year</label>
+              {fieldError("year")}
+              <Dropdown
+                id="year"
+                name="year"
+                value={formData.year}
+                options={years}
+                placeholder="Select your year"
+                error={errors.year}
+                onChange={(val) => handleDropdownChange("year", val)}
+              />
+            </div>
+            <div className="flex flex-col space-y-3 relative z-20">
+              <label htmlFor="domain" className="font-outfit-black text-[20px] text-[#1E1B24]">Domain</label>
+              {fieldError("domain")}
+              <Dropdown
+                id="domain"
+                name="domain"
+                value={formData.domain}
+                options={domains}
+                placeholder="Select a domain"
+                error={errors.domain}
+                onChange={(val) => handleDropdownChange("domain", val)}
+              />
+            </div>
+            <div className="flex flex-col space-y-3">
+              <label htmlFor="degreeWithBranch" className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
+              {fieldError("degreeWithBranch")}
+              <input id="degreeWithBranch" name="degreeWithBranch" value={formData.degreeWithBranch} onChange={handleChange} placeholder="e.g. B.Tech CSE" className={inputClass("degreeWithBranch")} />
+            </div>
+            <div className="pt-8 flex justify-center">
+              <button type="submit" disabled={isSubmitting} className="bg-[#3E9FFF] border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] px-10 py-4 font-outfit-black text-[18px] text-white tracking-[1px] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#1E1B24] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
+                {isSubmitting ? "Submitting..." : "Apply Now!"}
+              </button>
+            </div>
+          </form>
         </div>
-
-        <form onSubmit={handleSubmit} className="w-full space-y-6" noValidate>
-          <div className="flex flex-col space-y-3">
-            <label htmlFor="name" className="font-outfit-black text-[20px] text-[#1E1B24]">Full Name</label>
-            {fieldError("name")}
-            <input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your full name" className={inputClass("name")} />
-          </div>
-          <div className="flex flex-col space-y-3">
-            <label htmlFor="email" className="font-outfit-black text-[20px] text-[#1E1B24]">SRM email id</label>
-            {fieldError("email")}
-            <input type="email" id="email" name="email" value={formData.email} disabled aria-disabled="true" className={`${inputClass("email")} font-normal bg-[#E8E8E8] text-[#777777] border-[#AAAAAA] shadow-none cursor-not-allowed`} />
-          </div>
-          <div className="flex flex-col space-y-3">
-            <label htmlFor="registrationNumber" className="font-outfit-black text-[20px] text-[#1E1B24]">Registration Number</label>
-            {fieldError("registrationNumber")}
-            <input id="registrationNumber" name="registrationNumber" value={formData.registrationNumber} onChange={handleChange} placeholder="e.g. RA2411003010079" className={inputClass("registrationNumber")} />
-          </div>
-          <div className="flex flex-col space-y-3">
-            <label htmlFor="phone" className="font-outfit-black text-[20px] text-[#1E1B24]">Phone Number</label>
-            {fieldError("phone")}
-            <input type="tel" id="phone" name="phone" inputMode="numeric" maxLength={10} value={formData.phone} onChange={handleChange} placeholder="10-digit phone number" className={inputClass("phone")} />
-          </div>
-          <div className="flex flex-col space-y-3 relative z-30">
-            <label htmlFor="year" className="font-outfit-black text-[20px] text-[#1E1B24]">Year</label>
-            {fieldError("year")}
-            <Dropdown
-              id="year"
-              name="year"
-              value={formData.year}
-              options={years}
-              placeholder="Select your year"
-              error={errors.year}
-              onChange={(val) => handleDropdownChange("year", val)}
-            />
-          </div>
-          <div className="flex flex-col space-y-3 relative z-20">
-            <label htmlFor="domain" className="font-outfit-black text-[20px] text-[#1E1B24]">Domain</label>
-            {fieldError("domain")}
-            <Dropdown
-              id="domain"
-              name="domain"
-              value={formData.domain}
-              options={domains}
-              placeholder="Select a domain"
-              error={errors.domain}
-              onChange={(val) => handleDropdownChange("domain", val)}
-            />
-          </div>
-          <div className="flex flex-col space-y-3">
-            <label htmlFor="degreeWithBranch" className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
-            {fieldError("degreeWithBranch")}
-            <input id="degreeWithBranch" name="degreeWithBranch" value={formData.degreeWithBranch} onChange={handleChange} placeholder="e.g. B.Tech CSE" className={inputClass("degreeWithBranch")} />
-          </div>
-          <div className="pt-8 flex justify-center">
-            <button type="submit" disabled={isSubmitting} className="bg-[#3E9FFF] border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] px-10 py-4 font-outfit-black text-[18px] text-white tracking-[1px] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#1E1B24] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
-              {isSubmitting ? "Submitting..." : "Apply Now!"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </section>
-  </>
+      </section>
+    </>
   );
 }
