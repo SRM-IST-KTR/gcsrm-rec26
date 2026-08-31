@@ -73,10 +73,10 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
     return null;
   }
 
-  // Extract user identifier (slicing email prefix before '@' or registration number)
-  const identifier = participant.email
-    ? participant.email.split("@")[0]
-    : participant.registrationNumber || "User";
+  // Extract user display name, prioritizing full name over email prefix / reg number
+  const displayName =
+    participant.name?.trim() ||
+    (participant.email ? participant.email.split("@")[0] : participant.registrationNumber || "User");
 
   // Dynamic avatar based on domain
   const avatarSrc = getDomainAvatar(participant.domain);
@@ -101,7 +101,7 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white border-[2.5px] border-[#1E1B24] flex items-center justify-center shadow-[2px_2px_0px_#1E1B24] transition-transform duration-150 group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0px_#1E1B24] overflow-hidden shrink-0">
           <Image
             src={avatarSrc}
-            alt={participant.name || identifier}
+            alt={displayName}
             width={44}
             height={44}
             className="w-full h-full object-cover"
@@ -109,9 +109,9 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
           />
         </div>
 
-        {/* User Name / Identifier Text Under Avatar - slightly smaller than "Go to" (text-lg) */}
-        <span className="font-rubik font-bold text-[15px] sm:text-[16px] text-[#1E1B24] tracking-tight text-center leading-none mt-1 group-hover:text-blue transition-colors max-w-[120px] truncate">
-          {identifier}
+        {/* User Name / Identifier Text Under Avatar */}
+        <span className="font-rubik font-bold text-[14px] sm:text-[15px] text-[#1E1B24] tracking-tight text-center leading-tight mt-1 group-hover:text-blue transition-colors max-w-[120px] truncate">
+          {displayName}
         </span>
       </button>
 
@@ -131,7 +131,7 @@ export function UserAccountMenu({ className = "" }: UserAccountMenuProps) {
         {/* User Details */}
         <div className="px-2 py-1.5 flex flex-col text-left">
           <span className="font-outfit-black text-sm text-[#1E1B24] truncate">
-            {participant.name || identifier}
+            {displayName}
           </span>
           <span className="font-rubik text-xs text-[#5C5866] truncate mt-0.5">
             {participant.email}

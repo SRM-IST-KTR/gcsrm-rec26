@@ -130,7 +130,7 @@ export function ApplicationStatus({
   title = "Your Application Status",
   cardTitle = "Application Progress",
   className = "",
-  showParticipantInfo = false,
+  showParticipantInfo = true,
 }: ApplicationStatusProps) {
   // 1. ALL HOOKS MUST BE DECLARED AT THE VERY TOP
   const { participant: authParticipant } = useAuth();
