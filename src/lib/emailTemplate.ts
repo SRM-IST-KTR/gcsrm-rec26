@@ -67,7 +67,7 @@ export function getOtpEmailHtml({
         <!-- Notice Box -->
         <div style="background-color: #eff6ff; border: 2px solid #1e1b24; border-radius: 8px; padding: 12px 16px; margin-bottom: 24px; text-align: left;">
           <p style="margin: 0; color: #1e1b24; font-size: 13px; font-weight: 600; line-height: 1.4;">
-            ⏱ This code is valid for <strong>5 minutes (300 seconds)</strong>. If you did not request this OTP, you can safely ignore this email.
+            This code is valid for <strong>5 minutes</strong>. If you did not request this OTP, you can safely ignore this email.
           </p>
         </div>
 
