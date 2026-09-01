@@ -332,4 +332,53 @@ export const api = {
 
     return { user: mapBackendApplyUser(extractApplyUser(data)) };
   },
+
+  /**
+   * Submit a completed recruitment task via `POST /api/recruitment/submit`.
+   * Requires the OTP-verified JWT (Bearer token); the email in the payload must
+   * match the verified token email. Field sets are domain-specific:
+   *   Technical → githubLink, deployedLink, demoVideo
+   *   Creatives → figmaPlugins, designLink, designFiles
+   *   Corporate → introVideo, documentLink
+   * Throws ApiError on failure; the body contains `error`.
+   */
+  async submitTask(
+    token: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}/api/recruitment/submit`, {
+        method: "POST",
+        headers: {
+          ...jsonHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      throw new ApiError(0, {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      });
+    }
+
+    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+    const isError =
+      !response.ok ||
+      (data !== null && typeof data === "object" && data.success === false);
+
+    if (isError) {
+      throw new ApiError(
+        response.status,
+        (data as unknown as ApiErrorBody) ?? {
+          success: false,
+          message: `Request failed with status ${response.status}`,
+        },
+      );
+    }
+
+    return data ?? {};
+  },
 };

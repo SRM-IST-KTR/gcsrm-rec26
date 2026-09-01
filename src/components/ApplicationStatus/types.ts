@@ -19,6 +19,11 @@ export interface ParticipantLinks {
   github?: string | null;
   demo?: string | null;
   deployment?: string | null;
+  design?: string | null;
+  designFiles?: string | null;
+  figmaPlugins?: string | null;
+  introVideo?: string | null;
+  document?: string | null;
 }
 
 export interface ParticipantData {

@@ -12,6 +12,7 @@ import {
 import { StatusHeader } from "./StatusHeader";
 import { StatusStepCard } from "./StatusStepCard";
 import { ParticipantSummary } from "./ParticipantSummary";
+import { SubmitTaskModal } from "./SubmitTaskModal";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -155,9 +156,11 @@ export function computeDynamicSteps(
 export function StatusHeroCard({
   status,
   participant,
+  onSubmitTask,
 }: {
   status: ParticipantStatus;
   participant?: Partial<ParticipantData> | null;
+  onSubmitTask?: () => void;
 }) {
   const normalizedStatus =
     status === "interviewShortlist" ? "interviewShortlisted" : status;
@@ -170,7 +173,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#4EC37B]">
             INTERVIEW SHORTLISTED
           </span>
-          <span className="text-xl">🎉</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Congratulations! You&apos;ve Been Shortlisted
@@ -200,7 +202,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D]">
             TASK ASSIGNED
           </span>
-          <span className="text-xl">🚀</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Your Domain Task is Ready
@@ -208,6 +209,15 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
+        {onSubmitTask && (
+          <button
+            type="button"
+            onClick={onSubmitTask}
+            className="w-full sm:w-fit mt-2 px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          >
+            Submit Task
+          </button>
+        )}
       </div>
     );
   }
@@ -220,7 +230,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#3E9FFF]">
             TASK RECEIVED
           </span>
-          <span className="text-xl">✅</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Task Submission Received
@@ -240,7 +249,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#F59E0B]">
             UNDER REVIEW
           </span>
-          <span className="text-xl">🔍</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Application &amp; Task Under Evaluation
@@ -260,7 +268,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#10B981]">
             WELCOME ABOARD
           </span>
-          <span className="text-xl">🌟</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Welcome to GitHub Community SRM!
@@ -301,7 +308,6 @@ export function StatusHeroCard({
         <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D]">
           APPLICATION LOGGED
         </span>
-        <span className="text-xl">📋</span>
       </div>
       <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
         Application Successfully Submitted
@@ -331,6 +337,8 @@ export function ApplicationStatus({
 }: ApplicationStatusProps) {
   const { participant: authParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
+
+  const [showSubmitModal, setShowSubmitModal] = React.useState(false);
 
   const currentStatus: ParticipantStatus =
     status || participant?.status || "registered";
@@ -374,7 +382,11 @@ export function ApplicationStatus({
           )}
 
           {/* Dynamic Status Hero Card */}
-          <StatusHeroCard status={currentStatus} participant={participant} />
+          <StatusHeroCard
+            status={currentStatus}
+            participant={participant}
+            onSubmitTask={() => setShowSubmitModal(true)}
+          />
 
           {/* Dynamic Steps List */}
           <div className="flex flex-col gap-4 sm:gap-5 w-full">
@@ -384,6 +396,13 @@ export function ApplicationStatus({
           </div>
         </div>
       </div>
+
+      {/* Submit Task Modal */}
+      <SubmitTaskModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        participant={participant}
+      />
     </section>
   );
 }
