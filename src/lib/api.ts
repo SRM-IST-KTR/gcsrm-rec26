@@ -13,14 +13,13 @@
  */
 
 import type { ParticipantData } from "@/components/ApplicationStatus/types";
-import { getOtpEmailHtml } from "@/lib/emailTemplate";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
 export interface OtpSendSuccess {
   success: true;
   message: string;
-  expiresInSeconds: number;
+  expiresInSeconds?: number;
 }
 
 export interface OtpRateLimited {
@@ -31,10 +30,36 @@ export interface OtpRateLimited {
 
 export interface OtpVerifySuccess {
   success: true;
-  message: string;
+  message?: string;
   /** JWT proving this email passed OTP verification. */
   token: string;
+  isNewUser?: boolean;
   expiresInSeconds?: number;
+}
+
+// ── Direct Email shapes ───────────────────────────────────────────────────
+
+export interface DirectEmailPayload {
+  to: string | string[];
+  subject: string;
+  html?: string;
+  text?: string;
+  templateId?: string;
+  dynamicTemplateData?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface BatchEmailPayload {
+  emails?: DirectEmailPayload[];
+  batch?: DirectEmailPayload[];
+  [key: string]: unknown;
+}
+
+export interface EmailApiResponse {
+  success: boolean;
+  message?: string;
+  data?: unknown;
+  [key: string]: unknown;
 }
 
 // ── Error shapes ──────────────────────────────────────────────────────────
@@ -111,18 +136,31 @@ export interface BackendParticipantLookupResponse {
 }
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+const EMAIL_API_KEY = (
+  process.env.NEXT_PUBLIC_EMAIL_API_KEY ??
+  process.env.NEXT_PUBLIC_API_KEY ??
+  process.env.EMAIL_API_KEY ??
+  ""
+).trim();
 
 /** Headers shared by every backend call. */
-function jsonHeaders(): Record<string, string> {
-  return { "Content-Type": "application/json" };
+function jsonHeaders(customHeaders?: Record<string, string>): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    ...customHeaders,
+  };
 }
 
-async function post<T>(path: string, payload: Record<string, unknown>): Promise<T> {
+async function post<T>(
+  path: string,
+  payload: Record<string, unknown>,
+  headers?: Record<string, string>,
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
-      headers: { ...jsonHeaders() },
+      headers: jsonHeaders(headers),
       body: JSON.stringify(payload),
     });
   } catch {
@@ -207,19 +245,40 @@ function mapBackendApplyUser(user: any): ParticipantData {
 // ── Public API ────────────────────────────────────────────────────────────
 
 export const api = {
-  /** POST /api/otp/send — throws ApiError on failure (429 carries retryAfterSeconds). */
+  /** POST /api/otp/send — sends { email } only; server handles templates natively. */
   sendOtp(email: string) {
-    const emailTemplate = getOtpEmailHtml({ otpCode: "{{otp}}" });
-    return post<OtpSendSuccess>("/api/otp/send", {
-      email,
-      emailTemplate,
-      subject: "Your GCSRM Login OTP",
-    });
+    return post<OtpSendSuccess>("/api/otp/send", { email });
   },
 
-  /** POST /api/otp/verify — throws ApiError on failure; returns the verified-session JWT. */
+  /** POST /api/otp/verify — sends { email, otp }; returns verified JWT auth token and status. */
   verifyOtp(email: string, otp: string) {
     return post<OtpVerifySuccess>("/api/otp/verify", { email, otp });
+  },
+
+  /**
+   * POST /api/email/send — Send direct email.
+   * Requires `x-api-key` header configuration.
+   */
+  sendEmail(payload: DirectEmailPayload, apiKey?: string) {
+    const key = apiKey ?? EMAIL_API_KEY;
+    return post<EmailApiResponse>(
+      "/api/email/send",
+      payload as Record<string, unknown>,
+      key ? { "x-api-key": key } : undefined,
+    );
+  },
+
+  /**
+   * POST /api/email/batch — Send batch emails.
+   * Requires `x-api-key` header configuration.
+   */
+  sendBatchEmail(payload: BatchEmailPayload, apiKey?: string) {
+    const key = apiKey ?? EMAIL_API_KEY;
+    return post<EmailApiResponse>(
+      "/api/email/batch",
+      payload as Record<string, unknown>,
+      key ? { "x-api-key": key } : undefined,
+    );
   },
 
   /**

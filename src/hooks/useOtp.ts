@@ -23,6 +23,8 @@ export interface UseOtpResult {
   resendCooldown: number;
   /** Server-claimed OTP lifetime in seconds from the last successful send. */
   expiresIn: number | null;
+  /** Whether the verified user is a newly registered email. */
+  isNewUser: boolean | null;
   /** Send an OTP to the given email address. Returns true on success. */
   sendOtp: (email: string) => Promise<boolean>;
   /** Verify an OTP for the previously sent email. Returns true on success. */
@@ -47,6 +49,7 @@ export function useOtp(): UseOtpResult {
   const [error, setError] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 
   const hasSentBefore = useRef(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -89,7 +92,7 @@ export function useOtp(): UseOtpResult {
         const result = await api.sendOtp(normalized);
         hasSentBefore.current = true;
         setEmail(normalized);
-        setExpiresIn(result.expiresInSeconds);
+        setExpiresIn(result.expiresInSeconds ?? null);
         setPhase("sent");
         return true;
       } catch (err) {
@@ -115,9 +118,12 @@ export function useOtp(): UseOtpResult {
 
       try {
         const result = await api.verifyOtp(email, otp);
+        const newUserFlag = result.isNewUser ?? null;
+        setIsNewUser(newUserFlag);
         saveOtpSession({
           token: result.token,
           email,
+          isNewUser: result.isNewUser,
           expiresAt: Date.now() + (result.expiresInSeconds ?? 3600) * 1000,
         });
         setPhase("verified");
@@ -138,6 +144,7 @@ export function useOtp(): UseOtpResult {
     setEmail(null);
     setError(null);
     setExpiresIn(null);
+    setIsNewUser(null);
   }, [clearCooldown]);
 
   return {
@@ -146,6 +153,7 @@ export function useOtp(): UseOtpResult {
     error,
     resendCooldown,
     expiresIn,
+    isNewUser,
     sendOtp,
     verifyOtp,
     reset,
