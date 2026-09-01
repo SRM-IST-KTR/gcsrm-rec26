@@ -203,7 +203,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D]">
             TASK ASSIGNED
           </span>
-          <span className="text-xl">🚀</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Your Domain Task is Ready
@@ -232,7 +231,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#3E9FFF]">
             TASK RECEIVED
           </span>
-          <span className="text-xl">✅</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Task Submission Received
