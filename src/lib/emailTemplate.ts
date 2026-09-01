@@ -1,5 +1,5 @@
 /**
- * Neobrutalist Email HTML Template Generator for GCSRM recruitment emails.
+ * Neobrutalist Email HTML Template Generator for GCSRM OTP emails.
  *
  * Designed with inline CSS and table layouts for maximum email client compatibility.
  * Uses an absolute production URL for the mascot logo so it renders properly in email clients.
@@ -9,12 +9,12 @@ export interface EmailTemplateOptions {
   otpCode: string;
 }
 
-const MASCOT_URL = "https://raw.githubusercontent.com/SRM-IST-KTR/gcsrm-rec26/staging/public/assets/snlogo.png";
+export function getOtpEmailHtml({
+  otpCode,
 
-/**
- * Generates the OTP Verification Email HTML
- */
-export function getOtpEmailHtml({ otpCode }: EmailTemplateOptions): string {
+}: EmailTemplateOptions): string {
+  const mascotUrl = `https://raw.githubusercontent.com/SRM-IST-KTR/gcsrm-rec26/staging/public/assets/snlogo.png`;
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +41,7 @@ export function getOtpEmailHtml({ otpCode }: EmailTemplateOptions): string {
       <td style="padding: 32px 28px; text-align: center;">
         <!-- Mascot Image (Absolute URL) -->
         <img 
-          src="${MASCOT_URL}" 
+          src="${mascotUrl}" 
           alt="GCSRM Mascot" 
           width="120" 
           height="auto" 
@@ -70,86 +70,6 @@ export function getOtpEmailHtml({ otpCode }: EmailTemplateOptions): string {
         </div>
 
         <p style="margin: 0; color: #6b7280; font-size: 13px; line-height: 1.4; text-align: left;">
-          Best regards,<br />
-          <strong style="color: #1e1b24;">GitHub Community SRM Team</strong>
-        </p>
-      </td>
-    </tr>
-
-    <!-- Footer -->
-    <tr>
-      <td style="padding: 16px 28px; background-color: #fffdf0; border-top: 2px solid #1e1b24; text-align: center;">
-        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-          &copy; 2026 GitHub Community SRM. All rights reserved.
-        </p>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}
-
-/**
- * Generates the Registration Confirmation Success Email HTML
- */
-export function getRegistrationSuccessEmailHtml(name: string): string {
-  const safeName = name?.trim() || "Candidate";
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Application Confirmed - GCSRM '26</title>
-</head>
-<body style="margin: 0; padding: 24px; background-color: #fffdf0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e1b24;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 3px solid #1e1b24; border-radius: 16px; box-shadow: 6px 6px 0px #1e1b24; overflow: hidden;">
-    <!-- Header Banner -->
-    <tr>
-      <td style="padding: 24px 28px; background-color: #4ec37b; border-bottom: 3px solid #1e1b24; text-align: center;">
-        <span style="display: inline-block; background-color: #1e1b24; color: #ffffff; font-size: 12px; font-weight: 800; letter-spacing: 2px; padding: 4px 14px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 8px;">
-          Recruitment '26
-        </span>
-        <h1 style="margin: 6px 0 0 0; color: #1e1b24; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase;">
-          GitHub Community SRM
-        </h1>
-      </td>
-    </tr>
-
-    <!-- Content Body -->
-    <tr>
-      <td style="padding: 32px 28px; text-align: center;">
-        <!-- Mascot Image (Absolute URL) -->
-        <img 
-          src="${MASCOT_URL}" 
-          alt="GCSRM Mascot" 
-          width="120" 
-          height="auto" 
-          style="display: block; margin: 0 auto 20px auto; max-width: 120px; height: auto;" 
-        />
-
-        <div style="display: inline-block; background-color: #ffd93d; color: #1e1b24; border: 2px solid #1e1b24; border-radius: 9999px; padding: 4px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px; box-shadow: 2px 2px 0px #1e1b24;">
-          CONFIRMED
-        </div>
-
-        <h2 style="margin: 0 0 14px 0; color: #1e1b24; font-size: 24px; font-weight: 900; text-align: center;">
-          Application Received!
-        </h2>
-        <p style="margin: 0 0 20px 0; color: #374151; font-size: 15px; line-height: 1.6; text-align: left;">
-          Hi <strong>${safeName}</strong>, your application for <strong>GitHub Community SRM Recruitment '26</strong> has been successfully logged. Keep an eye on this inbox for your domain tasks and interview updates.
-        </p>
-
-        <!-- Informational Callout Box -->
-        <div style="background-color: #fffdf0; border: 2px solid #1e1b24; border-radius: 12px; box-shadow: 3px 3px 0px #1e1b24; padding: 16px 20px; margin: 20px 0; text-align: left;">
-          <p style="margin: 0 0 8px 0; color: #1e1b24; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
-            📌 Next Steps
-          </p>
-          <p style="margin: 0; color: #4b5563; font-size: 13.5px; line-height: 1.5;">
-            Once the registration phase concludes, task briefs will be released. You can log into your recruitment portal anytime with your SRM email to view your live status.
-          </p>
-        </div>
-
-        <p style="margin: 24px 0 0 0; color: #6b7280; font-size: 13px; line-height: 1.4; text-align: left;">
           Best regards,<br />
           <strong style="color: #1e1b24;">GitHub Community SRM Team</strong>
         </p>
