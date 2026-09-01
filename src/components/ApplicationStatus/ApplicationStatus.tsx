@@ -173,7 +173,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#4EC37B]">
             INTERVIEW SHORTLISTED
           </span>
-          <span className="text-xl">🎉</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Congratulations! You&apos;ve Been Shortlisted
@@ -250,7 +249,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#F59E0B]">
             UNDER REVIEW
           </span>
-          <span className="text-xl">🔍</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Application &amp; Task Under Evaluation
@@ -270,7 +268,6 @@ export function StatusHeroCard({
           <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#10B981]">
             WELCOME ABOARD
           </span>
-          <span className="text-xl">🌟</span>
         </div>
         <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
           Welcome to GitHub Community SRM!
@@ -311,7 +308,6 @@ export function StatusHeroCard({
         <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D]">
           APPLICATION LOGGED
         </span>
-        <span className="text-xl">📋</span>
       </div>
       <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
         Application Successfully Submitted
