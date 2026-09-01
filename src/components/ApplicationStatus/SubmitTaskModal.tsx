@@ -505,7 +505,6 @@ export function SubmitTaskModal({
         {/* Success Message */}
         {submitSuccess && (
           <div className="bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-[16px] p-4 flex items-center gap-3 shadow-[2px_2px_0px_#1E1B24]">
-            <span className="text-2xl">✅</span>
             <div className="flex flex-col">
               <span className="font-outfit-black text-[14px] text-[#1E1B24]">Task Submitted Successfully!</span>
               <span className="font-rubik text-[12px] font-medium text-[#5C5866]">Closing in a moment...</span>
@@ -550,7 +549,6 @@ export function SubmitTaskModal({
             {/* Submit Error */}
             {submitError && (
               <div className="bg-[#FFF5F5] border-2 border-[#1E1B24] rounded-[14px] p-3 flex items-start gap-2.5 shadow-[2px_2px_0px_#1E1B24]">
-                <span className="text-lg shrink-0 mt-0.5">⚠️</span>
                 <p className="font-rubik text-[13px] font-medium text-[#D92323]">{submitError}</p>
               </div>
             )}
