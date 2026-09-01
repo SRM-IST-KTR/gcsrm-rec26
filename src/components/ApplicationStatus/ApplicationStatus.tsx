@@ -12,6 +12,7 @@ import {
 import { StatusHeader } from "./StatusHeader";
 import { StatusStepCard } from "./StatusStepCard";
 import { ParticipantSummary } from "./ParticipantSummary";
+import { SubmitTaskModal } from "./SubmitTaskModal";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -155,9 +156,11 @@ export function computeDynamicSteps(
 export function StatusHeroCard({
   status,
   participant,
+  onSubmitTask,
 }: {
   status: ParticipantStatus;
   participant?: Partial<ParticipantData> | null;
+  onSubmitTask?: () => void;
 }) {
   const normalizedStatus =
     status === "interviewShortlist" ? "interviewShortlisted" : status;
@@ -208,6 +211,15 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
+        {onSubmitTask && (
+          <button
+            type="button"
+            onClick={onSubmitTask}
+            className="w-full sm:w-fit mt-2 px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          >
+            Submit Task
+          </button>
+        )}
       </div>
     );
   }
@@ -332,6 +344,8 @@ export function ApplicationStatus({
   const { participant: authParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
 
+  const [showSubmitModal, setShowSubmitModal] = React.useState(false);
+
   const currentStatus: ParticipantStatus =
     status || participant?.status || "registered";
 
@@ -374,7 +388,11 @@ export function ApplicationStatus({
           )}
 
           {/* Dynamic Status Hero Card */}
-          <StatusHeroCard status={currentStatus} participant={participant} />
+          <StatusHeroCard
+            status={currentStatus}
+            participant={participant}
+            onSubmitTask={() => setShowSubmitModal(true)}
+          />
 
           {/* Dynamic Steps List */}
           <div className="flex flex-col gap-4 sm:gap-5 w-full">
@@ -384,6 +402,13 @@ export function ApplicationStatus({
           </div>
         </div>
       </div>
+
+      {/* Submit Task Modal */}
+      <SubmitTaskModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        participant={participant}
+      />
     </section>
   );
 }
