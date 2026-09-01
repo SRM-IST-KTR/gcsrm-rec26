@@ -15,26 +15,30 @@ const domains = ["Technical", "Creatives", "Corporate"];
 const years = ["1", "2"];
 
 type FormData = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   registrationNumber: string;
   phone: string;
   year: string;
   domain: string;
-  degreeWithBranch: string;
+  degree: string;
+  branch: string;
 };
 
 type FieldName = keyof FormData;
 type Errors = Partial<Record<FieldName, string>>;
 
 const initialFormData: FormData = {
-  name: "",
+  firstName: "",
+  lastName: "",
   email: "",
   registrationNumber: "",
   phone: "",
   year: "",
   domain: "",
-  degreeWithBranch: "",
+  degree: "B.Tech",
+  branch: "",
 };
 
 function validateField(field: FieldName, value: string) {
@@ -79,12 +83,15 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
-        setFormData(prev => ({
-          ...prev,
-          ...parsed,
-          email: initialEmail,
-          domain: validDomain || parsed.domain || ""
-        }));
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          const { name: _legacyName, degreeWithBranch: _legacyDegree, ...rest } = parsed;
+          setFormData(prev => ({
+            ...prev,
+            ...rest,
+            email: initialEmail,
+            domain: validDomain || rest.domain || ""
+          }));
+        }
       }
     } catch (e) {
       console.error("Failed to parse cached registration data", e);
@@ -162,13 +169,13 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       }
 
       const { user } = await api.applyForRecruitment(session.token, {
-        name: formData.name,
+        name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
         registrationNumber: formData.registrationNumber,
         phone: formData.phone,
         year: formData.year,
         domain: formData.domain,
-        degreeWithBranch: formData.degreeWithBranch,
+        degreeWithBranch: `${formData.degree} ${formData.branch}`.trim(),
       });
 
       // Registration completed → the OTP session is no longer needed.
@@ -289,7 +296,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
             <div className="bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-[18px] p-4 flex flex-col gap-2.5 shadow-[3px_3px_0px_#1E1B24]">
               <div className="flex justify-between items-center text-sm">
                 <span className="font-rubik text-[#5C5866]">Name:</span>
-                <span className="font-outfit-black text-[#1E1B24] text-right">{formData.name}</span>
+                <span className="font-outfit-black text-[#1E1B24] text-right">{formData.firstName} {formData.lastName}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="font-rubik text-[#5C5866]">Email:</span>
@@ -307,7 +314,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
               </div>
               <div className="flex justify-between items-center text-sm">
                 <span className="font-rubik text-[#5C5866]">Year & Branch:</span>
-                <span className="font-rubik font-medium text-[#1E1B24] text-right">Year {formData.year} • {formData.degreeWithBranch}</span>
+                <span className="font-rubik font-medium text-[#1E1B24] text-right">Year {formData.year} • {formData.degree} {formData.branch}</span>
               </div>
             </div>
 
@@ -388,9 +395,17 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
 
           <form onSubmit={handleSubmit} className="w-full space-y-6" noValidate>
             <div className="flex flex-col space-y-3">
-              <label htmlFor="name" className="font-outfit-black text-[20px] text-[#1E1B24]">Full Name</label>
-              {fieldError("name")}
-              <input id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Your full name" className={inputClass("name")} />
+              <label className="font-outfit-black text-[20px] text-[#1E1B24]">Full Name</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex flex-col space-y-3">
+                  {fieldError("firstName")}
+                  <input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First name" className={inputClass("firstName")} />
+                </div>
+                <div className="flex flex-col space-y-3">
+                  {fieldError("lastName")}
+                  <input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last name" className={inputClass("lastName")} />
+                </div>
+              </div>
             </div>
             <div className="flex flex-col space-y-3">
               <label htmlFor="email" className="font-outfit-black text-[20px] text-[#1E1B24]">SRM email id</label>
@@ -434,9 +449,16 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
               />
             </div>
             <div className="flex flex-col space-y-3">
-              <label htmlFor="degreeWithBranch" className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
-              {fieldError("degreeWithBranch")}
-              <input id="degreeWithBranch" name="degreeWithBranch" value={formData.degreeWithBranch} onChange={handleChange} placeholder="e.g. B.Tech CSE" className={inputClass("degreeWithBranch")} />
+              <label className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="flex flex-col space-y-3">
+                  <input id="degree" name="degree" value={formData.degree} disabled aria-disabled="true" className={`${inputClass("degree")} font-normal bg-[#E8E8E8] text-[#777777] border-[#AAAAAA] shadow-none cursor-not-allowed`} />
+                </div>
+                <div className="flex flex-col space-y-3">
+                  {fieldError("branch")}
+                  <input id="branch" name="branch" value={formData.branch} onChange={handleChange} placeholder="e.g. CSE" className={inputClass("branch")} />
+                </div>
+              </div>
             </div>
             <div className="pt-8 flex justify-center">
               <button type="submit" disabled={isSubmitting} className="bg-[#3E9FFF] border-[3px] border-[#1E1B24] rounded-[20px] shadow-[4px_4px_0px_#1E1B24] px-10 py-4 font-outfit-black text-[18px] text-white tracking-[1px] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#1E1B24] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
