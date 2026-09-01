@@ -50,9 +50,13 @@ function validateField(field: FieldName, value: string) {
         ? ""
         : "Use your SRM email ending with @srmist.edu.in.";
     case "registrationNumber":
-      return registrationNumberPattern.test(value.trim())
-        ? ""
-        : "Registration number must start with RA.";
+      if (!registrationNumberPattern.test(value.trim())) {
+        return "Registration number must start with RA.";
+      }
+      if (!/^RA(25|26)/.test(value.trim())) {
+        return "Recruitment is open only for 1st and 2nd year students.";
+      }
+      return "";
     case "phone":
       return /^\d{10}$/.test(value)
         ? ""
@@ -120,9 +124,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
     message: "",
   });
 
-  const router = useRouter();
-  const { login } = useAuth();
-
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -130,6 +131,16 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
     const value = field === "phone"
       ? event.target.value.replace(/\D/g, "").slice(0, 10)
       : event.target.value;
+
+    if (field === "registrationNumber") {
+      const year = value.startsWith("RA25") ? "2" : value.startsWith("RA26") ? "1" : "";
+      setFormData((current) => ({ ...current, registrationNumber: value, year }));
+      setErrors((current) => ({
+        ...current,
+        registrationNumber: validateField("registrationNumber", value),
+      }));
+      return;
+    }
 
     setFormData((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
@@ -450,11 +461,11 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
             </div>
             <div className="flex flex-col space-y-3">
               <label className="font-outfit-black text-[20px] text-[#1E1B24]">Degree with Branch</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="flex flex-col space-y-3">
                   <input id="degree" name="degree" value={formData.degree} disabled aria-disabled="true" className={`${inputClass("degree")} font-normal bg-[#E8E8E8] text-[#777777] border-[#AAAAAA] shadow-none cursor-not-allowed`} />
                 </div>
-                <div className="flex flex-col space-y-3">
+                <div className="flex flex-col space-y-3 sm:col-span-2">
                   {fieldError("branch")}
                   <input id="branch" name="branch" value={formData.branch} onChange={handleChange} placeholder="e.g. CSE" className={inputClass("branch")} />
                 </div>
