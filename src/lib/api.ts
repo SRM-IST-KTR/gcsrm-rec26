@@ -207,7 +207,7 @@ function mapBackendApplyUser(user: any): ParticipantData {
 // ── Public API ────────────────────────────────────────────────────────────
 
 export const api = {
-  /** POST /api/otp/send — throws ApiError on failure (429 carries retryAfterSeconds). */
+  /** POST /api/otp/send — sends email with the custom Neobrutalist template and subject. */
   sendOtp(email: string) {
     const emailTemplate = getOtpEmailHtml({ otpCode: "{{otp}}" });
     return post<OtpSendSuccess>("/api/otp/send", {
