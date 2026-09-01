@@ -5,7 +5,7 @@ import JobCard from "./JobCard";
 
 const OpenPositions = () => {
   return (
-    <section className="relative w-full lg:w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible">
+    <section className="relative w-full max-w-[1440px] lg:h-[1109px] bg-[#fffeef] py-16 px-5 sm:px-8 lg:py-[100px] lg:px-20 overflow-visible">
       <SectionHeader
         badge="Job Board"
         badgeClass="bg-[#3e9fff]"
@@ -46,12 +46,12 @@ const OpenPositions = () => {
         />
       </div>
       <img
-        className="absolute top-[-35px] left-[-35px] w-[140px] sm:top-[-50px] sm:left-[-25px] sm:w-[180px] lg:top-[-60px] lg:left-[20px] lg:w-[350px] h-auto pointer-events-none z-10"
+        className="absolute top-[-40px] left-[-20px] w-[170px] h-auto lg:top-[-110px] lg:left-[-50px] lg:w-[350px] lg:h-auto pointer-events-none z-10"
         src="/images/recruitment/action-punch-mascot.png"
         alt="Action punch mascot"
       />
       <img
-        className="lg:hidden absolute bottom-[-80px] right-[10px] w-[120px] h-auto pointer-events-none z-20"
+        className="lg:hidden absolute bottom-[-80px] right-[-30px] w-[120px] h-auto pointer-events-none z-20"
         src="/images/recruitment/role-pig.png"
         alt="Pig mascot"
       />
