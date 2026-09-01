@@ -446,6 +446,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
                 placeholder="Select your year"
                 error={errors.year}
                 onChange={(val) => handleDropdownChange("year", val)}
+                disabled={formData.registrationNumber.trim().length > 0 && formData.year !== ""}
               />
             </div>
             <div className="flex flex-col space-y-3 relative z-20">
