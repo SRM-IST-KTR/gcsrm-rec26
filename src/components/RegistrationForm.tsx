@@ -235,13 +235,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         degreeWithBranch,
       });
 
-      // Trigger confirmation email asynchronously (non-blocking)
-      api
-        .sendConfirmationEmail(formData.email, formData.name)
-        .catch((emailErr) => {
-          console.error("Failed to send registration confirmation email:", emailErr);
-        });
-
       // Registration completed → the OTP session is no longer needed.
       clearOtpSession();
 

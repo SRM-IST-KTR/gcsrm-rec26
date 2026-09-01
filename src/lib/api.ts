@@ -13,7 +13,7 @@
  */
 
 import type { ParticipantData } from "@/components/ApplicationStatus/types";
-import { getOtpEmailHtml, getRegistrationSuccessEmailHtml } from "@/lib/emailTemplate";
+import { getOtpEmailHtml } from "@/lib/emailTemplate";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -220,16 +220,6 @@ export const api = {
   /** POST /api/otp/verify — throws ApiError on failure; returns the verified-session JWT. */
   verifyOtp(email: string, otp: string) {
     return post<OtpVerifySuccess>("/api/otp/verify", { email, otp });
-  },
-
-  /** POST /api/email/send — sends registration confirmation email to applicant. */
-  sendConfirmationEmail(email: string, name: string) {
-    const emailTemplate = getRegistrationSuccessEmailHtml(name);
-    return post<{ success: boolean; message?: string }>("/api/email/send", {
-      email,
-      emailTemplate,
-      subject: "Application Confirmed - GCSRM '26",
-    });
   },
 
   /**
