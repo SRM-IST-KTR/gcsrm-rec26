@@ -75,6 +75,8 @@ type RegistrationFormProps = {
 };
 
 export default function RegistrationForm({ initialEmail = "" }: RegistrationFormProps) {
+  const router = useRouter();
+  const { login } = useAuth();
   const searchParams = useSearchParams();
   const domainQuery = searchParams.get("domain") || "";
   const validDomain = domains.includes(domainQuery) ? domainQuery : "";
