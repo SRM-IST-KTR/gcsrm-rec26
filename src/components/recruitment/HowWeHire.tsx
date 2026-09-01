@@ -54,7 +54,7 @@ const HowWeHire = () => {
       </div>
 
       <img
-        className="absolute top-[-50px] left-[-120px] w-[300px] lg:top-[-180px] lg:left-[-280px] lg:w-[750px] h-auto pointer-events-none z-10 object-contain rotate-[55deg]"
+        className="absolute top-[20px] left-[-80px] w-[200px] sm:top-[10px] sm:left-[-100px] sm:w-[250px] lg:top-[-20px] lg:left-[-180px] lg:w-[500px] h-auto pointer-events-none z-10 object-contain rotate-[50deg]"
         src="/images/recruitment/journey-robot.png"
         alt="Green robot mascot"
       />
