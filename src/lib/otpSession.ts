@@ -14,7 +14,6 @@ export interface OtpSession {
   token: string;
   email: string;
   expiresAt: number; // epoch ms
-  isNewUser?: boolean;
 }
 
 export function saveOtpSession(session: OtpSession): void {

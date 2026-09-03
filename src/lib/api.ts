@@ -30,36 +30,9 @@ export interface OtpRateLimited {
 
 export interface OtpVerifySuccess {
   success: true;
-  message?: string;
   /** JWT proving this email passed OTP verification. */
   token: string;
-  isNewUser?: boolean;
   expiresInSeconds?: number;
-}
-
-// ── Direct Email shapes ───────────────────────────────────────────────────
-
-export interface DirectEmailPayload {
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  templateId?: string;
-  dynamicTemplateData?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-export interface BatchEmailPayload {
-  emails?: DirectEmailPayload[];
-  batch?: DirectEmailPayload[];
-  [key: string]: unknown;
-}
-
-export interface EmailApiResponse {
-  success: boolean;
-  message?: string;
-  data?: unknown;
-  [key: string]: unknown;
 }
 
 // ── Error shapes ──────────────────────────────────────────────────────────
@@ -136,31 +109,17 @@ export interface BackendParticipantLookupResponse {
 }
 
 const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-const EMAIL_API_KEY = (
-  process.env.NEXT_PUBLIC_EMAIL_API_KEY ??
-  process.env.NEXT_PUBLIC_API_KEY ??
-  process.env.EMAIL_API_KEY ??
-  ""
-).trim();
-
 /** Headers shared by every backend call. */
-function jsonHeaders(customHeaders?: Record<string, string>): Record<string, string> {
-  return {
-    "Content-Type": "application/json",
-    ...customHeaders,
-  };
+function jsonHeaders(): Record<string, string> {
+  return { "Content-Type": "application/json" };
 }
 
-async function post<T>(
-  path: string,
-  payload: Record<string, unknown>,
-  headers?: Record<string, string>,
-): Promise<T> {
+async function post<T>(path: string, payload: Record<string, unknown>): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${BASE_URL}${path}`, {
       method: "POST",
-      headers: jsonHeaders(headers),
+      headers: { ...jsonHeaders() },
       body: JSON.stringify(payload),
     });
   } catch {
@@ -253,32 +212,6 @@ export const api = {
   /** POST /api/otp/verify — sends { email, otp }; returns verified JWT auth token and status. */
   verifyOtp(email: string, otp: string) {
     return post<OtpVerifySuccess>("/api/otp/verify", { email, otp });
-  },
-
-  /**
-   * POST /api/email/send — Send direct email.
-   * Requires `x-api-key` header configuration.
-   */
-  sendEmail(payload: DirectEmailPayload, apiKey?: string) {
-    const key = apiKey ?? EMAIL_API_KEY;
-    return post<EmailApiResponse>(
-      "/api/email/send",
-      payload as Record<string, unknown>,
-      key ? { "x-api-key": key } : undefined,
-    );
-  },
-
-  /**
-   * POST /api/email/batch — Send batch emails.
-   * Requires `x-api-key` header configuration.
-   */
-  sendBatchEmail(payload: BatchEmailPayload, apiKey?: string) {
-    const key = apiKey ?? EMAIL_API_KEY;
-    return post<EmailApiResponse>(
-      "/api/email/batch",
-      payload as Record<string, unknown>,
-      key ? { "x-api-key": key } : undefined,
-    );
   },
 
   /**
