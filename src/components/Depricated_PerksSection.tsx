@@ -75,7 +75,7 @@ export default function PerksSection() {
 
         {/* Title */}
         <h2 className="font-outfit-black text-4xl md:text-5xl lg:text-[48px] text-[#1E1B24] text-center mb-4 tracking-[-1.5px] uppercase">
-          MORE THAN JUST A CLUB
+          MORE THAN JUST A Community
         </h2>
 
         {/* Subtitle */}

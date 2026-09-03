@@ -402,7 +402,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
               NOTICE
             </span>
             <p className="font-rubik text-[15px] sm:text-[16px] font-medium text-[#1E1B24] leading-relaxed">
-              Ready to join the club? Please fill out the form details below and let&apos;s get you on board!
+              Ready to join the community? Please fill out the form details below and let&apos;s get you on board!
             </p>
           </div>
 
