@@ -93,7 +93,7 @@ export function HeroSection() {
 
         {/* Quote Box - Moved below the mascot, made static, flat, and full width */}
         <div className="w-full max-w-[340px] p-3 bg-yellow border-[3px] border-text-primary rounded-md shadow-[4px_4px_0_var(--color-text-primary)] font-rubik text-xs md:text-sm font-bold text-text-primary text-left">
-          &quot;Buri Buri Zaimon! … Ab tum batao, kaunsa club join karoge?&quot;
+          &quot;Buri Buri Zaimon! … Ab tum batao, kaunsa domain join karoge?&quot;
         </div>
 
       </div>
