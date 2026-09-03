@@ -89,7 +89,7 @@ export function useOtp(): UseOtpResult {
         const result = await api.sendOtp(normalized);
         hasSentBefore.current = true;
         setEmail(normalized);
-        setExpiresIn(result.expiresInSeconds);
+        setExpiresIn(result.expiresInSeconds ?? null);
         setPhase("sent");
         return true;
       } catch (err) {

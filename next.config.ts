@@ -15,10 +15,6 @@ const nextConfig: NextConfig = {
         destination: `${BACKEND_URL}/api/otp/:path*`,
       },
       {
-        source: "/api/email/:path*",
-        destination: `${BACKEND_URL}/api/email/:path*`,
-      },
-      {
         source: "/api/recruitment/:path*",
         destination: `${BACKEND_URL}/api/recruitment/:path*`,
       },
