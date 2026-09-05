@@ -15,6 +15,7 @@ import { ParticipantSummary } from "./ParticipantSummary";
 import { SubmitTaskModal } from "./SubmitTaskModal";
 import { TaskDetailsModal } from "./TaskDetailsModal";
 import { RecruitmentTask } from "./types";
+import { InstructionsModal } from "./InstructionsModal";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -160,11 +161,13 @@ export function StatusHeroCard({
   participant,
   onSubmitTask,
   onViewTasks,
+  onViewInstructions,
 }: {
   status: ParticipantStatus;
   participant?: Partial<ParticipantData> | null;
   onSubmitTask?: () => void;
   onViewTasks?: () => void;
+  onViewInstructions?: () => void;
 }) {
   const normalizedStatus =
     status === "interviewShortlist" ? "interviewShortlisted" : status;
@@ -224,6 +227,19 @@ export function StatusHeroCard({
               className="w-full sm:w-fit px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#FFD93D] text-[#1E1B24] font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
               View Tasks
+            </button>
+          )}
+          {onViewInstructions && (
+            <button
+              type="button"
+              onClick={onViewInstructions}
+              className="btn-cycle-colors w-full sm:w-fit justify-center px-4 py-2 border-[2.5px] border-[#1E1B24] font-outfit-black text-sm uppercase rounded-lg shadow-[3px_3px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#1E1B24] transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
+              </span>
+              Instructions
             </button>
           )}
           {onSubmitTask && (
@@ -358,21 +374,27 @@ export function ApplicationStatus({
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [showTaskDetailsModal, setShowTaskDetailsModal] = React.useState(false);
+  const [showInstructionsModal, setShowInstructionsModal] = React.useState(false);
   const [assignedTasks, setAssignedTasks] = React.useState<RecruitmentTask[]>(tasks);
+  const hasFetchedTasks = React.useRef(false);
 
   const currentStatus: ParticipantStatus =
     status || participant?.status || "registered";
 
   React.useEffect(() => {
-    if (participant?.email && currentStatus === "task_assigned") {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/recruitment?email=${participant.email}`)
+    if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
+      hasFetchedTasks.current = true;
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data?.tasks) {
             setAssignedTasks(data.data.tasks);
           }
         })
-        .catch(err => console.error("Failed to fetch tasks:", err));
+        .catch(err => {
+          console.error("Failed to fetch tasks:", err);
+          hasFetchedTasks.current = false;
+        });
     }
   }, [participant, currentStatus]);
 
@@ -420,6 +442,7 @@ export function ApplicationStatus({
             participant={participant}
             onSubmitTask={() => setShowSubmitModal(true)}
             onViewTasks={() => setShowTaskDetailsModal(true)}
+            onViewInstructions={() => setShowInstructionsModal(true)}
           />
 
           {/* Dynamic Steps List */}
@@ -443,6 +466,15 @@ export function ApplicationStatus({
         isOpen={showTaskDetailsModal}
         onClose={() => setShowTaskDetailsModal(false)}
         tasks={assignedTasks.length > 0 ? assignedTasks : tasks}
+        domain={participant?.domain}
+        onOpenInstructions={() => setShowInstructionsModal(true)}
+      />
+
+      {/* Instructions Modal */}
+      <InstructionsModal
+        isOpen={showInstructionsModal}
+        onClose={() => setShowInstructionsModal(false)}
+        domain={participant?.domain}
       />
     </section>
   );

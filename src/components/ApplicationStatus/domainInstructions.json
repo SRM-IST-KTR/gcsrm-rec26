@@ -1,0 +1,38 @@
+{
+  "Corporate": {
+    "title": "Corporate Domain Instructions",
+    "badge": "MANDATORY RULES",
+    "highlight": "Video is MANDATORY + Choose any ONE task",
+    "rules": [
+      "The Self-Introduction Video is mandatory(30s – 1 min).",
+      "In addition to the video, you MUST complete any ONE of the assigned domain tasks.",
+      "Upload all deliverables (video, report, spreadsheet, or pitch deck) to Google Drive.",
+      "Ensure Drive share settings are set to 'Anyone with the link can view' before submitting."
+    ],
+    "note": "Submissions missing the self-introduction video will not be evaluated."
+  },
+  "Technical": {
+    "title": "Technical Domain Instructions",
+    "badge": "TASK RULES",
+    "highlight": "Choose any ONE task",
+    "rules": [
+      "Select and complete any ONE task from the available tracks (e.g., WebDev, AI/ML).",
+      "Host your source code on a public GitHub repository with a descriptive README.",
+      "Include pinned dependency versions and seed configs where applicable.",
+      "Provide live demo / deployment links and screen recordings if requested in the task guidelines."
+    ],
+    "note": "Repositories must remain public until evaluation is complete."
+  },
+  "Creatives": {
+    "title": "Creatives Domain Instructions",
+    "badge": "DESIGN RULES",
+    "highlight": "Choose any ONE design task",
+    "rules": [
+      "Select and complete any ONE task from the GFX / UI/UX track.",
+      "Work must be executed in Figma following the official GCSRM branding guidelines.",
+      "Submit the direct Figma file link with view permissions enabled.",
+      "List all third-party plugins, asset packs, and design references used in the submission."
+    ],
+    "note": "Figma files must have public view permissions enabled."
+  }
+}

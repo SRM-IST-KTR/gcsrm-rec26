@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import Dropdown from "@/components/common/Dropdown";
+import { InstructionsModal } from "./InstructionsModal";
 import { RecruitmentTask } from "./types";
 import { X } from "lucide-react";
-
+import { Tooltip } from "@/components/common/Tooltip";
 interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   tasks?: RecruitmentTask[];
+  domain?: string;
+  onOpenInstructions?: () => void;
 }
-
-export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsModalProps) {
+export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, onOpenInstructions }: TaskDetailsModalProps) {
+  const [showInstructions, setShowInstructions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const getTaskId = (task: RecruitmentTask): string => String(task._id || task.id || task.title);
@@ -53,6 +56,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
   const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Added overflow-visible so dropdown lists can float cleanly outside the modal box bounds */}
       <div className="relative w-[95vw] sm:w-[80vw] md:w-[65vw] lg:w-[50vw] xl:w-[45vw] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-visible">
@@ -61,12 +65,26 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
           <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
             Task Details
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#EF4444] transition-colors group cursor-pointer"
-          >
-            <X size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Tooltip content="View domain instructions" position="bottom">
+              <button
+                type="button"
+                onClick={onOpenInstructions || (() => setShowInstructions(true))}
+                aria-label="View domain instructions"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white border-2 border-[#1E1B24] font-outfit-black text-xs text-[#1E1B24] hover:bg-[#FFFDF0] active:translate-x-[1px] active:translate-y-[1px] shadow-[2px_2px_0px_#1E1B24] cursor-pointer transition-all"
+              >
+                i
+              </button>
+            </Tooltip>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#EF4444] transition-colors group cursor-pointer"
+            >
+              <X size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
+            </button>
+          </div>
         </div>
 
         {/* Controls: Static & Overflow Visible */}
@@ -168,5 +186,11 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
         </div>
       </div>
     </div>
+      <InstructionsModal
+        isOpen={showInstructions}
+        onClose={() => setShowInstructions(false)}
+        domain={domain}
+      />
+    </>
   );
 }
