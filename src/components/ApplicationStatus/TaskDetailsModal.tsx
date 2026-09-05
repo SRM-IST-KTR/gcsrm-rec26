@@ -32,20 +32,9 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
     }
   }, [isOpen, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Strictly sync task ID when category changes
+  // Always reset task selection on category switch/initial load
   useEffect(() => {
-    if (selectedCategory) {
-      const availableTasks = tasks.filter((t) => t.taskType === selectedCategory);
-      if (availableTasks.length > 0) {
-        // Default to the first task if current selection is invalid or empty for this category
-        const isValid = availableTasks.some((t) => getTaskId(t) === selectedTaskId);
-        if (!isValid) {
-          setSelectedTaskId(getTaskId(availableTasks[0]));
-        }
-      } else {
-        setSelectedTaskId("");
-      }
-    }
+    setSelectedTaskId("");
   }, [selectedCategory, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -61,7 +50,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
 
   if (!isOpen) return null;
 
-  const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId) || filteredTasks[0];
+  const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -80,19 +69,13 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
           </button>
         </div>
 
-        {/* Content - overflow-y-auto restricted only here so dropdowns aren't clipped */}
-        <div className="p-4 sm:p-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto overflow-x-visible">
-          {/* Controls with explicit high z-index layering */}
-          <div className="flex flex-col gap-3 shrink-0 relative z-30">
+        {/* Controls: Static & Overflow Visible */}
+        <div className="shrink-0 flex flex-col gap-3 p-4 sm:p-5 pb-2 relative z-30 overflow-visible">
             <div className="flex flex-col gap-1.5 relative">
               <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">Category</label>
               <Dropdown
                 value={selectedCategory}
-                onChange={(val) => {
-                  setSelectedCategory(val);
-                  const firstMatch = tasks.find((t) => t.taskType === val);
-                  if (firstMatch) setSelectedTaskId(getTaskId(firstMatch));
-                }}
+                onChange={(val) => setSelectedCategory(val)}
                 options={categoryOptions}
                 placeholder="Select Category"
                 triggerBg="bg-white"
@@ -100,26 +83,34 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
               />
             </div>
 
-            <div className="flex flex-col gap-1.5 relative z-20">
-              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">Task Name</label>
+            <div className="flex flex-col gap-1.5 relative z-10">
+              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                Task Name
+              </label>
               <Dropdown
                 value={selectedTaskId}
                 onChange={(val) => setSelectedTaskId(val)}
                 options={taskOptions}
-                placeholder="Select Task"
-                disabled={filteredTasks.length <= 1}
+                placeholder="Choose any one"
+                placeholderClassName="font-bold text-[var(--error,#D92323)]"
+                disabled={filteredTasks.length === 0}
                 triggerBg="bg-white"
               />
             </div>
-          </div>
+        </div>
 
+        {/* Scrollable Content: ONLY the task details card scrolls */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 pt-1">
           {/* Task Details Display */}
-          {currentTask && (
+          {currentTask ? (
             <div className="flex flex-col gap-3 mt-1 p-4 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
               <div>
-                <h3 className="font-outfit-black text-[22px] text-[#1E1B24] leading-tight mb-2">
+                <h3 className="font-outfit-black text-[22px] text-[#1E1B24] leading-tight mb-1">
                   {currentTask.title}
                 </h3>
+                <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
+                  <strong>Deadline : 13sept</strong>
+                </p>
                 {currentTask.techStack && currentTask.techStack.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {currentTask.techStack.map((tech, i) => (
@@ -168,6 +159,10 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
                   </ul>
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="p-6 border-2 border-dashed border-[#1E1B24]/40 rounded-xl text-center font-rubik text-sm font-medium text-[#1E1B24]/60">
+              Please select a task from above to view its details, requirements, and guidelines.
             </div>
           )}
         </div>

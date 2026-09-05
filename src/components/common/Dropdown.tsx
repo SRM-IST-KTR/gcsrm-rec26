@@ -13,6 +13,7 @@ export interface DropdownProps {
   value: string;
   options: (string | DropdownOption)[];
   placeholder?: string;
+  placeholderClassName?: string;
   error?: string | boolean;
   onChange: (value: string) => void;
   triggerBg?: string;
@@ -26,6 +27,7 @@ export function Dropdown({
   value,
   options,
   placeholder = "Select an option",
+  placeholderClassName = "",
   error,
   onChange,
   triggerBg = "bg-[#FFD93D]",
@@ -96,7 +98,9 @@ export function Dropdown({
       >
         <span
           className={`truncate ${
-            selectedOption ? "font-bold text-[#1E1B24]" : "font-medium text-[#1E1B24]/70"
+            selectedOption
+              ? "font-bold text-[#1E1B24]"
+              : placeholderClassName || "font-medium text-[#1E1B24]/70"
           }`}
         >
           {selectedOption ? selectedOption.label : placeholder}
