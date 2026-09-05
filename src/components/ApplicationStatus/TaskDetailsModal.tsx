@@ -2,16 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import Dropdown from "@/components/common/Dropdown";
+import { InstructionsModal } from "./InstructionsModal";
 import { RecruitmentTask } from "./types";
-import { X } from "lucide-react";
+import { X, Info } from "lucide-react";
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   tasks?: RecruitmentTask[];
+  domain?: string;
 }
 
-export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsModalProps) {
+export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDetailsModalProps) {
+  const [showInstructions, setShowInstructions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const getTaskId = (task: RecruitmentTask): string => String(task._id || task.id || task.title);
@@ -53,6 +56,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
   const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Added overflow-visible so dropdown lists can float cleanly outside the modal box bounds */}
       <div className="relative w-[95vw] sm:w-[80vw] md:w-[65vw] lg:w-[50vw] xl:w-[45vw] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-visible">
@@ -61,12 +65,21 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
           <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
             Task Details
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#EF4444] transition-colors group cursor-pointer"
-          >
-            <X size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowInstructions(true)}
+              className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#3E9FFF] transition-colors group cursor-pointer"
+              title="View Domain Instructions"
+            >
+              <Info size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#EF4444] transition-colors group cursor-pointer"
+            >
+              <X size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
+            </button>
+          </div>
         </div>
 
         {/* Controls: Static & Overflow Visible */}
@@ -168,5 +181,11 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [] }: TaskDetailsMod
         </div>
       </div>
     </div>
+      <InstructionsModal
+        isOpen={showInstructions}
+        onClose={() => setShowInstructions(false)}
+        domain={domain}
+      />
+    </>
   );
 }
