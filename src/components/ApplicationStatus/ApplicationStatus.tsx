@@ -213,8 +213,8 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
-        <p className="font-outfit-black text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
-          Deadline : 13sept
+        <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
+          Deadline : 23:59PM, 12 September, 2026
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
