@@ -40,6 +40,17 @@ export interface ParticipantData {
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
+export interface RecruitmentTask {
+  _id?: string;
+  id?: string;
+  taskType: string;
+  title: string;
+  goal: string;
+  description: string;
+  guidelines: string;
+  requirements: string[];
+  techStack: string[];
+}
 
 export interface StepConfig {
   id: string;
@@ -67,6 +78,8 @@ export interface ApplicationStatusProps {
   participant?: Partial<ParticipantData> | null;
   /** Explicit participant status override */
   status?: ParticipantStatus | null;
+  /** Array of tasks to display in the task details modal */
+  tasks?: RecruitmentTask[];
   /** Custom list of status step configurations */
   customSteps?: StepConfig[];
   /** Custom top pill badge text (defaults to "PROGRESS") */
