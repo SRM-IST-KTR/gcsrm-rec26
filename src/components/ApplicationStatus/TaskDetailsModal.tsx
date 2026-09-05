@@ -4,16 +4,16 @@ import React, { useState, useEffect } from "react";
 import Dropdown from "@/components/common/Dropdown";
 import { InstructionsModal } from "./InstructionsModal";
 import { RecruitmentTask } from "./types";
-import { X, Info } from "lucide-react";
-
+import { X } from "lucide-react";
+import { Tooltip } from "@/components/common/Tooltip";
 interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   tasks?: RecruitmentTask[];
   domain?: string;
+  onOpenInstructions?: () => void;
 }
-
-export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDetailsModalProps) {
+export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, onOpenInstructions }: TaskDetailsModalProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
@@ -65,15 +65,20 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
           <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
             Task Details
           </h2>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <Tooltip content="View domain instructions" position="bottom">
+              <button
+                type="button"
+                onClick={onOpenInstructions || (() => setShowInstructions(true))}
+                aria-label="View domain instructions"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white border-2 border-[#1E1B24] font-outfit-black text-xs text-[#1E1B24] hover:bg-[#FFFDF0] active:translate-x-[1px] active:translate-y-[1px] shadow-[2px_2px_0px_#1E1B24] cursor-pointer transition-all"
+              >
+                i
+              </button>
+            </Tooltip>
+
             <button
-              onClick={() => setShowInstructions(true)}
-              className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#3E9FFF] transition-colors group cursor-pointer"
-              title="View Domain Instructions"
-            >
-              <Info size={20} className="text-[#1E1B24] group-hover:text-white transition-colors" />
-            </button>
-            <button
+              type="button"
               onClick={onClose}
               className="p-1 border-2 border-[#1E1B24] rounded bg-white hover:bg-[#EF4444] transition-colors group cursor-pointer"
             >
