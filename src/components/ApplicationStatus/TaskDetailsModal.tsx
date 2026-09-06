@@ -46,6 +46,13 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
 
   const task2Options = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
 
+  // Auto-select if there is only 1 non-video task (e.g. corporate 1st year task)
+  useEffect(() => {
+    if (isCorporate && nonVideoTasks.length === 1) {
+      setSelectedTaskId(getTaskId(nonVideoTasks[0]));
+    }
+  }, [tasks, isCorporate]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Initialize or reset category when modal opens or tasks change
   useEffect(() => {
     if (isOpen && activeCategories.length > 0) {
@@ -55,10 +62,13 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
     }
   }, [isOpen, tasks, domain]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Always reset task selection on category switch/initial load
+  // Always reset task selection on category switch/initial load (unless single task corporate)
   useEffect(() => {
-    setSelectedTaskId("");
+    if (!isCorporate || nonVideoTasks.length !== 1) {
+      setSelectedTaskId("");
+    }
   }, [selectedCategory, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -72,7 +82,11 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
 
   if (!isOpen) return null;
 
-  const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
+  const currentTask =
+    isCorporate && nonVideoTasks.length === 1
+      ? nonVideoTasks[0]
+      : filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
+
   const videoTask = videoTasks.length > 0 ? videoTasks[0] : null;
 
   // Reusable task card renderer helper
@@ -83,9 +97,9 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
           <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
             {task.title}
           </h3>
-          {/* <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
+          <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
             <strong>Deadline : 13sept</strong>
-          </p> */}
+          </p>
         </div>
         {badgeText && (
           <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
@@ -196,11 +210,11 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
             </div>
           )}
 
-          {/* Task 2 Section / Standard Domain Category & Task Selection */}
+          {/* Task 2 Section */}
           <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
-                {isCorporate ? "Task 2 : Choose Your Task" : "Task Selection"}
+                {isCorporate ? "Task 2 : Task" : "Task Selection"}
               </span>
             </div>
 
@@ -221,34 +235,38 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
               </div>
             )}
 
-            {/* Task Name Dropdown */}
-            <div className="flex flex-col gap-1.5 relative z-10">
-              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
-                {isCorporate ? "Task 2 : Task Name" : "Task Name"}
-              </label>
-              <Dropdown
-                value={selectedTaskId}
-                onChange={(val) => setSelectedTaskId(val)}
-                options={isCorporate ? nonVideoTasks.map((t) => ({ label: t.title, value: getTaskId(t) })) : task2Options}
-                placeholder="Choose any one"
-                placeholderClassName="font-bold text-[var(--error,#D92323)]"
-                disabled={isCorporate ? nonVideoTasks.length === 0 : filteredTasks.length === 0}
-                triggerBg="bg-white"
-              />
-            </div>
+            {/* Task Name Dropdown (only show if more than 1 task available) */}
+            {!(isCorporate && nonVideoTasks.length === 1) && (
+              <div className="flex flex-col gap-1.5 relative z-10">
+                <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                  {isCorporate ? "Task 2 : Task Name" : "Task Name"}
+                </label>
+                <Dropdown
+                  value={selectedTaskId}
+                  onChange={(val) => setSelectedTaskId(val)}
+                  options={isCorporate ? nonVideoTasks.map((t) => ({ label: t.title, value: getTaskId(t) })) : task2Options}
+                  placeholder="Choose any one"
+                  placeholderClassName="font-bold text-[var(--error,#D92323)]"
+                  disabled={isCorporate ? nonVideoTasks.length === 0 : filteredTasks.length === 0}
+                  triggerBg="bg-white"
+                />
+              </div>
+            )}
           </div>
 
           {/* Selected Task Details Card (For Task 2 / standard domains) */}
           {currentTask && (
             <div className="flex flex-col gap-3">
-              <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
-                Task 2 Details
-              </span>
+              {!(isCorporate && nonVideoTasks.length === 1) && (
+                <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
+                  Task 2 Details
+                </span>
+              )}
               {renderTaskCard(currentTask)}
             </div>
           )}
 
-          {!currentTask && isCorporate && (
+          {!currentTask && isCorporate && nonVideoTasks.length > 1 && (
             <div className="p-4 border-2 border-dashed border-[#1E1B24]/40 rounded-xl text-center font-rubik text-sm font-medium text-[#1E1B24]/60">
               Please select a Task 2 option from the dropdown above to view its full requirements, guidelines, and goals.
             </div>
