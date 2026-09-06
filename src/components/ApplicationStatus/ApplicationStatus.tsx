@@ -169,8 +169,16 @@ export function StatusHeroCard({
   onViewTasks?: () => void;
   onViewInstructions?: () => void;
 }) {
-  const normalizedStatus =
-    status === "interviewShortlist" ? "interviewShortlisted" : status;
+  const [isSubmissionOpen, setIsSubmissionOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const SUBMISSION_START = new Date("2026-09-08T00:00:00+05:30");
+    const SUBMISSION_END = new Date("2026-09-12T23:59:59+05:30");
+    const now = new Date();
+    setIsSubmissionOpen(now >= SUBMISSION_START && now <= SUBMISSION_END);
+  }, []);
+
+  const normalizedStatus = status === "interviewShortlist" ? "interviewShortlisted" : status;
 
   // 1. Interview Shortlisted (interviewShortlisted or interviewShortlist)
   if (normalizedStatus === "interviewShortlisted") {
@@ -217,7 +225,7 @@ export function StatusHeroCard({
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
         <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
-          Deadline : 23:59PM, 12 September, 2026
+          SUBMISSIONS: 8 Sept 2026, 12:00 AM - 12 Sept 2026, 23:59 PM
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
@@ -243,13 +251,28 @@ export function StatusHeroCard({
             </button>
           )}
           {onSubmitTask && (
-            <button
-              type="button"
-              onClick={onSubmitTask}
-              className="w-full sm:w-fit px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+            <div
+              className="relative group inline-block w-full sm:w-fit"
+              title={!isSubmissionOpen ? "Submissions open on 8th September 2026, 12:00 AM" : undefined}
             >
-              Submit Task
-            </button>
+              <button
+                type="button"
+                onClick={isSubmissionOpen ? onSubmitTask : undefined}
+                disabled={!isSubmissionOpen}
+                className={`w-full sm:w-fit px-6 py-3 rounded-xl border-2 font-outfit-black text-sm uppercase tracking-wider transition-all ${
+                  isSubmissionOpen
+                    ? "border-[#1E1B24] bg-[#4EC37B] text-white shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                    : "border-black bg-neutral-300 text-neutral-600 opacity-60 cursor-not-allowed shadow-none pointer-events-none"
+                }`}
+              >
+                Submit Task
+              </button>
+              {!isSubmissionOpen && (
+                <div className="group-hover:opacity-100 pointer-events-none opacity-0 transition-opacity absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-yellow-300 text-black text-xs font-bold font-mono px-2.5 py-1 border-2 border-black rounded shadow-[2px_2px_0px_#000] z-20">
+                  Submissions open on 8th September 2026, 12:00 AM
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
