@@ -23,43 +23,58 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
 
   const normalizedDomain = (domain || "").trim();
   const isCorporate = normalizedDomain.toLowerCase().includes("corp");
-  const isCreatives = normalizedDomain.toLowerCase().includes("creative") || normalizedDomain.toLowerCase().includes("gfx") || normalizedDomain.toLowerCase().includes("vfx");
-  const isTechnical = normalizedDomain.toLowerCase().includes("tech") || normalizedDomain.toLowerCase().includes("web") || normalizedDomain.toLowerCase().includes("ai") || normalizedDomain.toLowerCase().includes("ml");
 
   const normalizedYear = year ? `Year ${year}` : "Year 1";
 
-  // Determine domain/category-specific resource download link from JSON
-  const getDomainTaskLink = (taskTitle: string = "", categoryName: string = ""): string => {
+  // Determine domain/category-specific resource download link and label from JSON
+  const getDomainTaskInfo = (taskTitle: string = "", categoryName: string = "") => {
     const dLower = normalizedDomain.toLowerCase();
     const tLower = taskTitle.toLowerCase();
     const cLower = categoryName.toLowerCase();
 
     if (dLower.includes("corp")) {
       const corpLinks = taskLinksData.Corporate as Record<string, string>;
-      return corpLinks[normalizedYear] || corpLinks["Year 1"] || "";
+      return {
+        link: corpLinks[normalizedYear] || corpLinks["Year 1"] || "",
+        label: `Download Corporate Task (${normalizedYear})`,
+      };
     }
 
     if (dLower.includes("creative") || dLower.includes("gfx") || dLower.includes("vfx") || cLower.includes("gfx") || cLower.includes("vfx")) {
       const creativesLinks = taskLinksData.Creatives as Record<string, string>;
       if (tLower.includes("vfx") || tLower.includes("motion") || tLower.includes("video") || cLower.includes("vfx")) {
-        return creativesLinks["Both Years"] || "";
+        return {
+          link: creativesLinks["Both Years"] || "",
+          label: "Download VFX Task",
+        };
       }
-      return creativesLinks[normalizedYear] || creativesLinks["Year 1"] || "";
+      return {
+        link: creativesLinks[normalizedYear] || creativesLinks["Year 1"] || "",
+        label: `Download GFX Task (${normalizedYear})`,
+      };
     }
 
     if (dLower.includes("tech") || dLower.includes("web") || dLower.includes("ai") || dLower.includes("ml") || cLower.includes("ai") || cLower.includes("ml") || cLower.includes("web") || cLower.includes("dev")) {
       const techLinks = taskLinksData.Technical as Record<string, Record<string, string>>;
       if (tLower.includes("ai") || tLower.includes("ml") || tLower.includes("intelligence") || cLower.includes("ai") || cLower.includes("ml")) {
         const aiLinks = techLinks["AI/ML"];
-        return aiLinks[normalizedYear] || aiLinks["Year 1"] || "";
+        return {
+          link: aiLinks[normalizedYear] || aiLinks["Year 1"] || "",
+          label: `Download AI/ML Task (${normalizedYear})`,
+        };
       }
       const webLinks = techLinks["WebDev"];
-      return webLinks[normalizedYear] || webLinks["Year 1"] || "";
+      return {
+        link: webLinks[normalizedYear] || webLinks["Year 1"] || "",
+        label: `Download WebDev Task (${normalizedYear})`,
+      };
     }
 
-    // Fallback general lookup
     const creativesLinks = taskLinksData.Creatives as Record<string, string>;
-    return creativesLinks[normalizedYear] || "";
+    return {
+      link: creativesLinks[normalizedYear] || "",
+      label: `Download Task (${normalizedYear})`,
+    };
   };
 
   // If corporate, categorize tasks into "Video Task" (taskType containing video or title/desc related to video) vs remaining categories
@@ -130,15 +145,13 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
 
   const videoTask = videoTasks.length > 0 ? videoTasks[0] : null;
 
-  // Compute overall top-level download link based on domain, selected category, or task
-  const topLevelTaskLink = isCorporate
-    ? getDomainTaskLink("", "")
-    : getDomainTaskLink(currentTask?.title || "", selectedCategory);
+  // Compute download info based on corporate, category, or selected task
+  const taskInfo = isCorporate
+    ? getDomainTaskInfo("", "")
+    : getDomainTaskInfo(currentTask?.title || "", selectedCategory);
 
   // Reusable task card renderer helper
   const renderTaskCard = (task: RecruitmentTask & { link?: string; resourceLink?: string; figmaLink?: string; fileLink?: string }, badgeText?: string) => {
-    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink || getDomainTaskLink(task.title, selectedCategory);
-
     return (
       <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
         <div className="flex items-start justify-between gap-2">
@@ -233,28 +246,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
 
         {/* Scrollable Content */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 flex flex-col gap-6">
-          {/* Top-Level Quick Download / Resource Link Button (Visible right after selection) */}
-          {topLevelTaskLink && (
-            <div className="w-full bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_3px_0px_#1E1B24]">
-              <div className="flex flex-col text-left">
-                <span className="font-outfit-black text-sm text-[#1E1B24] uppercase">
-                  Task Resource &amp; Guidelines Available
-                </span>
-                <span className="font-rubik text-xs text-[#5C5866]">
-                  Download or open the official task document / package for {normalizedYear} ({normalizedDomain}).
-                </span>
-              </div>
-              <a
-                href={topLevelTaskLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-              >
-                <span>📥 Download Task Link</span>
-              </a>
-            </div>
-          )}
-
           {/* For Corporate: Task 1 Mandatory Video Task */}
           {isCorporate && (
             <div className="flex flex-col gap-3">
@@ -279,7 +270,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
             </div>
           )}
 
-          {/* Task 2 Section */}
+          {/* Task 2 Section & Category Selection */}
           <div className="flex flex-col gap-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
@@ -304,9 +295,31 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
               </div>
             )}
 
+            {/* DOWNLOAD TASK BUTTON (Positioned right below Category selection / Corporate header) */}
+            {taskInfo.link && (
+              <div className="w-full bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_3px_0px_#1E1B24] my-1">
+                <div className="flex flex-col text-left">
+                  <span className="font-outfit-black text-xs sm:text-sm text-[#1E1B24] uppercase">
+                    {taskInfo.label}
+                  </span>
+                  <span className="font-rubik text-xs text-[#5C5866]">
+                    Click to download or view the official task guidelines and assets for {normalizedYear}.
+                  </span>
+                </div>
+                <a
+                  href={taskInfo.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                >
+                  <span>📥 {taskInfo.label}</span>
+                </a>
+              </div>
+            )}
+
             {/* Task Name Dropdown (only show if more than 1 task available) */}
             {!(isCorporate && nonVideoTasks.length === 1) && (
-              <div className="flex flex-col gap-1.5 relative z-10">
+              <div className="flex flex-col gap-1.5 relative z-10 mt-1">
                 <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
                   {isCorporate ? "Task 2 : Task Name" : "Task Name"}
                 </label>
