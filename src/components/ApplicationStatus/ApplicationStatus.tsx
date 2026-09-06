@@ -384,7 +384,8 @@ export function ApplicationStatus({
   React.useEffect(() => {
     if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
       hasFetchedTasks.current = true;
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+      fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.data?.tasks) {
