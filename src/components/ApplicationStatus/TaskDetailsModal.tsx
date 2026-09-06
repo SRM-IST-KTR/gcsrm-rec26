@@ -114,13 +114,23 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
                   </span>
                 </div>
                 {videoTasks.length > 0 ? (
-                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-3.5 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-1">
-                    <span className="font-outfit-black text-sm text-[#1E1B24]">
+                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-4 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-2">
+                    <span className="font-outfit-black text-sm text-[#1E1B24] font-bold">
                       {videoTasks[0].title}
                     </span>
+                    {videoTasks[0].goal && (
+                      <p className="font-rubik text-xs text-[#1E1B24] font-semibold">
+                        Goal: {videoTasks[0].goal}
+                      </p>
+                    )}
                     {videoTasks[0].description && (
-                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed">
+                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
                         {videoTasks[0].description}
+                      </p>
+                    )}
+                    {videoTasks[0].guidelines && (
+                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
+                        {videoTasks[0].guidelines}
                       </p>
                     )}
                   </div>
@@ -162,10 +172,10 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
               <Dropdown
                 value={selectedTaskId}
                 onChange={(val) => setSelectedTaskId(val)}
-                options={isCorporate ? tasks.map((t) => ({ label: t.title, value: getTaskId(t) })) : task2Options}
+                options={isCorporate ? nonVideoTasks.map((t) => ({ label: t.title, value: getTaskId(t) })) : task2Options}
                 placeholder="Choose any one"
                 placeholderClassName="font-bold text-[var(--error,#D92323)]"
-                disabled={isCorporate ? tasks.length === 0 : filteredTasks.length === 0}
+                disabled={isCorporate ? nonVideoTasks.length === 0 : filteredTasks.length === 0}
                 triggerBg="bg-white"
               />
             </div>
