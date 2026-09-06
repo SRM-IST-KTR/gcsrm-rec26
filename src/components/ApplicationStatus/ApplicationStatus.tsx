@@ -382,21 +382,37 @@ export function ApplicationStatus({
     status || participant?.status || "registered";
 
   React.useEffect(() => {
-    if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
-      hasFetchedTasks.current = true;
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-      fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.data?.tasks) {
-            setAssignedTasks(data.data.tasks);
-          }
-        })
-        .catch(err => {
-          console.error("Failed to fetch tasks:", err);
-          hasFetchedTasks.current = false;
-        });
-    }
+    const fetchTasks = () => {
+      if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
+        hasFetchedTasks.current = true;
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+        fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.data?.tasks) {
+              setAssignedTasks(data.data.tasks);
+            }
+          })
+          .catch(err => {
+            console.error("Failed to fetch tasks:", err);
+            hasFetchedTasks.current = false;
+          });
+      }
+    };
+
+    fetchTasks();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        hasFetchedTasks.current = false;
+        fetchTasks();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [participant, currentStatus]);
 
   // Compute visual states dynamically unconditionally
@@ -419,7 +435,7 @@ export function ApplicationStatus({
         <StatusHeader badgeText={badgeText} title={title} />
 
         {/* Main Status Container Card */}
-        <div className="w-full bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[6px_6px_0px_#1E1B24] sm:shadow-[8px_8px_0px_#1E1B24] p-6 sm:p-8 md:p-10">
+        <div className="w-full bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[6px_6px_0px_#1E1B24] sm:shadow-[8px_8px_0px_#1E1B24] p-4 sm:p-6 md:p-10">
           {/* Inner Card Heading */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 sm:mb-8">
             <h3 className="font-outfit-black text-[22px] sm:text-[24px] text-[#1E1B24] tracking-tight text-left">
