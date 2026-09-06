@@ -41,7 +41,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   const activeCategoryOptions = isCorporate ? nonVideoCategoryOptions : categoryOptions;
 
   const filteredTasks = isCorporate
-    ? tasks.filter((t) => !isVideoTask(t))
+    ? tasks
     : tasks.filter((t) => t.taskType === selectedCategory);
 
   const task2Options = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
@@ -125,14 +125,14 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
                     )}
                   </div>
                 ) : (
-                  <Dropdown
-                    value=""
-                    onChange={() => {}}
-                    options={[]}
-                    placeholder="Self-Introduction Video Task"
-                    disabled={true}
-                    triggerBg="bg-[#FFFDF0]"
-                  />
+                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-3.5 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-1">
+                    <span className="font-outfit-black text-sm text-[#1E1B24]">
+                      Self-Introduction Video
+                    </span>
+                    <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed">
+                      Record and upload a short 30s to 1-minute self-introduction video to Google Drive.
+                    </p>
+                  </div>
                 )}
               </div>
             )}
