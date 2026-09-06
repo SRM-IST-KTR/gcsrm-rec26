@@ -75,7 +75,7 @@ const OpenPositions = () => {
             <div className="absolute top-[241px] left-[32px] w-[592px] h-14 flex items-center">
               <ActionButton
                 href="/apply?domain=Technical"
-                text="Apply Now"
+                text="Login / Register"
                 bgColor="bg-[#ff4b4b]"
                 textColor="text-white"
                 className="uppercase tracking-wider !text-base"
@@ -105,7 +105,7 @@ const OpenPositions = () => {
             <div className="absolute top-[239px] left-[32px] flex flex-row justify-between items-center w-[528px] h-14">
               <ActionButton
                 href="/apply?domain=Corporate"
-                text="Apply Now"
+                text="Login / Register"
                 bgColor="bg-[#ffd93d]"
                 textColor="text-[#33260d]"
                 className="uppercase tracking-wider !text-base"
@@ -137,7 +137,7 @@ const OpenPositions = () => {
             <div className="absolute top-[239px] left-[32px] w-[560px] h-14 flex items-center">
               <ActionButton
                 href="/apply?domain=Creatives"
-                text="Apply Now"
+                text="Login / Register"
                 bgColor="bg-[#3e9fff]"
                 textColor="text-white"
                 className="uppercase tracking-wider !text-base"
