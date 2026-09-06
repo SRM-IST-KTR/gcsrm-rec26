@@ -100,9 +100,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
             <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
               {task.title}
             </h3>
-            <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
-              <strong>Deadline : 13sept</strong>
-            </p>
           </div>
           {badgeText && (
             <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
@@ -119,11 +116,10 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#3E9FFF] text-white font-outfit-black text-xs uppercase tracking-wider rounded-lg border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:bg-[#2A8BEA] transition-colors"
             >
-              <span>🔗 Open Task Resource / Figma Link</span>
+              <span>Open Task Resource / Figma Link</span>
             </a>
           </div>
         )}
-
         {task.techStack && task.techStack.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {task.techStack.map((tech, i) => (

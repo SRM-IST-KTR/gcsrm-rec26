@@ -16,7 +16,7 @@
     "badge": "TASK RULES",
     "highlight": "Choose any ONE task",
     "rules": [
-      "Select and complete any ONE task from the available tracks (e.g., WebDev, AI/ML).",
+      "Select and complete any ONE task from the available tracks (WebDev, AI/ML).",
       "Host your source code on a public GitHub repository with a descriptive README.",
       "Include pinned dependency versions and seed configs where applicable.",
       "Provide live demo / deployment links and screen recordings if requested in the task guidelines."
@@ -28,11 +28,11 @@
     "badge": "DESIGN RULES",
     "highlight": "Choose any ONE design task",
     "rules": [
-      "Select and complete any ONE task from the GFX / UI/UX track.",
-      "Work must be executed in Figma following the official GCSRM branding guidelines.",
+      "Select and complete any ONE task from the GFX / VFX track.",
+      "GFX Work must be executed in Figma following the official GCSRM branding guidelines.",
       "Submit the direct Figma file link with view permissions enabled.",
       "List all third-party plugins, asset packs, and design references used in the submission."
     ],
-    "note": "Figma files must have public view permissions enabled."
+    "note": "Figma/Google Drive files must have public view permissions enabled."
   }
 }
