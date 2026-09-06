@@ -220,13 +220,6 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       timeoutRef.current = setTimeout(() => {
         login(user);
         router.push("/");
-
-        scrollTimeoutRef.current = setTimeout(() => {
-          const statusSection = document.getElementById("status");
-          if (statusSection) {
-            statusSection.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 400);
       }, 3000);
     } catch (err) {
       setIsSubmitting(false);
