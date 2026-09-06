@@ -214,6 +214,27 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
             </ul>
           </div>
         )}
+
+        {taskInfo.link && (
+          <div className="w-full bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_3px_0px_#1E1B24] mt-2">
+            <div className="flex flex-col text-left">
+              <span className="font-outfit-black text-xs sm:text-sm text-[#1E1B24] uppercase">
+                {taskInfo.label}
+              </span>
+              <span className="font-rubik text-xs text-[#5C5866]">
+                Click to download or view the official task guidelines and assets for {normalizedYear}.
+              </span>
+            </div>
+            <a
+              href={taskInfo.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+            >
+              <span>{taskInfo.label}</span>
+            </a>
+          </div>
+        )}
       </div>
     );
   };
@@ -297,26 +318,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
             )}
 
             {/* DOWNLOAD TASK BUTTON (Positioned right below Category selection / Corporate header) */}
-            {taskInfo.link && (
-              <div className="w-full bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_3px_0px_#1E1B24] my-1">
-                <div className="flex flex-col text-left">
-                  <span className="font-outfit-black text-xs sm:text-sm text-[#1E1B24] uppercase">
-                    {taskInfo.label}
-                  </span>
-                  <span className="font-rubik text-xs text-[#5C5866]">
-                    Click to download or view the official task guidelines and assets for {normalizedYear}.
-                  </span>
-                </div>
-                <a
-                  href={taskInfo.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-                >
-                  <span>{taskInfo.label}</span>
-                </a>
-              </div>
-            )}
 
             {/* Task Name Dropdown (only show if more than 1 task available) */}
             {!(isCorporate && nonVideoTasks.length === 1) && (
