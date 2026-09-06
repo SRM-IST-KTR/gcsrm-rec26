@@ -6,6 +6,7 @@ import { OtpInput } from "@/components/OtpInput";
 import { SendOtpButton } from "@/components/SendOtpButton";
 import { ResendOtpLink } from "@/components/ResendOtpLink";
 import { clearOtpSession } from "@/lib/otpSession";
+import Link from "next/link";
 
 interface EmailOtpFormProps {
   /** Prefill the email input when arriving from the login step. */
@@ -36,7 +37,7 @@ export function EmailOtpForm({
   const [otpValue, setOtpValue] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  const { phase, email, error, resendCooldown, sendOtp, verifyOtp, reset } = useOtp();
+  const { phase, email, error, resendCooldown, sendOtp, verifyOtp, jumpToVerify, reset } = useOtp();
 
   // When the OTP is verified, hand the verified email to the parent.
   useEffect(() => {
@@ -78,7 +79,7 @@ export function EmailOtpForm({
     await sendOtp(email);
   };
 
-  const displayError = error || externalError;
+  const displayError = resendCooldown > 0 ? `An OTP was already sent. Please wait ${resendCooldown} seconds before requesting a new one.` : (error || externalError);
   const isSending = phase === "sending";
   const isVerifying = phase === "verifying";
   const showOtpStep = email !== null;
@@ -248,7 +249,7 @@ export function EmailOtpForm({
             `}</style>
 
             <div
-              className="bg-white rounded-3xl p-8 w-full"
+              className="bg-white rounded-3xl p-4 min-[360px]:p-6 sm:p-8 w-full"
               style={{
                 border: "3px solid #1e1b24",
                 boxShadow: "6px 6px 0px #1e1b24",
@@ -298,6 +299,17 @@ export function EmailOtpForm({
                   <SendOtpButton loading={isSending}>
                     {isSending ? "Sending OTP..." : "Send OTP"}
                   </SendOtpButton>
+
+                  <div className="w-full flex items-center justify-center px-4 text-center mt-3 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => jumpToVerify(emailInput)}
+                      disabled={!emailInput || !emailPattern.test(emailInput)}
+                      className="w-full py-2.5 px-4 my-2 bg-white hover:bg-neutral-100 text-black font-bold text-xs sm:text-sm uppercase tracking-wide border-2 border-black rounded-lg shadow-[2px_2px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-[2px_2px_0px_#000] disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white"
+                    >
+                      Already have an OTP? Verify →
+                    </button>
+                  </div>
                 </form>
               ) : (
                 /* ── Step 2: Verify OTP ──────────────────────────  */
@@ -368,6 +380,15 @@ export function EmailOtpForm({
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="mt-8">
+            <Link
+              href="/"
+              className="px-6 py-3 bg-[#FFD93D] border-[3px] border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24] font-outfit-black text-[13px] sm:text-sm uppercase tracking-wider text-[#1E1B24] hover:shadow-[2px_2px_0px_#1E1B24] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center cursor-pointer"
+            >
+              ← Back to Home
+            </Link>
           </div>
         </div>
       </div>

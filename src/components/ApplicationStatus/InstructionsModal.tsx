@@ -13,12 +13,12 @@ interface InstructionsModalProps {
 export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModalProps) {
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.classList.add("overflow-hidden", "touch-none");
     } else {
-      document.body.style.overflow = "unset";
+      document.body.classList.remove("overflow-hidden", "touch-none");
     }
     return () => {
-      document.body.style.overflow = "unset";
+      document.body.classList.remove("overflow-hidden", "touch-none");
     };
   }, [isOpen]);
 
@@ -30,7 +30,7 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-[95vw] sm:w-[85vw] md:w-[550px] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-hidden">
+      <div className="relative w-full max-w-[95vw] sm:w-[85vw] md:w-[550px] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-[#FFD93D] border-b-[3px] border-[#1E1B24] p-4 flex items-center justify-between rounded-t-xl">
           <div className="flex items-center gap-2">
@@ -48,7 +48,7 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto flex flex-col gap-5">
+        <div className="p-5 overflow-y-auto overscroll-contain flex flex-col gap-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <span className="font-outfit-black text-sm uppercase text-[#1E1B24] tracking-wider">
               {data.badge}

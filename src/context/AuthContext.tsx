@@ -68,8 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     restoreAndRefreshSession();
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        restoreAndRefreshSession();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       isMounted = false;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

@@ -33,7 +33,7 @@ const JobCard = ({
     <div className="w-fit">
       <ActionButton
         href={`/apply?domain=${badge}`}
-        text="Apply Now"
+        text="Login / Register"
         bgColor={badge === "Technical" ? "bg-[#ff4b4b]" : badge === "Corporate" ? "bg-[#ffd93d]" : "bg-[#3e9fff]"}
         textColor={buttonTextClass}
         className="uppercase tracking-wider !text-sm sm:!text-base"

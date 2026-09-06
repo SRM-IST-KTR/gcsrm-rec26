@@ -62,7 +62,7 @@ export function HeroSection() {
         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mt-2 w-full">
           <ActionButton
             href="/apply"
-            text="APPLY NOW →"
+            text="LOGIN / REGISTER →"
             bgColor="bg-primary"
             textColor="text-bg-white"
           />

@@ -57,7 +57,7 @@ export function Popup({
       role="alert"
       aria-live="assertive"
     >
-      <div className="w-full bg-white border-[3px] border-[#1E1B24] rounded-[22px] shadow-[6px_6px_0px_#1E1B24] p-5 sm:p-6 flex flex-col gap-3 relative">
+      <div className="w-full bg-white border-[3px] border-[#1E1B24] rounded-[22px] shadow-[6px_6px_0px_#1E1B24] p-5 sm:p-6 flex flex-col gap-3 relative overflow-hidden">
         <div className="flex items-center justify-between gap-3">
           {/* Badge & Title */}
           <div className="flex items-center gap-2.5">
@@ -98,6 +98,23 @@ export function Popup({
         <p className="font-rubik text-[15px] sm:text-[16px] text-[#1E1B24] font-medium leading-relaxed">
           {message}
         </p>
+        {/* Diminishing Progress Bar */}
+        {autoCloseMs && autoCloseMs > 0 && (
+          <div className="absolute bottom-0 left-0 w-full h-1.5 sm:h-2 bg-neutral-200 border-t-2 border-[#1E1B24]">
+            <style>{`
+              @keyframes popup-shrink {
+                from { width: 100%; }
+                to { width: 0%; }
+              }
+            `}</style>
+            <div
+              className={`h-full ${isSuccess ? 'bg-[#00E599]' : isError ? 'bg-[#FF4B4B]' : 'bg-[#FFD93D]'}`}
+              style={{
+                animation: `popup-shrink ${autoCloseMs}ms linear forwards`,
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

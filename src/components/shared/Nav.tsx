@@ -107,7 +107,7 @@ export default function NavBar() {
             <UserAccountMenu />
           ) : (
             <ButtonLink 
-              text="Join Us" 
+              text="Login / Register" 
               link="/apply" 
               bgColor="bg-blue" 
             />
@@ -125,7 +125,7 @@ export default function NavBar() {
               isLoggedIn
                 ? undefined
                 : {
-                    text: "Join Us",
+                    text: "Login / Register",
                     link: "/apply",
                     bgColor: "bg-primary",
                   }

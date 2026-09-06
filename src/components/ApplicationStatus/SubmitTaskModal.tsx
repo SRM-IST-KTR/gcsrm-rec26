@@ -120,6 +120,7 @@ export function SubmitTaskModal({
     resendCooldown,
     sendOtp,
     verifyOtp,
+    jumpToVerify,
     reset: resetOtp,
   } = useOtp();
 
@@ -133,6 +134,18 @@ export function SubmitTaskModal({
       }
       setOtpValue("");
     }
+  }, [isOpen]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("overflow-hidden", "touch-none");
+    } else {
+      document.body.classList.remove("overflow-hidden", "touch-none");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden", "touch-none");
+    };
   }, [isOpen]);
 
   // ── Form state ─────────────────────────────────────────────────────
@@ -320,7 +333,7 @@ export function SubmitTaskModal({
         aria-modal="true"
         aria-labelledby="submit-modal-title"
       >
-        <div className="w-full max-w-[480px] bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[8px_8px_0px_#1E1B24] p-6 sm:p-8 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
+        <div className="w-full max-w-[480px] bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[8px_8px_0px_#1E1B24] p-4 min-[360px]:p-6 sm:p-8 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -371,6 +384,17 @@ export function SubmitTaskModal({
               <SendOtpButton loading={otpPhase === "sending"}>
                 {otpPhase === "sending" ? "Sending OTP..." : "Send OTP"}
               </SendOtpButton>
+              
+              <div className="w-full flex items-center justify-center px-4 text-center mt-3 mb-2">
+                <button
+                  type="button"
+                  onClick={() => jumpToVerify(participant?.email || "")}
+                  disabled={!participant?.email}
+                  className="w-full py-2.5 px-4 my-2 bg-white hover:bg-neutral-100 text-black font-bold text-xs sm:text-sm uppercase tracking-wide border-2 border-black rounded-lg shadow-[2px_2px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-[2px_2px_0px_#000] disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white"
+                >
+                  Already have an OTP? Verify →
+                </button>
+              </div>
             </form>
           ) : (
             /* ── Verify OTP ───────────────────────────────── */
@@ -447,7 +471,7 @@ export function SubmitTaskModal({
       aria-modal="true"
       aria-labelledby="submit-modal-title"
     >
-      <div className="w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[8px_8px_0px_#1E1B24] p-6 sm:p-8 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
+      <div className="w-full max-w-[560px] max-h-[90vh] overflow-y-auto overscroll-contain bg-white border-[3px] border-[#1E1B24] rounded-[24px] shadow-[8px_8px_0px_#1E1B24] p-6 sm:p-8 flex flex-col gap-5 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

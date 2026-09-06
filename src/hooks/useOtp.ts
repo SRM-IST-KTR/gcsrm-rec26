@@ -27,6 +27,8 @@ export interface UseOtpResult {
   sendOtp: (email: string) => Promise<boolean>;
   /** Verify an OTP for the previously sent email. Returns true on success. */
   verifyOtp: (otp: string) => Promise<boolean>;
+  /** Bypass sending and jump directly to verification for a known email. */
+  jumpToVerify: (email: string) => void;
   /** Reset to idle state (clears cooldown timer). */
   reset: () => void;
 }
@@ -70,6 +72,7 @@ export function useOtp(): UseOtpResult {
         setResendCooldown((prev) => {
           if (prev <= 1) {
             clearCooldown();
+            setError(null);
             return 0;
           }
           return prev - 1;
@@ -130,6 +133,12 @@ export function useOtp(): UseOtpResult {
     },
     [email],
   );
+  const jumpToVerify = useCallback((targetEmail: string) => {
+    const normalized = targetEmail.trim().toLowerCase();
+    setEmail(normalized);
+    setPhase("sent");
+    setError(null);
+  }, []);
 
   const reset = useCallback(() => {
     clearCooldown();
@@ -148,6 +157,7 @@ export function useOtp(): UseOtpResult {
     expiresIn,
     sendOtp,
     verifyOtp,
+    jumpToVerify,
     reset,
   };
 }
