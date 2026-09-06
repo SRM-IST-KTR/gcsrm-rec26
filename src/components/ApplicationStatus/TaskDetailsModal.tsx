@@ -97,9 +97,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
           <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
             {task.title}
           </h3>
-          <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
-            <strong>Deadline : 13sept</strong>
-          </p>
         </div>
         {badgeText && (
           <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
