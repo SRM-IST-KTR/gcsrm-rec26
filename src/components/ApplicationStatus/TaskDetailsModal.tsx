@@ -312,7 +312,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
                   rel="noopener noreferrer"
                   className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                 >
-                  <span>📥 {taskInfo.label}</span>
+                  <span>{taskInfo.label}</span>
                 </a>
               </div>
             )}
