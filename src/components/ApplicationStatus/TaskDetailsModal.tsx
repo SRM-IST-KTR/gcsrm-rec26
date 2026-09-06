@@ -19,27 +19,46 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const getTaskId = (task: RecruitmentTask): string => String(task._id || task.id || task.title);
 
+  const isCorporate = (domain || "").toLowerCase().includes("corp");
+
+  // If corporate, categorize tasks into "Video Task" (taskType containing video or title/desc related to video) vs remaining categories
+  const isVideoTask = (t: RecruitmentTask): boolean => {
+    const tt = (t.taskType || "").toLowerCase();
+    const title = (t.title || "").toLowerCase();
+    return tt.includes("video") || title.includes("video") || title.includes("self-introduction") || title.includes("intro");
+  };
+
   const categories = Array.from(new Set(tasks.map((t) => t.taskType).filter(Boolean)));
   const categoryOptions = categories.map((cat) => ({ label: String(cat), value: String(cat) }));
-  
-  // Strictly filter tasks matching the current category
-  const filteredTasks = tasks.filter((t) => t.taskType === selectedCategory);
-  const taskOptions = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
+
+  // For corporate domain: Task 1 is always Video Task
+  const videoTasks = tasks.filter((t) => isVideoTask(t));
+  const nonVideoTasks = tasks.filter((t) => !isVideoTask(t));
+  const nonVideoCategories = Array.from(new Set(nonVideoTasks.map((t) => t.taskType).filter(Boolean)));
+  const nonVideoCategoryOptions = nonVideoCategories.map((cat) => ({ label: String(cat), value: String(cat) }));
+
+  const activeCategories = isCorporate ? nonVideoCategories : categories;
+  const activeCategoryOptions = isCorporate ? nonVideoCategoryOptions : categoryOptions;
+
+  const filteredTasks = isCorporate
+    ? nonVideoTasks.filter((t) => t.taskType === selectedCategory)
+    : tasks.filter((t) => t.taskType === selectedCategory);
+
+  const task2Options = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
 
   // Initialize or reset category when modal opens or tasks change
   useEffect(() => {
-    if (isOpen && categories.length > 0) {
-      if (!selectedCategory || !categories.includes(selectedCategory)) {
-        setSelectedCategory(categories[0]);
+    if (isOpen && activeCategories.length > 0) {
+      if (!selectedCategory || !activeCategories.includes(selectedCategory)) {
+        setSelectedCategory(activeCategories[0]);
       }
     }
-  }, [isOpen, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, tasks, domain]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Always reset task selection on category switch/initial load
   useEffect(() => {
     setSelectedTaskId("");
   }, [selectedCategory, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -83,27 +102,53 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
         </div>
 
         {/* Controls: Static & Overflow Visible */}
-        <div className="shrink-0 flex flex-col gap-3 p-4 sm:p-5 pb-2 relative z-30 overflow-visible">
+        <div className="shrink-0 flex flex-col gap-4 p-4 sm:p-5 pb-2 relative z-30 overflow-visible">
+            {/* Task 1: Mandatory Video Task (Only for Corporate Domain) */}
+            {isCorporate && (
+              <div className="flex flex-col gap-1.5 relative">
+                <div className="flex items-center justify-between">
+                  <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                    Task 1 (Mandatory)
+                  </label>
+                  <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2 py-0.5 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24]">
+                    Mandatory Video
+                  </span>
+                </div>
+                <Dropdown
+                  value={videoTasks.length > 0 ? getTaskId(videoTasks[0]) : ""}
+                  onChange={() => {}}
+                  options={videoTasks.map((t) => ({ label: t.title, value: getTaskId(t) }))}
+                  placeholder="Self-Introduction Video Task"
+                  disabled={true}
+                  triggerBg="bg-[#FFFDF0]"
+                />
+              </div>
+            )}
+
+            {/* Task 2 (or standard category for non-corporate): Category Dropdown */}
             <div className="flex flex-col gap-1.5 relative">
-              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">Category</label>
+              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                {isCorporate ? "Task 2 : Select Remaining Category" : "Category"}
+              </label>
               <Dropdown
                 value={selectedCategory}
                 onChange={(val) => setSelectedCategory(val)}
-                options={categoryOptions}
+                options={activeCategoryOptions}
                 placeholder="Select Category"
                 triggerBg="bg-white"
-                disabled={categoryOptions.length === 1}
+                disabled={activeCategoryOptions.length <= 1}
               />
             </div>
 
+            {/* Task Name Dropdown */}
             <div className="flex flex-col gap-1.5 relative z-10">
               <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
-                Task Name
+                {isCorporate ? "Task 2 : Task Name" : "Task Name"}
               </label>
               <Dropdown
                 value={selectedTaskId}
                 onChange={(val) => setSelectedTaskId(val)}
-                options={taskOptions}
+                options={task2Options}
                 placeholder="Choose any one"
                 placeholderClassName="font-bold text-[var(--error,#D92323)]"
                 disabled={filteredTasks.length === 0}
