@@ -217,7 +217,7 @@ export function StatusHeroCard({
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
         <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
-          Deadline : 23:59PM, 12 September, 2026
+          Deadline : 12 September 2026, 23:59PM
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
