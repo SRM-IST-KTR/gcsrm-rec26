@@ -68,8 +68,12 @@ export default function ApplyPage() {
     }
   }, [handleVerified]);
 
-  if (!isLoading && isLoggedIn) {
-    return null;
+  if (isLoading || isLoggedIn) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#fffdf0]">
+        <div className="w-12 h-12 border-[4px] border-[#1E1B24] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
   }
 
   return (

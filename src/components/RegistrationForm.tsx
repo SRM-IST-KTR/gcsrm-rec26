@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import SectionBadge from "@/components/common/SectionBadge";
@@ -77,6 +77,16 @@ type RegistrationFormProps = {
 export default function RegistrationForm({ initialEmail = "" }: RegistrationFormProps) {
   const router = useRouter();
   const { login } = useAuth();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(timeoutRef.current!);
+      clearTimeout(scrollTimeoutRef.current!);
+    };
+  }, []);
+
   const searchParams = useSearchParams();
   const domainQuery = searchParams.get("domain") || "";
   const validDomain = domains.includes(domainQuery) ? domainQuery : "";
@@ -207,17 +217,10 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         localStorage.removeItem(CACHE_KEY);
       } catch {}
 
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         login(user);
         router.push("/");
-
-        setTimeout(() => {
-          const statusSection = document.getElementById("status");
-          if (statusSection) {
-            statusSection.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 400);
-      }, 2000);
+      }, 3000);
     } catch (err) {
       setIsSubmitting(false);
 
