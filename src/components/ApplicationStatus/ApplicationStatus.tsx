@@ -467,6 +467,7 @@ export function ApplicationStatus({
         onClose={() => setShowTaskDetailsModal(false)}
         tasks={assignedTasks.length > 0 ? assignedTasks : tasks}
         domain={participant?.domain}
+        year={participant?.year}
       />
 
       {/* Instructions Modal */}

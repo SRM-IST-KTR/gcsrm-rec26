@@ -47,7 +47,7 @@ export function ActionButton({
   className = "",
   onClick,
   isApplyButton,
-  loggedInText = "CHECK STATUS →",
+  loggedInText = "VIEW APPLICATION STATUS →",
   loggedInHref = "#status",
 }: ActionButtonProps) {
   const { isLoggedIn } = useAuth();

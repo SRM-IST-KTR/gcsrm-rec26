@@ -5,21 +5,59 @@ import Dropdown from "@/components/common/Dropdown";
 import { InstructionsModal } from "./InstructionsModal";
 import { RecruitmentTask } from "./types";
 import { X, Info } from "lucide-react";
+import taskLinksData from "./domainTaskLinks.json";
 
 interface TaskDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   tasks?: RecruitmentTask[];
   domain?: string;
+  year?: string;
 }
 
-export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDetailsModalProps) {
+export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: TaskDetailsModalProps) {
   const [showInstructions, setShowInstructions] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTaskId, setSelectedTaskId] = useState<string>("");
   const getTaskId = (task: RecruitmentTask): string => String(task._id || task.id || task.title);
 
-  const isCorporate = (domain || "").toLowerCase().includes("corp");
+  const normalizedDomain = (domain || "").trim();
+  const isCorporate = normalizedDomain.toLowerCase().includes("corp");
+  const isCreatives = normalizedDomain.toLowerCase().includes("creative") || normalizedDomain.toLowerCase().includes("gfx") || normalizedDomain.toLowerCase().includes("vfx");
+  const isTechnical = normalizedDomain.toLowerCase().includes("tech");
+
+  const normalizedYear = year ? `Year ${year}` : "Year 1";
+
+  // Determine domain-specific resource download link from JSON
+  const getDomainTaskLink = (taskTitle: string = ""): string => {
+    const dLower = normalizedDomain.toLowerCase();
+    const tLower = taskTitle.toLowerCase();
+
+    if (dLower.includes("corp")) {
+      const corpLinks = taskLinksData.Corporate as Record<string, string>;
+      return corpLinks[normalizedYear] || corpLinks["Year 1"] || "";
+    }
+
+    if (dLower.includes("creative") || dLower.includes("gfx") || dLower.includes("vfx")) {
+      const creativesLinks = taskLinksData.Creatives as Record<string, string>;
+      if (tLower.includes("vfx") || tLower.includes("motion") || tLower.includes("video")) {
+        return creativesLinks["Both Years"] || "";
+      }
+      return creativesLinks[normalizedYear] || creativesLinks["Year 1"] || "";
+    }
+
+    if (dLower.includes("tech") || dLower.includes("web") || dLower.includes("ai") || dLower.includes("ml")) {
+      const techLinks = taskLinksData.Technical as Record<string, Record<string, string>>;
+      if (tLower.includes("ai") || tLower.includes("ml") || tLower.includes("intelligence")) {
+        const aiLinks = techLinks["AI/ML"];
+        return aiLinks[normalizedYear] || aiLinks["Year 1"] || "";
+      }
+      const webLinks = techLinks["WebDev"];
+      return webLinks[normalizedYear] || webLinks["Year 1"] || "";
+    }
+
+    return "";
+  };
 
   // If corporate, categorize tasks into "Video Task" (taskType containing video or title/desc related to video) vs remaining categories
   const isVideoTask = (t: RecruitmentTask): boolean => {
@@ -91,7 +129,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
 
   // Reusable task card renderer helper
   const renderTaskCard = (task: RecruitmentTask & { link?: string; resourceLink?: string; figmaLink?: string; fileLink?: string }, badgeText?: string) => {
-    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink;
+    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink || getDomainTaskLink(task.title);
 
     return (
       <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
@@ -109,17 +147,18 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
         </div>
 
         {taskLink && (
-          <div className="my-1">
+          <div className="my-1.5">
             <a
               href={taskLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[#3E9FFF] text-white font-outfit-black text-xs uppercase tracking-wider rounded-lg border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:bg-[#2A8BEA] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
             >
-              <span>Open Task Resource / Figma Link</span>
+              <span>📥 Download / Open Task Resource Link ({normalizedYear})</span>
             </a>
           </div>
         )}
+
         {task.techStack && task.techStack.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {task.techStack.map((tech, i) => (
@@ -178,7 +217,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
         {/* Header */}
         <div className="shrink-0 flex items-center justify-between p-4 bg-[#FFD93D] border-b-[3px] border-[#1E1B24] rounded-t-xl">
           <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
-            Task Details
+            Task Details {year ? `(Year ${year})` : ""}
           </h2>
           <div className="flex gap-2">
             <button
