@@ -41,7 +41,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   const activeCategoryOptions = isCorporate ? nonVideoCategoryOptions : categoryOptions;
 
   const filteredTasks = isCorporate
-    ? tasks
+    ? nonVideoTasks
     : tasks.filter((t) => t.taskType === selectedCategory);
 
   const task2Options = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
