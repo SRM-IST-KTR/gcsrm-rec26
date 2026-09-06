@@ -157,6 +157,22 @@ body {
   .badge-blue   { background-color: var(--color-blue); color: #fff; }
   .badge-green  { background-color: var(--color-green); color: #fff; }
 
+  @keyframes cycleMajorColors {
+    0%, 100% { background-color: var(--color-primary); color: #fff; }
+    25% { background-color: var(--color-blue); color: #fff; }
+    50% { background-color: var(--color-green); color: var(--color-text-primary); }
+    75% { background-color: var(--color-purple); color: #fff; }
+  }
+
+  .btn-cycle-colors {
+    animation: cycleMajorColors 8s infinite;
+  }
+
+  .btn-cycle-colors:hover {
+    animation-play-state: paused;
+    filter: brightness(1.1);
+  }
+
   /* Buttons */
   .btn-primary {
     display: inline-flex;
