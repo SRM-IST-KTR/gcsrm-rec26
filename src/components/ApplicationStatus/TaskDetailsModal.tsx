@@ -90,70 +90,90 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   const videoTask = videoTasks.length > 0 ? videoTasks[0] : null;
 
   // Reusable task card renderer helper
-  const renderTaskCard = (task: RecruitmentTask, badgeText?: string) => (
-    <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
-            {task.title}
-          </h3>
+  const renderTaskCard = (task: RecruitmentTask & { link?: string; resourceLink?: string; figmaLink?: string; fileLink?: string }, badgeText?: string) => {
+    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink;
+
+    return (
+      <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
+              {task.title}
+            </h3>
+            <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
+              <strong>Deadline : 13sept</strong>
+            </p>
+          </div>
+          {badgeText && (
+            <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
+              {badgeText}
+            </span>
+          )}
         </div>
-        {badgeText && (
-          <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
-            {badgeText}
-          </span>
+
+        {taskLink && (
+          <div className="my-1">
+            <a
+              href={taskLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#3E9FFF] text-white font-outfit-black text-xs uppercase tracking-wider rounded-lg border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:bg-[#2A8BEA] transition-colors"
+            >
+              <span>🔗 Open Task Resource / Figma Link</span>
+            </a>
+          </div>
+        )}
+
+        {task.techStack && task.techStack.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {task.techStack.map((tech, i) => (
+              <span key={i} className="font-outfit-black text-[10px] uppercase tracking-[1px] px-2 py-0.5 rounded-full border border-[#1E1B24] bg-[#4EC37B] text-white shadow-[1px_1px_0px_#1E1B24]">
+                {tech}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {task.goal && (
+          <div>
+            <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Goal</h4>
+            <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed">
+              {task.goal}
+            </p>
+          </div>
+        )}
+
+        {task.description && (
+          <div>
+            <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Description</h4>
+            <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
+              {task.description}
+            </p>
+          </div>
+        )}
+
+        {task.guidelines && (
+          <div>
+            <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Guidelines</h4>
+            <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
+              {task.guidelines}
+            </p>
+          </div>
+        )}
+
+        {task.requirements && task.requirements.length > 0 && (
+          <div>
+            <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Requirements</h4>
+            <ul className="list-disc list-inside font-rubik text-sm text-[#5C5866] font-medium space-y-1">
+              {task.requirements.map((req, i) => (
+                <li key={i}>{req}</li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
-
-      {task.techStack && task.techStack.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {task.techStack.map((tech, i) => (
-            <span key={i} className="font-outfit-black text-[10px] uppercase tracking-[1px] px-2 py-0.5 rounded-full border border-[#1E1B24] bg-[#4EC37B] text-white shadow-[1px_1px_0px_#1E1B24]">
-              {tech}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {task.goal && (
-        <div>
-          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Goal</h4>
-          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed">
-            {task.goal}
-          </p>
-        </div>
-      )}
-
-      {task.description && (
-        <div>
-          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Description</h4>
-          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-            {task.description}
-          </p>
-        </div>
-      )}
-
-      {task.guidelines && (
-        <div>
-          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Guidelines</h4>
-          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-            {task.guidelines}
-          </p>
-        </div>
-      )}
-
-      {task.requirements && task.requirements.length > 0 && (
-        <div>
-          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Requirements</h4>
-          <ul className="list-disc list-inside font-rubik text-sm text-[#5C5866] font-medium space-y-1">
-            {task.requirements.map((req, i) => (
-              <li key={i}>{req}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <>
