@@ -41,7 +41,7 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   const activeCategoryOptions = isCorporate ? nonVideoCategoryOptions : categoryOptions;
 
   const filteredTasks = isCorporate
-    ? nonVideoTasks.filter((t) => t.taskType === selectedCategory)
+    ? tasks.filter((t) => !isVideoTask(t))
     : tasks.filter((t) => t.taskType === selectedCategory);
 
   const task2Options = filteredTasks.map((t) => ({ label: t.title, value: getTaskId(t) }));
@@ -71,7 +71,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   }, [isOpen]);
 
   if (!isOpen) return null;
-
   const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
 
   return (
@@ -114,31 +113,46 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
                     Mandatory Video
                   </span>
                 </div>
-                <Dropdown
-                  value={videoTasks.length > 0 ? getTaskId(videoTasks[0]) : ""}
-                  onChange={() => {}}
-                  options={videoTasks.map((t) => ({ label: t.title, value: getTaskId(t) }))}
-                  placeholder="Self-Introduction Video Task"
-                  disabled={true}
-                  triggerBg="bg-[#FFFDF0]"
-                />
+                {videoTasks.length > 0 ? (
+                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-3.5 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-1">
+                    <span className="font-outfit-black text-sm text-[#1E1B24]">
+                      {videoTasks[0].title}
+                    </span>
+                    {videoTasks[0].description && (
+                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed">
+                        {videoTasks[0].description}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <Dropdown
+                    value=""
+                    onChange={() => {}}
+                    options={[]}
+                    placeholder="Self-Introduction Video Task"
+                    disabled={true}
+                    triggerBg="bg-[#FFFDF0]"
+                  />
+                )}
               </div>
             )}
 
-            {/* Task 2 (or standard category for non-corporate): Category Dropdown */}
-            <div className="flex flex-col gap-1.5 relative">
-              <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
-                {isCorporate ? "Task 2 : Select Remaining Category" : "Category"}
-              </label>
-              <Dropdown
-                value={selectedCategory}
-                onChange={(val) => setSelectedCategory(val)}
-                options={activeCategoryOptions}
-                placeholder="Select Category"
-                triggerBg="bg-white"
-                disabled={activeCategoryOptions.length <= 1}
-              />
-            </div>
+            {/* Task 2: Category Dropdown (Omitted for Corporate domain to keep only Task 2: Task Name) */}
+            {!isCorporate && (
+              <div className="flex flex-col gap-1.5 relative">
+                <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                  Category
+                </label>
+                <Dropdown
+                  value={selectedCategory}
+                  onChange={(val) => setSelectedCategory(val)}
+                  options={activeCategoryOptions}
+                  placeholder="Select Category"
+                  triggerBg="bg-white"
+                  disabled={activeCategoryOptions.length <= 1}
+                />
+              </div>
+            )}
 
             {/* Task Name Dropdown */}
             <div className="flex flex-col gap-1.5 relative z-10">
@@ -148,10 +162,10 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
               <Dropdown
                 value={selectedTaskId}
                 onChange={(val) => setSelectedTaskId(val)}
-                options={task2Options}
+                options={isCorporate ? tasks.map((t) => ({ label: t.title, value: getTaskId(t) })) : task2Options}
                 placeholder="Choose any one"
                 placeholderClassName="font-bold text-[var(--error,#D92323)]"
-                disabled={filteredTasks.length === 0}
+                disabled={isCorporate ? tasks.length === 0 : filteredTasks.length === 0}
                 triggerBg="bg-white"
               />
             </div>
