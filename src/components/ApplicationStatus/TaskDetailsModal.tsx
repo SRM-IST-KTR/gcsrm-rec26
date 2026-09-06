@@ -71,15 +71,85 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
   }, [isOpen]);
 
   if (!isOpen) return null;
+
   const currentTask = filteredTasks.find((t) => getTaskId(t) === selectedTaskId);
+  const videoTask = videoTasks.length > 0 ? videoTasks[0] : null;
+
+  // Reusable task card renderer helper
+  const renderTaskCard = (task: RecruitmentTask, badgeText?: string) => (
+    <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] leading-tight mb-1">
+            {task.title}
+          </h3>
+          <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
+            <strong>Deadline : 13sept</strong>
+          </p>
+        </div>
+        {badgeText && (
+          <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-1 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24] shrink-0">
+            {badgeText}
+          </span>
+        )}
+      </div>
+
+      {task.techStack && task.techStack.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {task.techStack.map((tech, i) => (
+            <span key={i} className="font-outfit-black text-[10px] uppercase tracking-[1px] px-2 py-0.5 rounded-full border border-[#1E1B24] bg-[#4EC37B] text-white shadow-[1px_1px_0px_#1E1B24]">
+              {tech}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {task.goal && (
+        <div>
+          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Goal</h4>
+          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed">
+            {task.goal}
+          </p>
+        </div>
+      )}
+
+      {task.description && (
+        <div>
+          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Description</h4>
+          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
+            {task.description}
+          </p>
+        </div>
+      )}
+
+      {task.guidelines && (
+        <div>
+          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Guidelines</h4>
+          <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
+            {task.guidelines}
+          </p>
+        </div>
+      )}
+
+      {task.requirements && task.requirements.length > 0 && (
+        <div>
+          <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Requirements</h4>
+          <ul className="list-disc list-inside font-rubik text-sm text-[#5C5866] font-medium space-y-1">
+            {task.requirements.map((req, i) => (
+              <li key={i}>{req}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      {/* Added overflow-visible so dropdown lists can float cleanly outside the modal box bounds */}
-      <div className="relative w-[95vw] sm:w-[80vw] md:w-[65vw] lg:w-[50vw] xl:w-[45vw] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-visible">
+      <div className="relative w-[95vw] sm:w-[85vw] md:w-[75vw] lg:w-[60vw] xl:w-[55vw] max-h-[90vh] bg-white border-[3px] border-[#1E1B24] rounded-xl shadow-[8px_8px_0px_#1E1B24] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-[#FFD93D] border-b-[3px] border-[#1E1B24] rounded-t-xl">
+        <div className="shrink-0 flex items-center justify-between p-4 bg-[#FFD93D] border-b-[3px] border-[#1E1B24] rounded-t-xl">
           <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
             Task Details
           </h2>
@@ -100,55 +170,42 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
           </div>
         </div>
 
-        {/* Controls: Static & Overflow Visible */}
-        <div className="shrink-0 flex flex-col gap-4 p-4 sm:p-5 pb-2 relative z-30 overflow-visible">
-            {/* Task 1: Mandatory Video Task (Only for Corporate Domain) */}
-            {isCorporate && (
-              <div className="flex flex-col gap-1.5 relative">
-                <div className="flex items-center justify-between">
-                  <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
-                    Task 1 (Mandatory)
-                  </label>
-                  <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2 py-0.5 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24]">
-                    Mandatory Video
-                  </span>
-                </div>
-                {videoTasks.length > 0 ? (
-                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-4 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-2">
-                    <span className="font-outfit-black text-sm text-[#1E1B24] font-bold">
-                      {videoTasks[0].title}
-                    </span>
-                    {videoTasks[0].goal && (
-                      <p className="font-rubik text-xs text-[#1E1B24] font-semibold">
-                        Goal: {videoTasks[0].goal}
-                      </p>
-                    )}
-                    {videoTasks[0].description && (
-                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-                        {videoTasks[0].description}
-                      </p>
-                    )}
-                    {videoTasks[0].guidelines && (
-                      <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-                        {videoTasks[0].guidelines}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-xl p-3.5 shadow-[2px_2px_0px_#1E1B24] flex flex-col gap-1">
-                    <span className="font-outfit-black text-sm text-[#1E1B24]">
-                      Self-Introduction Video
-                    </span>
-                    <p className="font-rubik text-xs text-[#5C5866] font-medium leading-relaxed">
-                      Record and upload a short 30s to 1-minute self-introduction video to Google Drive.
-                    </p>
-                  </div>
-                )}
+        {/* Scrollable Content */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 flex flex-col gap-6">
+          {/* For Corporate: Task 1 Mandatory Video Task */}
+          {isCorporate && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
+                  Task 1 : Mandatory Video Task
+                </span>
+                <span className="font-outfit-black text-[11px] bg-[#4EC37B] text-white px-2.5 py-0.5 rounded-full border border-[#1E1B24] shadow-[1px_1px_0px_#1E1B24]">
+                  Mandatory
+                </span>
               </div>
-            )}
+              {videoTask ? (
+                renderTaskCard(videoTask)
+              ) : (
+                <div className="flex flex-col gap-3 p-4 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
+                  <h3 className="font-outfit-black text-[20px] text-[#1E1B24]">Self-Introduction Video Task</h3>
+                  <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed">
+                    Record and upload a short 30s to 1-minute self-introduction video to Google Drive. Ensure link permissions are set to public view before submitting.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Task 2: Category Dropdown (Omitted for Corporate domain to keep only Task 2: Task Name) */}
-            {!isCorporate && (
+          {/* Task 2 Section / Standard Domain Category & Task Selection */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
+                {isCorporate ? "Task 2 : Choose Your Task" : "Task Selection"}
+              </span>
+            </div>
+
+            {/* Non-corporate Category Dropdown */}
+            {!isCorporate && activeCategoryOptions.length > 0 && (
               <div className="flex flex-col gap-1.5 relative">
                 <label className="font-outfit-black text-sm text-[#1E1B24] uppercase">
                   Category
@@ -179,70 +236,25 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
                 triggerBg="bg-white"
               />
             </div>
-        </div>
+          </div>
 
-        {/* Scrollable Content: ONLY the task details card scrolls */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 pt-1">
-          {/* Task Details Display */}
-          {currentTask ? (
-            <div className="flex flex-col gap-3 mt-1 p-4 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
-              <div>
-                <h3 className="font-outfit-black text-[22px] text-[#1E1B24] leading-tight mb-1">
-                  {currentTask.title}
-                </h3>
-                <p className="font-outfit-black text-sm text-[#1E1B24] tracking-wide mt-1 mb-2">
-                  <strong>Deadline : 13sept</strong>
-                </p>
-                {currentTask.techStack && currentTask.techStack.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {currentTask.techStack.map((tech, i) => (
-                      <span key={i} className="font-outfit-black text-[10px] uppercase tracking-[1px] px-2 py-0.5 rounded-full border border-[#1E1B24] bg-[#4EC37B] text-white shadow-[1px_1px_0px_#1E1B24]">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {currentTask.goal && (
-                <div>
-                  <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Goal</h4>
-                  <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed">
-                    {currentTask.goal}
-                  </p>
-                </div>
-              )}
-
-              {currentTask.description && (
-                <div>
-                  <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Description</h4>
-                  <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-                    {currentTask.description}
-                  </p>
-                </div>
-              )}
-
-              {currentTask.guidelines && (
-                <div>
-                  <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Guidelines</h4>
-                  <p className="font-rubik text-sm text-[#5C5866] font-medium leading-relaxed whitespace-pre-wrap">
-                    {currentTask.guidelines}
-                  </p>
-                </div>
-              )}
-
-              {currentTask.requirements && currentTask.requirements.length > 0 && (
-                <div>
-                  <h4 className="font-outfit-black text-sm uppercase text-[#1E1B24] mb-1">Requirements</h4>
-                  <ul className="list-disc list-inside font-rubik text-sm text-[#5C5866] font-medium space-y-1">
-                    {currentTask.requirements.map((req, i) => (
-                      <li key={i}>{req}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          {/* Selected Task Details Card (For Task 2 / standard domains) */}
+          {currentTask && (
+            <div className="flex flex-col gap-3">
+              <span className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wider">
+                Task 2 Details
+              </span>
+              {renderTaskCard(currentTask)}
             </div>
-          ) : (
+          )}
+
+          {!currentTask && isCorporate && (
+            <div className="p-4 border-2 border-dashed border-[#1E1B24]/40 rounded-xl text-center font-rubik text-sm font-medium text-[#1E1B24]/60">
+              Please select a Task 2 option from the dropdown above to view its full requirements, guidelines, and goals.
+            </div>
+          )}
+
+          {!currentTask && !isCorporate && (
             <div className="p-6 border-2 border-dashed border-[#1E1B24]/40 rounded-xl text-center font-rubik text-sm font-medium text-[#1E1B24]/60">
               Please select a task from above to view its details, requirements, and guidelines.
             </div>
@@ -258,3 +270,5 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain }: TaskDe
     </>
   );
 }
+
+export default TaskDetailsModal;
