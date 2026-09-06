@@ -24,31 +24,32 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
   const normalizedDomain = (domain || "").trim();
   const isCorporate = normalizedDomain.toLowerCase().includes("corp");
   const isCreatives = normalizedDomain.toLowerCase().includes("creative") || normalizedDomain.toLowerCase().includes("gfx") || normalizedDomain.toLowerCase().includes("vfx");
-  const isTechnical = normalizedDomain.toLowerCase().includes("tech");
+  const isTechnical = normalizedDomain.toLowerCase().includes("tech") || normalizedDomain.toLowerCase().includes("web") || normalizedDomain.toLowerCase().includes("ai") || normalizedDomain.toLowerCase().includes("ml");
 
   const normalizedYear = year ? `Year ${year}` : "Year 1";
 
-  // Determine domain-specific resource download link from JSON
-  const getDomainTaskLink = (taskTitle: string = ""): string => {
+  // Determine domain/category-specific resource download link from JSON
+  const getDomainTaskLink = (taskTitle: string = "", categoryName: string = ""): string => {
     const dLower = normalizedDomain.toLowerCase();
     const tLower = taskTitle.toLowerCase();
+    const cLower = categoryName.toLowerCase();
 
     if (dLower.includes("corp")) {
       const corpLinks = taskLinksData.Corporate as Record<string, string>;
       return corpLinks[normalizedYear] || corpLinks["Year 1"] || "";
     }
 
-    if (dLower.includes("creative") || dLower.includes("gfx") || dLower.includes("vfx")) {
+    if (dLower.includes("creative") || dLower.includes("gfx") || dLower.includes("vfx") || cLower.includes("gfx") || cLower.includes("vfx")) {
       const creativesLinks = taskLinksData.Creatives as Record<string, string>;
-      if (tLower.includes("vfx") || tLower.includes("motion") || tLower.includes("video")) {
+      if (tLower.includes("vfx") || tLower.includes("motion") || tLower.includes("video") || cLower.includes("vfx")) {
         return creativesLinks["Both Years"] || "";
       }
       return creativesLinks[normalizedYear] || creativesLinks["Year 1"] || "";
     }
 
-    if (dLower.includes("tech") || dLower.includes("web") || dLower.includes("ai") || dLower.includes("ml")) {
+    if (dLower.includes("tech") || dLower.includes("web") || dLower.includes("ai") || dLower.includes("ml") || cLower.includes("ai") || cLower.includes("ml") || cLower.includes("web") || cLower.includes("dev")) {
       const techLinks = taskLinksData.Technical as Record<string, Record<string, string>>;
-      if (tLower.includes("ai") || tLower.includes("ml") || tLower.includes("intelligence")) {
+      if (tLower.includes("ai") || tLower.includes("ml") || tLower.includes("intelligence") || cLower.includes("ai") || cLower.includes("ml")) {
         const aiLinks = techLinks["AI/ML"];
         return aiLinks[normalizedYear] || aiLinks["Year 1"] || "";
       }
@@ -56,7 +57,9 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
       return webLinks[normalizedYear] || webLinks["Year 1"] || "";
     }
 
-    return "";
+    // Fallback general lookup
+    const creativesLinks = taskLinksData.Creatives as Record<string, string>;
+    return creativesLinks[normalizedYear] || "";
   };
 
   // If corporate, categorize tasks into "Video Task" (taskType containing video or title/desc related to video) vs remaining categories
@@ -127,9 +130,14 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
 
   const videoTask = videoTasks.length > 0 ? videoTasks[0] : null;
 
+  // Compute overall top-level download link based on domain, selected category, or task
+  const topLevelTaskLink = isCorporate
+    ? getDomainTaskLink("", "")
+    : getDomainTaskLink(currentTask?.title || "", selectedCategory);
+
   // Reusable task card renderer helper
   const renderTaskCard = (task: RecruitmentTask & { link?: string; resourceLink?: string; figmaLink?: string; fileLink?: string }, badgeText?: string) => {
-    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink || getDomainTaskLink(task.title);
+    const taskLink = task.link || task.resourceLink || task.figmaLink || task.fileLink || getDomainTaskLink(task.title, selectedCategory);
 
     return (
       <div className="flex flex-col gap-3 p-4 sm:p-5 bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl shadow-[4px_4px_0px_#1E1B24]">
@@ -145,19 +153,6 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
             </span>
           )}
         </div>
-
-        {taskLink && (
-          <div className="my-1.5">
-            <a
-              href={taskLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
-            >
-              <span>📥 Download / Open Task Resource Link ({normalizedYear})</span>
-            </a>
-          </div>
-        )}
 
         {task.techStack && task.techStack.length > 0 && (
           <div className="flex flex-wrap gap-2">
@@ -238,6 +233,28 @@ export function TaskDetailsModal({ isOpen, onClose, tasks = [], domain, year }: 
 
         {/* Scrollable Content */}
         <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 flex flex-col gap-6">
+          {/* Top-Level Quick Download / Resource Link Button (Visible right after selection) */}
+          {topLevelTaskLink && (
+            <div className="w-full bg-[#EBFBF0] border-2 border-[#1E1B24] rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_3px_0px_#1E1B24]">
+              <div className="flex flex-col text-left">
+                <span className="font-outfit-black text-sm text-[#1E1B24] uppercase">
+                  Task Resource &amp; Guidelines Available
+                </span>
+                <span className="font-rubik text-xs text-[#5C5866]">
+                  Download or open the official task document / package for {normalizedYear} ({normalizedDomain}).
+                </span>
+              </div>
+              <a
+                href={topLevelTaskLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <span>📥 Download Task Link</span>
+              </a>
+            </div>
+          )}
+
           {/* For Corporate: Task 1 Mandatory Video Task */}
           {isCorporate && (
             <div className="flex flex-col gap-3">
