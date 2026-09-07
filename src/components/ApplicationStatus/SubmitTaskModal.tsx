@@ -47,14 +47,14 @@ const initialFormFields: FormFields = {
 /** Map form field name to display label. */
 const FIELD_LABELS: Record<string, string> = {
   selectedTask: "Task Name / Title",
-  githubLink: "GitHub Repository Link",
-  deployedLink: "Deployed / Hosted Link",
-  demoVideo: "Demo Video Link",
-  figmaPlugins: "Figma Plugins / Files",
-  designLink: "Design Link (PNG / Images)",
-  designFiles: "Design Files Link",
-  introVideo: "Intro Video Link",
-  documentLink: "Document Link (Drive / PDF)",
+  githubLink: "GitHub Repository Link *",
+  deployedLink: "Deployed / Hosted Link (if present, else NA)",
+  demoVideo: "Demo Video Link *",
+  figmaPlugins: "Figma Plugins / Files (Fill NA if not applicable)",
+  designLink: "Design Link - PNG/Images (Fill NA if not applicable)",
+  designFiles: "Design Files Link (Fill NA if not applicable)",
+  introVideo: "Intro Video Link *",
+  documentLink: "Document Link (Drive / PDF) *",
 };
 
 /** Map form field name to placeholder. */
@@ -256,17 +256,46 @@ export function SubmitTaskModal({
       nextErrors.selectedTask = "Task name is required.";
     }
 
+    const isCorp = domain === "corporate";
+    const isCreative = domain === "creatives";
+    const isTech = domain === "technical";
+
     for (const field of fields) {
       if (field === "selectedTask") continue;
       const value = formFields[field].trim();
-      if (value && !value.startsWith("http://") && !value.startsWith("https://")) {
-        nextErrors[field] = "Please enter a valid URL starting with http:// or https://";
+      
+      if (isCorp) {
+        // Corporate: both introVideo and documentLink are mandatory
+        if (!value) {
+          nextErrors[field] = "This field is required for Corporate submissions.";
+          continue;
+        }
+      }
+
+      if (isCreative) {
+        // Creatives: all 3 fields are mandatory (candidates can fill NA if not applicable)
+        if (!value) {
+          nextErrors[field] = "This field is required. Enter NA if not applicable.";
+          continue;
+        }
+      }
+
+      if (isTech) {
+        // Technical: githubLink and demoVideo are mandatory; deployedLink is optional (can be NA or URL)
+        if ((field === "githubLink" || field === "demoVideo") && !value) {
+          nextErrors[field] = "This field is required for Technical submissions.";
+          continue;
+        }
+      }
+
+      if (value && value.toUpperCase() !== "NA" && !value.startsWith("http://") && !value.startsWith("https://")) {
+        nextErrors[field] = "Please enter a valid URL starting with http:// or https:// (or type NA)";
       }
     }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
-  }, [formFields, fields]);
+  }, [formFields, fields, domain]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) return;
