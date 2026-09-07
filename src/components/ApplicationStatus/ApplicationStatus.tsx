@@ -499,6 +499,7 @@ export function ApplicationStatus({
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         participant={participant}
+        tasks={assignedTasks.length > 0 ? assignedTasks : tasks}
       />
 
       {/* Task Details Modal */}
