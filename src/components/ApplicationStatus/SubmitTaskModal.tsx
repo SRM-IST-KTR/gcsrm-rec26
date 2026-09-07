@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { ParticipantData } from "./types";
+import { ParticipantData, RecruitmentTask } from "./types";
 import { api, ApiError } from "@/lib/api";
+import Dropdown from "@/components/common/Dropdown";
 import { getOtpSession } from "@/lib/otpSession";
 import { useOtp } from "@/hooks/useOtp";
 import { OtpInput } from "@/components/OtpInput";
@@ -14,6 +15,7 @@ interface SubmitTaskModalProps {
   isOpen: boolean;
   onClose: () => void;
   participant: Partial<ParticipantData> | null;
+  tasks?: RecruitmentTask[];
 }
 
 type DomainKey = "technical" | "creatives" | "corporate";
@@ -105,11 +107,30 @@ export function SubmitTaskModal({
   isOpen,
   onClose,
   participant,
+  tasks = [],
 }: SubmitTaskModalProps) {
   const { updateParticipant } = useAuth();
   const domain = normalizeDomain(participant?.domain);
   const fields = DOMAIN_FIELDS[domain];
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const taskOptions = tasks && tasks.length > 0 
+    ? tasks.map((t) => ({ label: t.title, value: t.title }))
+    : domain === "technical" 
+      ? [
+          { label: "Web Development Task (Full-Stack / Frontend)", value: "Web Development Task" },
+          { label: "AI / ML Task (Intelligent Systems & Models)", value: "AI / ML Task" }
+        ]
+      : domain === "creatives"
+        ? [
+            { label: "GFX Design Task (Figma / Branding)", value: "GFX Design Task" },
+            { label: "VFX / Motion Graphics Task (Video / Animation)", value: "VFX Design Task" }
+          ]
+        : [
+            { label: "Corporate Management & Operations Task", value: "Corporate Operations Task" },
+            { label: "Business Strategy & Pitch Deck Task", value: "Business Strategy Task" }
+          ];
   const [sessionReady, setSessionReady] = useState(false);
   const [otpComplete, setOtpComplete] = useState(false);
   const [otpValue, setOtpValue] = useState("");
@@ -303,6 +324,7 @@ export function SubmitTaskModal({
     resetOtp();
     setSessionReady(false);
     setOtpComplete(false);
+    setShowConfirmModal(false);
     setFormFields(initialFormFields);
     setErrors({});
     setSubmitError(null);
@@ -406,7 +428,7 @@ export function SubmitTaskModal({
 
               <div className="my-2">
                 <OtpInput
-                  value=""
+                  value={otpValue}
                   onChange={handleOtpInputChange}
                   disabled={otpPhase === "verifying"}
                   hasError={!!otpError}
@@ -537,7 +559,7 @@ export function SubmitTaskModal({
         )}
 
         {/* Form Fields */}
-        {!submitSuccess && (
+        {!submitSuccess && !showConfirmModal && (
           <div className="flex flex-col gap-4">
             {fields.map((field) => (
               <div key={field} className="flex flex-col gap-1.5">
@@ -550,18 +572,32 @@ export function SubmitTaskModal({
                     <span className="text-[#D92323] ml-1">*</span>
                   )}
                 </label>
-                <input
-                  type={field === "selectedTask" ? "text" : "url"}
-                  id={field}
-                  name={field}
-                  value={formFields[field]}
-                  onChange={(e) => handleFieldChange(field, e.target.value)}
-                  placeholder={FIELD_PLACEHOLDERS[field]}
-                  className={`w-full bg-white border-[3px] rounded-[16px] shadow-[3px_3px_0px_#1E1B24] p-4 font-rubik text-[15px] font-medium text-[#1E1B24] placeholder:text-[#5C5866]/50 focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[2px_2px_0px_#1E1B24] transition-all ${
-                    errors[field] ? "border-[#D92323]" : "border-[#1E1B24]"
-                  }`}
-                  disabled={isSubmitting}
-                />
+                {field === "selectedTask" ? (
+                  <Dropdown
+                    id={field}
+                    name={field}
+                    value={formFields[field]}
+                    onChange={(val) => handleFieldChange(field, val)}
+                    options={taskOptions}
+                    placeholder="Select your task"
+                    error={errors[field]}
+                    disabled={isSubmitting}
+                    triggerBg="bg-white"
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    id={field}
+                    name={field}
+                    value={formFields[field]}
+                    onChange={(e) => handleFieldChange(field, e.target.value)}
+                    placeholder={FIELD_PLACEHOLDERS[field]}
+                    className={`w-full bg-white border-[3px] rounded-[16px] shadow-[3px_3px_0px_#1E1B24] p-4 font-rubik text-[15px] font-medium text-[#1E1B24] placeholder:text-[#5C5866]/50 focus:outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:shadow-[2px_2px_0px_#1E1B24] transition-all ${
+                      errors[field] ? "border-[#D92323]" : "border-[#1E1B24]"
+                    }`}
+                    disabled={isSubmitting}
+                  />
+                )}
                 {errors[field] && (
                   <p className="font-rubik text-[12px] font-medium text-[#D92323]" role="alert">
                     {errors[field]}
@@ -589,11 +625,67 @@ export function SubmitTaskModal({
               </button>
               <button
                 type="button"
-                onClick={handleSubmit}
+                onClick={() => {
+                  if (validateForm()) {
+                    setShowConfirmModal(true);
+                  }
+                }}
                 disabled={isSubmitting}
                 className="px-6 py-3 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-60"
               >
-                {isSubmitting ? "Submitting..." : "Submit Task"}
+                Submit Task
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal Overlay */}
+        {showConfirmModal && !submitSuccess && (
+          <div className="bg-[#FFFEEF] border-[3px] border-[#1E1B24] rounded-[20px] p-6 flex flex-col gap-4 shadow-[4px_4px_0px_#1E1B24] animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3">
+              <span className="font-outfit-black text-[11px] uppercase tracking-[1px] px-2.5 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] text-[#1E1B24]">
+                CONFIRMATION
+              </span>
+              <h4 className="font-outfit-black text-[18px] text-[#1E1B24]">
+                Are you sure you want to submit?
+              </h4>
+            </div>
+            <p className="font-rubik text-[14px] text-[#5C5866] font-medium leading-relaxed">
+              Please review your selected task and submission links. Once submitted, your response will be sent to the domain mentors and cannot be modified.
+            </p>
+            <div className="bg-white border-2 border-[#1E1B24] rounded-xl p-3 flex flex-col gap-2 shadow-[2px_2px_0px_#1E1B24]">
+              <div className="flex justify-between text-xs">
+                <span className="font-rubik font-bold text-[#5C5866]">Selected Task:</span>
+                <span className="font-outfit-black text-[#1E1B24]">{formFields.selectedTask}</span>
+              </div>
+              {fields.map((f) => {
+                if (f === "selectedTask") return null;
+                const val = formFields[f];
+                if (!val) return null;
+                return (
+                  <div key={f} className="flex justify-between text-xs truncate gap-2">
+                    <span className="font-rubik font-bold text-[#5C5866] shrink-0">{FIELD_LABELS[f]}:</span>
+                    <span className="font-rubik text-[#1E1B24] truncate max-w-[240px]">{val}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                disabled={isSubmitting}
+                className="px-4 py-2.5 rounded-xl border-2 border-[#1E1B24] bg-[#FAF7EE] text-[#1E1B24] font-rubik font-bold text-xs shadow-[2px_2px_0px_#1E1B24] hover:bg-[#E5E0D4] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+              >
+                Cancel / Back
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl border-2 border-[#1E1B24] bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer disabled:opacity-60"
+              >
+                {isSubmitting ? "Submitting..." : "Yes, Submit Task"}
               </button>
             </div>
           </div>
