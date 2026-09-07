@@ -53,7 +53,7 @@ const FIELD_LABELS: Record<string, string> = {
   figmaPlugins: "Figma Plugins / Files (Fill NA if not applicable)",
   designLink: "Design Link - PNG/Images (Fill NA if not applicable)",
   designFiles: "Design Files Link (Fill NA if not applicable)",
-  introVideo: "Intro Video Link *",
+  introVideo: "Self-Introduction Video Link *",
   documentLink: "Document Link (Drive / PDF) *",
 };
 
