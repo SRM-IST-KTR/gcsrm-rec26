@@ -249,7 +249,7 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
           isOpen: true,
           type: "error",
           title: "Already Registered",
-          message: errorText || "The registration number or email address is already occupied/registered. Reach out to the GCSRM team on Instagram (@gcsrm.srm) if you believe this is an error.",
+          message: "The registration number or email address is already occupied/registered. Reach out to the GCSRM team on Instagram (@gcsrm.srm) if you believe this is an error.",
         });
         return;
       }
