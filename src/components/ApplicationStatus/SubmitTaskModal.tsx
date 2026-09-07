@@ -47,14 +47,14 @@ const initialFormFields: FormFields = {
 /** Map form field name to display label. */
 const FIELD_LABELS: Record<string, string> = {
   selectedTask: "Task Name / Title",
-  githubLink: "GitHub Repository Link",
-  deployedLink: "Deployed / Hosted Link",
-  demoVideo: "Demo Video Link",
-  figmaPlugins: "Figma Plugins / Files",
-  designLink: "Design Link (PNG / Images)",
-  designFiles: "Design Files Link",
-  introVideo: "Intro Video Link",
-  documentLink: "Document Link (Drive / PDF)",
+  githubLink: "GitHub Repository Link *",
+  deployedLink: "Deployed / Hosted Link (if present, else NA)",
+  demoVideo: "Demo Video Link *",
+  figmaPlugins: "Figma Plugins / Files (Fill NA if not applicable)",
+  designLink: "Design Link - PNG/Images (Fill NA if not applicable)",
+  designFiles: "Design Files Link (Fill NA if not applicable)",
+  introVideo: "Self-Introduction Video Link *",
+  documentLink: "Document Link (Drive / PDF) *",
 };
 
 /** Map form field name to placeholder. */
@@ -115,22 +115,31 @@ export function SubmitTaskModal({
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const taskOptions = tasks && tasks.length > 0 
-    ? tasks.map((t) => ({ label: t.title, value: t.title }))
-    : domain === "technical" 
-      ? [
-          { label: "Web Development Task (Full-Stack / Frontend)", value: "Web Development Task" },
-          { label: "AI / ML Task (Intelligent Systems & Models)", value: "AI / ML Task" }
-        ]
-      : domain === "creatives"
-        ? [
-            { label: "GFX Design Task (Figma / Branding)", value: "GFX Design Task" },
-            { label: "VFX / Motion Graphics Task (Video / Animation)", value: "VFX Design Task" }
-          ]
-        : [
-            { label: "Corporate Management & Operations Task", value: "Corporate Operations Task" },
-            { label: "Business Strategy & Pitch Deck Task", value: "Business Strategy Task" }
-          ];
+  // If tasks are passed from backend (or fetched), filter/group by domain and year
+  const participantYear = (participant?.year || "1").toString().trim();
+  const isCorporateDomain = domain === "corporate";
+  const isTechnicalDomain = domain === "technical";
+  const isCreativesDomain = domain === "creatives";
+
+  const isVideoTask = (t: RecruitmentTask): boolean => {
+    const tt = (t.taskType || "").toLowerCase();
+    const title = (t.title || "").toLowerCase();
+    return tt.includes("video") || title.includes("video") || title.includes("self-introduction") || title.includes("intro");
+  };
+
+  let taskOptions: { label: string; value: string }[] = [];
+
+  if (tasks && tasks.length > 0) {
+    if (isCorporateDomain) {
+      const nonVideo = tasks.filter((t) => !isVideoTask(t));
+      taskOptions = nonVideo.map((t) => ({ label: t.title, value: t.title }));
+    } else {
+      taskOptions = tasks.map((t) => ({
+        label: t.taskType ? `${t.taskType}: ${t.title}` : t.title,
+        value: t.title,
+      }));
+    }
+  }
   const [sessionReady, setSessionReady] = useState(false);
   const [otpComplete, setOtpComplete] = useState(false);
   const [otpValue, setOtpValue] = useState("");
@@ -247,17 +256,46 @@ export function SubmitTaskModal({
       nextErrors.selectedTask = "Task name is required.";
     }
 
+    const isCorp = domain === "corporate";
+    const isCreative = domain === "creatives";
+    const isTech = domain === "technical";
+
     for (const field of fields) {
       if (field === "selectedTask") continue;
       const value = formFields[field].trim();
-      if (value && !value.startsWith("http://") && !value.startsWith("https://")) {
-        nextErrors[field] = "Please enter a valid URL starting with http:// or https://";
+      
+      if (isCorp) {
+        // Corporate: both introVideo and documentLink are mandatory
+        if (!value) {
+          nextErrors[field] = "This field is required for Corporate submissions.";
+          continue;
+        }
+      }
+
+      if (isCreative) {
+        // Creatives: all 3 fields are mandatory (candidates can fill NA if not applicable)
+        if (!value) {
+          nextErrors[field] = "This field is required. Enter NA if not applicable.";
+          continue;
+        }
+      }
+
+      if (isTech) {
+        // Technical: githubLink and demoVideo are mandatory; deployedLink is optional (can be NA or URL)
+        if ((field === "githubLink" || field === "demoVideo") && !value) {
+          nextErrors[field] = "This field is required for Technical submissions.";
+          continue;
+        }
+      }
+
+      if (value && value.toUpperCase() !== "NA" && !value.startsWith("http://") && !value.startsWith("https://")) {
+        nextErrors[field] = "Please enter a valid URL starting with http:// or https:// (or type NA)";
       }
     }
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
-  }, [formFields, fields]);
+  }, [formFields, fields, domain]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) return;

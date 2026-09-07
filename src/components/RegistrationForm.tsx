@@ -50,10 +50,14 @@ function validateField(field: FieldName, value: string) {
         ? ""
         : "Use your SRM email ending with @srmist.edu.in.";
     case "registrationNumber":
-      if (!registrationNumberPattern.test(value.trim())) {
+      const cleanReg = value.trim();
+      if (!cleanReg.startsWith("RA")) {
         return "Registration number must start with RA.";
       }
-      if (!/^RA(25|26)/.test(value.trim())) {
+      if (cleanReg.length < 13) {
+        return "Incomplete registration number. Please enter a valid full registration number.";
+      }
+      if (!/^RA(25|26)/.test(cleanReg)) {
         return "Recruitment is open only for 1st and 2nd year students.";
       }
       return "";
@@ -233,17 +237,34 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         errorText = "An error occurred: Check your network or input details.";
       }
 
+      const errLower = errorText.toLowerCase();
+      const isAlreadyRegistered =
+        errLower.includes("already") ||
+        errLower.includes("exists") ||
+        errLower.includes("registered") ||
+        errLower.includes("duplicate") ||
+        errLower.includes("occupied");
+      if (isAlreadyRegistered) {
+        setPopup({
+          isOpen: true,
+          type: "error",
+          title: "Already Registered",
+          message: errorText || "The registration number or email address is already occupied/registered. Reach out to the GCSRM team on Instagram (@gcsrm.srm) if you believe this is an error.",
+        });
+        return;
+      }
+
       const isRegistrationClosed =
-        errorText.toLowerCase().includes("registration period has ended") ||
-        errorText.toLowerCase().includes("registration has ended") ||
-        errorText.toLowerCase().includes("no new registrations are being accepted");
+        errLower.includes("registration period has ended") ||
+        errLower.includes("registration has ended") ||
+        errLower.includes("no new registrations are being accepted");
 
       if (isRegistrationClosed) {
         setPopup({
           isOpen: true,
           type: "error",
           title: "Registration Ended",
-          message: errorText || "Registration period has ended. No new registrations are being accepted.",
+          message: errorText || "Registration period hasended. No new registrations are being accepted.",
         });
         return;
       }
@@ -252,8 +273,8 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
         setPopup({
           isOpen: true,
           type: "error",
-          title: "Server Error",
-          message: "An error occurred: It's our fault. Please try again later.",
+          title: "Submission Error",
+          message: errorText || "An error occurred. Please check your network or input details.",
         });
         return;
       }
@@ -261,8 +282,8 @@ export default function RegistrationForm({ initialEmail = "" }: RegistrationForm
       setPopup({
         isOpen: true,
         type: "error",
-        title: "Client Error",
-        message: "An error occurred: Check your network or input details.",
+        title: "Registration Error",
+        message: errorText || "An error occurred while submitting your registration. Please check your details.",
       });
     }
   };
