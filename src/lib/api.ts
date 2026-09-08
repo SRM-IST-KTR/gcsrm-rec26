@@ -125,7 +125,7 @@ async function post<T>(path: string, payload: Record<string, unknown>): Promise<
   } catch {
     throw new ApiError(0, {
       success: false,
-      message: "Network error. Please check your connection and try again.",
+      message: "Network error. Please change your internet to mobile data and try again.",
     });
   }
 
@@ -230,7 +230,7 @@ export const api = {
     } catch {
       throw new ApiError(0, {
         success: false,
-        message: "Network error. Please check your connection and try again.",
+        message: "Network error. Please change your internet to mobile data and try again.",
       });
     }
 
@@ -302,7 +302,7 @@ export const api = {
     } catch {
       throw new ApiError(0, {
         success: false,
-        message: "Network error. Please check your connection and try again.",
+        message: "Network error. Please change your internet to mobile data and try again.",
       });
     }
 
@@ -351,7 +351,7 @@ export const api = {
     } catch {
       throw new ApiError(0, {
         success: false,
-        message: "Network error. Please check your connection and try again.",
+        message: "Network error. Please change your internet to mobile data and try again.",
       });
     }
 

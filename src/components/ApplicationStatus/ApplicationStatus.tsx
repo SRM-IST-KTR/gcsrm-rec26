@@ -162,12 +162,14 @@ export function StatusHeroCard({
   onSubmitTask,
   onViewTasks,
   onViewInstructions,
+  taskFetchError,
 }: {
   status: ParticipantStatus;
   participant?: Partial<ParticipantData> | null;
   onSubmitTask?: () => void;
   onViewTasks?: () => void;
   onViewInstructions?: () => void;
+  taskFetchError?: string | null;
 }) {
   const [isSubmissionOpen, setIsSubmissionOpen] = React.useState(false);
 
@@ -227,6 +229,13 @@ export function StatusHeroCard({
         <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
           SUBMISSIONS: 8 Sept 2026, 12:00 AM - 12 Sept 2026, 23:59 PM
         </p>
+        {taskFetchError && (
+          <div className="w-full bg-[#FFF5F5] border-[3px] border-[#1E1B24] shadow-[3px_3px_0px_#1E1B24] rounded-[14px] p-3 text-center my-1 flex items-center justify-center gap-2">
+            <p className="font-rubik text-[13px] sm:text-[14px] font-medium text-[#D92323]">
+              {taskFetchError}
+            </p>
+          </div>
+        )}
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
             <button
@@ -399,30 +408,38 @@ export function ApplicationStatus({
   const [showTaskDetailsModal, setShowTaskDetailsModal] = React.useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = React.useState(false);
   const [assignedTasks, setAssignedTasks] = React.useState<RecruitmentTask[]>(tasks);
+  const [taskFetchError, setTaskFetchError] = React.useState<string | null>(null);
   const hasFetchedTasks = React.useRef(false);
 
   const currentStatus: ParticipantStatus =
     status || participant?.status || "registered";
 
   React.useEffect(() => {
-    const fetchTasks = () => {
+    const fetchTasks = async () => {
       if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
         hasFetchedTasks.current = true;
+        setTaskFetchError(null);
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-        fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && data.data?.tasks) {
-              setAssignedTasks(data.data.tasks);
-            }
-          })
-          .catch(err => {
-            console.error("Failed to fetch tasks:", err);
-            hasFetchedTasks.current = false;
-          });
+        try {
+          const res = await fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`);
+          if (!res.ok) {
+            throw new Error(`Request failed with status ${res.status}`);
+          }
+          const data = await res.json();
+          if (data.success && data.data?.tasks) {
+            setAssignedTasks(data.data.tasks);
+            setTaskFetchError(null);
+          } else if (data.success === false && data.message) {
+            setTaskFetchError(data.message);
+          } else {
+            setTaskFetchError("Network error. Please change your internet to mobile data and try again.");
+          }
+        } catch {
+          hasFetchedTasks.current = false;
+          setTaskFetchError("Network error. Please change your internet to mobile data and try again.");
+        }
       }
     };
-
     fetchTasks();
 
     const handleVisibilityChange = () => {
@@ -483,8 +500,8 @@ export function ApplicationStatus({
             onSubmitTask={() => setShowSubmitModal(true)}
             onViewTasks={() => setShowTaskDetailsModal(true)}
             onViewInstructions={() => setShowInstructionsModal(true)}
+            taskFetchError={taskFetchError}
           />
-
           {/* Dynamic Steps List */}
           <div className="flex flex-col gap-4 sm:gap-5 w-full">
             {steps.map((step) => (
