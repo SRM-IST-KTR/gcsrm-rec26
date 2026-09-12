@@ -224,8 +224,8 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
-        <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
-          SUBMISSIONS: 8 Sept 2026, 12:00 AM - 13 Sept 2026, 23:59 PM
+        <p className="font-outfit-black text-sm sm:text-base font-bold text-[#6B7280] uppercase tracking-wider my-1">
+          SUBMISSIONS: 8 Sept 2026, 12:00 AM - 12 Sept 2026, 23:59 PM
         </p>
         <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
           EXTENDED DEADLINE: 13 Sept 2026, 23:59 hrs (11:59 PM)
