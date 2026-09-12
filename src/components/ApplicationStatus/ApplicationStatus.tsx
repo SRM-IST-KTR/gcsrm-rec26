@@ -173,9 +173,9 @@ export function StatusHeroCard({
 
   React.useEffect(() => {
     const SUBMISSION_START = new Date("2026-09-08T00:00:00+05:30");
-    const SUBMISSION_END = new Date("2026-09-12T23:59:59+05:30");
+    const SUBMISSION_END = new Date("2026-09-14T00:00:00+05:30");
     const now = new Date();
-    setIsSubmissionOpen(now >= SUBMISSION_START && now <= SUBMISSION_END);
+    setIsSubmissionOpen(now >= SUBMISSION_START && now < SUBMISSION_END);
   }, []);
 
   const normalizedStatus = status === "interviewShortlist" ? "interviewShortlisted" : status;
@@ -224,8 +224,11 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your recruitment task has been assigned. Please check the requirements for your chosen domain, build your solution, and submit before the deadline.
         </p>
-        <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
+        <p className="font-outfit-black text-sm sm:text-base font-bold text-[#6B7280] uppercase tracking-wider my-1">
           SUBMISSIONS: 8 Sept 2026, 12:00 AM - 12 Sept 2026, 23:59 PM
+        </p>
+        <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
+          EXTENDED DEADLINE: 13 Sept 2026, 23:59 hrs (11:59 PM)
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
@@ -253,7 +256,7 @@ export function StatusHeroCard({
           {onSubmitTask && (
             <div
               className="relative group inline-block w-full sm:w-fit"
-              title={!isSubmissionOpen ? "Submissions open on 8th September 2026, 12:00 AM" : undefined}
+              title={!isSubmissionOpen ? "Submissions closed after 13th September 2026, 11:59 PM" : undefined}
             >
               <button
                 type="button"
@@ -269,7 +272,7 @@ export function StatusHeroCard({
               </button>
               {!isSubmissionOpen && (
                 <div className="group-hover:opacity-100 pointer-events-none opacity-0 transition-opacity absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-yellow-300 text-black text-xs font-bold font-mono px-2.5 py-1 border-2 border-black rounded shadow-[2px_2px_0px_#000] z-20">
-                  Submissions open on 8th September 2026, 12:00 AM
+                  Submissions closed after 13th September 2026, 11:59 PM
                 </div>
               )}
             </div>
