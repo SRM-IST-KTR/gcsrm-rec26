@@ -173,7 +173,7 @@ export function StatusHeroCard({
 
   React.useEffect(() => {
     const SUBMISSION_START = new Date("2026-09-08T00:00:00+05:30");
-    const SUBMISSION_END = new Date("2026-09-14T00:00:00+05:30");
+    const SUBMISSION_END = new Date("2026-09-14T00:40:00+05:30");
     const now = new Date();
     setIsSubmissionOpen(now >= SUBMISSION_START && now < SUBMISSION_END);
   }, []);
@@ -228,7 +228,7 @@ export function StatusHeroCard({
           SUBMISSIONS: 8 Sept 2026, 12:00 AM - 12 Sept 2026, 23:59 PM
         </p>
         <p className="font-outfit-black text-sm sm:text-base font-bold text-[var(--error,#D92323)] uppercase tracking-wider my-1">
-          EXTENDED DEADLINE: 13 Sept 2026, 23:59 hrs (11:59 PM)
+          EXTENDED DEADLINE: 14 Sept 2026, 12:40 AM
         </p>
         <div className="flex flex-col sm:flex-row gap-3 mt-2">
           {onViewTasks && (
@@ -256,7 +256,7 @@ export function StatusHeroCard({
           {onSubmitTask && (
             <div
               className="relative group inline-block w-full sm:w-fit"
-              title={!isSubmissionOpen ? "Submissions closed after 13th September 2026, 11:59 PM" : undefined}
+              title={!isSubmissionOpen ? "Submissions closed after 14th September 2026, 12:40 AM" : undefined}
             >
               <button
                 type="button"
@@ -272,7 +272,7 @@ export function StatusHeroCard({
               </button>
               {!isSubmissionOpen && (
                 <div className="group-hover:opacity-100 pointer-events-none opacity-0 transition-opacity absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-yellow-300 text-black text-xs font-bold font-mono px-2.5 py-1 border-2 border-black rounded shadow-[2px_2px_0px_#000] z-20">
-                  Submissions closed after 13th September 2026, 11:59 PM
+                  Submissions closed after 14th September 2026, 12:40 AM
                 </div>
               )}
             </div>
