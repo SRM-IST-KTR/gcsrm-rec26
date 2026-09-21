@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { X, MapPin, Calendar, Building, Compass } from "lucide-react";
+import { X, MapPin, Calendar, Building, Clock } from "lucide-react";
 import locationData from "./onboardingLocation.json";
 
 export interface LocationModalProps {
@@ -46,49 +46,60 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
 
         {/* Content */}
         <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex flex-col gap-4 text-left">
-          {/* Main Venue Card */}
-          <div className="bg-[#ECFDF5] border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] flex flex-col gap-3">
-            <div className="flex items-start gap-3">
-              <Building className="text-[#1E1B24] shrink-0 mt-0.5" size={22} />
-              <div>
-                <h3 className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wide">
-                  {locationData.venue.title}
-                </h3>
-                <p className="font-rubik text-sm text-[#1E1B24] mt-0.5 font-medium">
-                  {locationData.venue.room}
-                </p>
-                <p className="font-rubik text-xs text-[#5C5866] mt-1">
-                  {locationData.venue.address}
-                </p>
-              </div>
-            </div>
-
-            <div className="h-[2px] bg-[#1E1B24]/10" />
-
-            <div className="flex items-start gap-3">
-              <Compass className="text-[#1E1B24] shrink-0 mt-0.5" size={20} />
-              <div>
-                <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24] block">
-                  {locationData.navigation.title}
+          {locationData.toBeAnnounced ? (
+            /* TBA Mode Card */
+            <div className="bg-[#FFFDF0] border-2 border-[#1E1B24] rounded-xl p-5 shadow-[3px_3px_0px_#1E1B24] flex flex-col gap-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Clock size={20} className="text-[#1E1B24]" />
+                  <h3 className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wide">
+                    {locationData.tbaDetails?.title || "VENUE TO BE ANNOUNCED"}
+                  </h3>
+                </div>
+                <span className="bg-[#FFD93D] border border-[#1E1B24] px-2.5 py-0.5 rounded-full text-[11px] font-outfit-black uppercase shadow-[1px_1px_0px_#1E1B24] text-[#1E1B24]">
+                  {locationData.tbaDetails?.badge || "PENDING ANNOUNCEMENT"}
                 </span>
-                <p className="font-rubik text-xs text-[#5C5866] mt-0.5">
-                  {locationData.navigation.description}
-                </p>
               </div>
-            </div>
 
-            <div className="flex items-start gap-3">
-              <Calendar className="text-[#1E1B24] shrink-0 mt-0.5" size={20} />
-              <div>
-                <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24] block">
-                  {locationData.reporting.title}
-                </span>
-                <p className="font-rubik text-xs text-[#5C5866] mt-0.5">
-                  {locationData.reporting.description}
-                </p>
+              <p className="font-rubik text-sm text-[#5C5866] leading-relaxed">
+                {locationData.tbaDetails?.description}
+              </p>
+
+              <div className="p-3 bg-[#EFF8FF] border border-[#1E1B24]/20 rounded-lg text-xs font-rubik text-[#1E1B24]">
+                <strong className="font-outfit-black uppercase mr-1">Note:</strong>
+                Allocations and reporting details will be dispatched via official SRM student email.
               </div>
             </div>
-          </div>
+          ) : (
+            /* Main Venue Card */
+            <div className="bg-[#ECFDF5] border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] flex flex-col gap-3">
+              <div className="flex items-start gap-3">
+                <Building className="text-[#1E1B24] shrink-0 mt-0.5" size={22} />
+                <div>
+                  <h3 className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wide">
+                    {locationData.venue.title}
+                  </h3>
+                  <p className="font-rubik text-sm text-[#1E1B24] mt-0.5 font-medium">
+                    {locationData.venue.room}
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-[2px] bg-[#1E1B24]/10" />
+
+              <div className="flex items-start gap-3">
+                <Calendar className="text-[#1E1B24] shrink-0 mt-0.5" size={20} />
+                <div>
+                  <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24] block">
+                    {locationData.reporting.title}
+                  </span>
+                  <p className="font-rubik text-xs text-[#5C5866] mt-0.5">
+                    {locationData.reporting.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

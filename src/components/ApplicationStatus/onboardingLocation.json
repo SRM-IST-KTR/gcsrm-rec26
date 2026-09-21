@@ -1,13 +1,14 @@
 {
+  "toBeAnnounced": false,
+  "tbaDetails": {
+    "title": "VENUE TO BE ANNOUNCED",
+    "badge": "PENDING ANNOUNCEMENT",
+    "description": "Onboarding venue ."
+  },
   "headerTitle": "ONBOARDING VENUE & LOCATION",
   "venue": {
-    "title": "SRM INSTITUTE OF SCIENCE & TECHNOLOGY",
-    "room": "Tech Park, 4th Floor — GitHub Community SRM Lab (Room TP401 / TP402)",
-    "address": "Kattankulathur, Chengalpattu District, Tamil Nadu 603203"
-  },
-  "navigation": {
-    "title": "CAMPUS NAVIGATION & LANDMARKS",
-    "description": "Enter via SRM Main Gate, proceed past University Building toward Tech Park. Take Central Elevators/Escalators to Floor 4."
+    "title": "Tech Park",
+    "room": "4th Floor — Room TP401 "
   },
   "reporting": {
     "title": "REPORTING & SCHEDULES",

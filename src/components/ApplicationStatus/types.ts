@@ -34,6 +34,7 @@ export interface ParticipantData {
   phone?: string;
   year?: string;
   domain?: string;
+  subdomain?: string;
   degreeWithBranch?: string;
   links?: ParticipantLinks;
   status: ParticipantStatus;

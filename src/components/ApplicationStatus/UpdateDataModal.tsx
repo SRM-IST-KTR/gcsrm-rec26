@@ -32,7 +32,6 @@ export interface UpdateDataModalProps {
 interface FormState {
   phoneno: string;
   section: string;
-  subdomain: string;
   caption: string;
   pictureUrl: string;
   faname: string;
@@ -48,7 +47,6 @@ interface FormState {
 const INITIAL_FORM_STATE: FormState = {
   phoneno: "",
   section: "",
-  subdomain: "",
   caption: "",
   pictureUrl: "",
   faname: "",
@@ -83,6 +81,7 @@ export function UpdateDataModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // Initialize and load saved draft from localStorage or participant session
   useEffect(() => {
@@ -106,7 +105,9 @@ export function UpdateDataModal({
 
     // Populate missing fields from participant record
     if (participant) {
-      if (!initial.phoneno) initial.phoneno = participant.phone || "";
+      if (!initial.phoneno && participant.phone) {
+        initial.phoneno = participant.phone.replace(/\D/g, "").slice(-10);
+      }
       if (!initial.github) initial.github = participant.links?.github || "";
       if (!initial.portfolio) {
         initial.portfolio =
@@ -152,11 +153,13 @@ export function UpdateDataModal({
     };
   }, [isOpen]);
 
+  const candidateSubdomain =
+    participant?.subdomain || (participant as any)?.subDomain || "";
+
   // Section completion calculations
   const section1Fields = [
     formData.phoneno,
     formData.section,
-    formData.subdomain,
     formData.caption,
     formData.pictureUrl,
   ];
@@ -181,10 +184,33 @@ export function UpdateDataModal({
   const filled4 = section4Fields.filter((f) => f.trim().length > 0).length;
 
   const totalFilled = filled1 + filled2 + filled3 + filled4;
-  const TOTAL_FIELDS = 13;
+  const TOTAL_FIELDS = 12;
 
-  const isSection1Complete = filled1 === 5;
-  const isSection2Complete = filled2 === 3;
+  const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
+  const isPhoneValid = INDIAN_PHONE_REGEX.test(formData.phoneno.trim());
+  const phoneError =
+    formData.phoneno.trim().length > 0 && !isPhoneValid
+      ? "Enter a valid 10-digit mobile number."
+      : errors.phoneno || null;
+
+  const isFaPhoneValid = INDIAN_PHONE_REGEX.test(formData.faphonenumber.trim());
+  const faPhoneError =
+    formData.faphonenumber.trim().length > 0 && !isFaPhoneValid
+      ? "Enter a valid 10-digit mobile number."
+      : errors.faphonenumber || null;
+
+  const SRM_FA_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@srmist\.edu\.in$/i;
+  const isFaEmailValid =
+    formData.faemailid.trim().length > 0 &&
+    SRM_FA_EMAIL_REGEX.test(formData.faemailid.trim());
+
+  const faEmailError =
+    formData.faemailid.trim().length > 0 && !isFaEmailValid
+      ? "FA email must be an official @srmist.edu.in address."
+      : errors.faemailid || null;
+
+  const isSection1Complete = filled1 === 4 && isPhoneValid;
+  const isSection2Complete = filled2 === 3 && isFaPhoneValid && isFaEmailValid;
   const isSection3Complete = filled3 === 4;
   const isSection4Complete = filled4 === 1;
 
@@ -203,6 +229,44 @@ export function UpdateDataModal({
   ]);
 
   const isFormComplete = incompleteSections.length === 0;
+
+  const getSection1Badge = () => {
+    if (filled1 === 0) {
+      return {
+        label: "Incomplete",
+        pillClass: "bg-[#FF4D4D] text-white",
+      };
+    }
+    if (filled1 < 4 || !isPhoneValid) {
+      return {
+        label: "In Progress",
+        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
+      };
+    }
+    return {
+      label: "Ready",
+      pillClass: "bg-[#22C55E] text-white",
+    };
+  };
+
+  const getSection2Badge = () => {
+    if (filled2 === 0) {
+      return {
+        label: "Incomplete",
+        pillClass: "bg-[#FF4D4D] text-white",
+      };
+    }
+    if (filled2 < 3 || !isFaPhoneValid || !isFaEmailValid) {
+      return {
+        label: "In Progress",
+        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
+      };
+    }
+    return {
+      label: "Ready",
+      pillClass: "bg-[#22C55E] text-white",
+    };
+  };
 
   const getSectionBadge = (filled: number, total: number) => {
     if (filled === 0) {
@@ -223,8 +287,8 @@ export function UpdateDataModal({
     };
   };
 
-  const status1 = getSectionBadge(filled1, 5);
-  const status2 = getSectionBadge(filled2, 3);
+  const status1 = getSection1Badge();
+  const status2 = getSection2Badge();
   const status3 = getSectionBadge(filled3, 4);
   const status4 = getSectionBadge(filled4, 1);
 
@@ -245,12 +309,7 @@ export function UpdateDataModal({
     }
   };
 
-  const handleClearDraft = () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to clear your saved draft? All unsaved inputs will be reset.",
-    );
-    if (!confirmed) return;
-
+  const handleExecuteClearDraft = () => {
     try {
       localStorage.removeItem(draftStorageKey);
     } catch (err) {
@@ -261,6 +320,7 @@ export function UpdateDataModal({
     setErrors({});
     setSubmitError(null);
     setDraftSaved(false);
+    setShowClearConfirm(false);
   };
 
   const validateFormats = () => {
@@ -269,15 +329,22 @@ export function UpdateDataModal({
 
     if (!trimmedPhone) {
       errs.phoneno = "Phone number is required";
-    } else if (!/^[0-9+\s-]{10,15}$/.test(trimmedPhone)) {
-      errs.phoneno = "Enter a valid 10-15 digit phone number";
+    } else if (!INDIAN_PHONE_REGEX.test(trimmedPhone)) {
+      errs.phoneno = "Enter a valid 10-digit mobile number.";
+    }
+
+    const trimmedFaPhone = formData.faphonenumber.trim();
+    if (!trimmedFaPhone) {
+      errs.faphonenumber = "FA phone number is required";
+    } else if (!INDIAN_PHONE_REGEX.test(trimmedFaPhone)) {
+      errs.faphonenumber = "Enter a valid 10-digit mobile number.";
     }
 
     if (
       formData.faemailid.trim() &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.faemailid.trim())
+      !SRM_FA_EMAIL_REGEX.test(formData.faemailid.trim())
     ) {
-      errs.faemailid = "Enter a valid faculty email (e.g. name@srmist.edu.in)";
+      errs.faemailid = "FA email must be an official @srmist.edu.in address.";
     }
 
     if (
@@ -339,7 +406,7 @@ export function UpdateDataModal({
       phoneno: formData.phoneno.trim(),
       section: formData.section.trim(),
       domain: participant?.domain || "",
-      subdomain: formData.subdomain.trim() || undefined,
+      subdomain: candidateSubdomain || undefined,
       position: "member",
       joined_yr: 2026,
       isCurrentMember: true,
@@ -376,6 +443,7 @@ export function UpdateDataModal({
       if (updateParticipant) {
         updateParticipant({
           phone: formData.phoneno.trim(),
+          subdomain: candidateSubdomain || participant?.subdomain,
           links: {
             ...participant?.links,
             github: formData.github.trim() || participant?.links?.github,
@@ -458,6 +526,11 @@ export function UpdateDataModal({
                 {participant?.domain && (
                   <span className="bg-[#ECFDF5] border-2 border-[#1E1B24] px-3 py-1 rounded-lg font-outfit-black text-xs uppercase text-[#1E1B24] shadow-[2px_2px_0px_#1E1B24]">
                     Domain: {participant.domain}
+                  </span>
+                )}
+                {candidateSubdomain && (
+                  <span className="bg-[#E0E7FF] border-2 border-[#1E1B24] px-3 py-1 rounded-lg font-outfit-black text-xs uppercase text-[#1E1B24] shadow-[2px_2px_0px_#1E1B24]">
+                    Subdomain: {candidateSubdomain}
                   </span>
                 )}
               </div>
@@ -547,14 +620,24 @@ export function UpdateDataModal({
                     <strong className="text-[#1E1B24]">SRM Email:</strong>{" "}
                     {participant?.email || "N/A"}
                   </div>
-                  {participant?.domain && (
-                    <div className="sm:col-span-2 flex items-center gap-1.5">
-                      <strong className="text-[#1E1B24]">Domain:</strong>
-                      <span className="inline-block uppercase font-outfit-black text-[#1E1B24] bg-[#FFD93D] px-2 py-0.5 rounded border border-[#1E1B24] text-[10px]">
-                        {participant.domain}
-                      </span>
-                    </div>
-                  )}
+                  <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+                    {participant?.domain && (
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-[#1E1B24]">Domain:</strong>
+                        <span className="inline-block uppercase font-outfit-black text-[#1E1B24] bg-[#FFD93D] px-2 py-0.5 rounded border border-[#1E1B24] text-[10px]">
+                          {participant.domain}
+                        </span>
+                      </div>
+                    )}
+                    {candidateSubdomain && (
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-[#1E1B24]">Subdomain:</strong>
+                        <span className="inline-block uppercase font-outfit-black text-[#1E1B24] bg-[#E0E7FF] px-2 py-0.5 rounded border border-[#1E1B24] text-[10px]">
+                          {candidateSubdomain}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -571,7 +654,7 @@ export function UpdateDataModal({
                       1. Academic &amp; Profile Details
                     </span>
                     <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
-                      ({filled1}/5)
+                      ({filled1}/4)
                     </span>
                   </div>
 
@@ -598,23 +681,33 @@ export function UpdateDataModal({
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
                           Phone Number <span className="text-[#D92323]">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          required
-                          value={formData.phoneno}
-                          onChange={(e) =>
-                            handleChange("phoneno", e.target.value)
-                          }
-                          placeholder="+91 98765 43210"
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.phoneno
-                              ? "border-[#D92323] bg-[#FEF2F2]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
-                        />
-                        {errors.phoneno && (
-                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                            {errors.phoneno}
+                        <div className="flex items-center gap-2">
+                          <div className="border-2 border-black rounded-xl bg-[#FFDE59] px-3 py-2 font-bold text-black flex items-center justify-center shadow-[2px_2px_0px_#000] text-sm select-none shrink-0">
+                            +91
+                          </div>
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            maxLength={10}
+                            required
+                            value={formData.phoneno}
+                            onChange={(e) =>
+                              handleChange(
+                                "phoneno",
+                                e.target.value.replace(/\D/g, "").slice(0, 10),
+                              )
+                            }
+                            placeholder="9876543210"
+                            className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                              phoneError
+                                ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                                : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                            }`}
+                          />
+                        </div>
+                        {phoneError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {phoneError}
                           </span>
                         )}
                       </div>
@@ -632,23 +725,6 @@ export function UpdateDataModal({
                             handleChange("section", e.target.value)
                           }
                           placeholder="e.g. CSE-A, ECE-B"
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                        />
-                      </div>
-
-                      {/* Subdomain */}
-                      <div className="flex flex-col gap-1">
-                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          Subdomain Track <span className="text-[#D92323]">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.subdomain}
-                          onChange={(e) =>
-                            handleChange("subdomain", e.target.value)
-                          }
-                          placeholder="e.g. UI/UX, Web Development"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -759,19 +835,37 @@ export function UpdateDataModal({
                       {/* FA Phone */}
                       <div className="flex flex-col gap-1">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          FA Phone Number{" "}
-                          <span className="text-[#D92323]">*</span>
+                          FA Phone Number <span className="text-[#D92323]">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          required
-                          value={formData.faphonenumber}
-                          onChange={(e) =>
-                            handleChange("faphonenumber", e.target.value)
-                          }
-                          placeholder="+91 98765 43210"
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                        />
+                        <div className="flex items-center gap-2">
+                          <div className="border-2 border-black rounded-xl bg-[#FFDE59] px-3 py-2 font-bold text-black flex items-center justify-center shadow-[2px_2px_0px_#000] text-sm select-none shrink-0">
+                            +91
+                          </div>
+                          <input
+                            type="tel"
+                            inputMode="numeric"
+                            maxLength={10}
+                            required
+                            value={formData.faphonenumber}
+                            onChange={(e) =>
+                              handleChange(
+                                "faphonenumber",
+                                e.target.value.replace(/\D/g, "").slice(0, 10),
+                              )
+                            }
+                            placeholder="9876543210"
+                            className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                              faPhoneError
+                                ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                                : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                            }`}
+                          />
+                        </div>
+                        {faPhoneError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {faPhoneError}
+                          </span>
+                        )}
                       </div>
 
                       {/* FA Email */}
@@ -788,14 +882,14 @@ export function UpdateDataModal({
                           }
                           placeholder="faculty.name@srmist.edu.in"
                           className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.faemailid
-                              ? "border-[#D92323] bg-[#FEF2F2]"
+                            faEmailError
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
                               : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
                           }`}
                         />
-                        {errors.faemailid && (
-                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                            {errors.faemailid}
+                        {faEmailError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {faEmailError}
                           </span>
                         )}
                       </div>
@@ -1012,7 +1106,7 @@ export function UpdateDataModal({
               <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={handleClearDraft}
+                  onClick={() => setShowClearConfirm(true)}
                   disabled={totalFilled === 0 || isSubmitting}
                   className="px-4 py-2 text-xs md:text-sm font-bold border-2 border-black rounded-xl bg-[#FFF] text-[#FF4D4D] shadow-[2px_2px_0px_#000] hover:bg-red-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                 >
@@ -1049,6 +1143,46 @@ export function UpdateDataModal({
           )}
         </div>
       </div>
+
+      {/* Custom Neo-Brutalist Clear Draft Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="max-w-md w-full bg-[#FFFDF5] border-[3px] border-black rounded-2xl p-6 shadow-[6px_6px_0px_#000] flex flex-col gap-4 text-left animate-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center gap-2.5">
+              <span className="bg-[#FF4D4D] text-white border-2 border-black px-2.5 py-0.5 rounded-full text-xs font-outfit-black uppercase shadow-[1.5px_1.5px_0px_#000]">
+                WARNING
+              </span>
+              <h3 className="font-outfit-black text-lg text-[#1E1B24] tracking-tight">
+                Clear Saved Draft?
+              </h3>
+            </div>
+
+            {/* Body */}
+            <p className="font-rubik text-sm text-[#5C5866] leading-relaxed">
+              Are you sure you want to clear your saved draft? All unsaved inputs across all sections will be reset.
+            </p>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
+                className="border-2 border-black rounded-xl bg-[#FFF] hover:bg-neutral-100 px-4 py-2 font-bold text-xs md:text-sm shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer text-[#1E1B24]"
+              >
+                Cancel / Keep Draft
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteClearDraft}
+                className="border-2 border-black rounded-xl bg-[#FF4D4D] hover:bg-[#e04343] text-white px-4 py-2 font-bold text-xs md:text-sm shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              >
+                Yes, Clear Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
