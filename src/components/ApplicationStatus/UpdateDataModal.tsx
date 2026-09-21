@@ -6,7 +6,6 @@ import {
   UserCheck,
   CheckCircle2,
   AlertCircle,
-  Download,
   Lock,
   GraduationCap,
   Share2,
@@ -15,12 +14,12 @@ import {
   Sparkles,
   Info,
   ChevronDown,
-  Check,
 } from "lucide-react";
 import { ParticipantData, OnboardMemberPayload } from "./types";
 import { api, ApiError } from "@/lib/api";
 import { getOtpSession } from "@/lib/otpSession";
 import { useAuth } from "@/context/AuthContext";
+import onboardingData from "./onboardingInstructions.json";
 
 export interface UpdateDataModalProps {
   isOpen: boolean;
@@ -58,6 +57,8 @@ const INITIAL_FORM_STATE: FormState = {
   portfolio: "",
   ndaUrl: "",
 };
+
+const ndaTemplate = onboardingData.ndaTemplate;
 
 export function UpdateDataModal({
   isOpen,
@@ -545,35 +546,6 @@ export function UpdateDataModal({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {/* Draft Status & Progress Bar */}
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5 text-xs font-rubik text-[#5C5866]">
-                  {draftSaved && totalFilled > 0 ? (
-                    <>
-                      <Check size={14} className="text-[#22C55E]" />
-                      <span>Draft auto-saved</span>
-                    </>
-                  ) : totalFilled > 0 ? (
-                    <span>Auto-saving draft...</span>
-                  ) : (
-                    <span className="text-[#888590]">No draft saved</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-rubik font-bold text-[#1E1B24]">
-                    {totalFilled}/{TOTAL_FIELDS} Fields Filled
-                  </span>
-                  <span
-                    className={`border border-[#1E1B24] px-2 py-0.2 rounded-md text-[10px] font-outfit-black uppercase ${
-                      isFormComplete
-                        ? "bg-[#22C55E] text-white"
-                        : "bg-[#FFDE59] text-[#1E1B24]"
-                    }`}
-                  >
-                    {isFormComplete ? "All Ready" : "In Progress"}
-                  </span>
-                </div>
-              </div>
 
               {/* Error Alert Banner */}
               {submitError && (
@@ -697,7 +669,6 @@ export function UpdateDataModal({
                                 e.target.value.replace(/\D/g, "").slice(0, 10),
                               )
                             }
-                            placeholder="9876543210"
                             className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
                               phoneError
                                 ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
@@ -724,16 +695,14 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("section", e.target.value)
                           }
-                          placeholder="e.g. CSE-A, ECE-B"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
 
-                      {/* Cloudinary Picture URL */}
+                      {/* Picture URL */}
                       <div className="flex flex-col gap-1">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          Picture URL (Cloudinary){" "}
-                          <span className="text-[#D92323]">*</span>
+                          Picture URL <span className="text-[#D92323]">*</span>
                         </label>
                         <input
                           type="url"
@@ -742,7 +711,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("pictureUrl", e.target.value)
                           }
-                          placeholder="https://res.cloudinary.com/..."
                           className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
                             errors.pictureUrl
                               ? "border-[#D92323] bg-[#FEF2F2]"
@@ -768,7 +736,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("caption", e.target.value)
                           }
-                          placeholder="Short bio or quote about yourself..."
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D] resize-none"
                         />
                       </div>
@@ -827,7 +794,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("faname", e.target.value)
                           }
-                          placeholder="e.g. Dr. Jane Doe"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -853,7 +819,6 @@ export function UpdateDataModal({
                                 e.target.value.replace(/\D/g, "").slice(0, 10),
                               )
                             }
-                            placeholder="9876543210"
                             className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
                               faPhoneError
                                 ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
@@ -880,7 +845,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("faemailid", e.target.value)
                           }
-                          placeholder="faculty.name@srmist.edu.in"
                           className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
                             faEmailError
                               ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
@@ -945,7 +909,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("github", e.target.value)
                           }
-                          placeholder="https://github.com/username"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -962,7 +925,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("linkedin", e.target.value)
                           }
-                          placeholder="https://linkedin.com/in/username"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -980,7 +942,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("insta", e.target.value)
                           }
-                          placeholder="@username or https://instagram.com/..."
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -997,7 +958,6 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("portfolio", e.target.value)
                           }
-                          placeholder="https://yourportfolio.dev"
                           className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
                         />
                       </div>
@@ -1041,21 +1001,18 @@ export function UpdateDataModal({
                 {openSection === 4 && (
                   <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
                     <p className="font-rubik text-xs text-[#5C5866]">
-                      Download the official GCSRM NDA template. Sign it physically
-                      or digitally, upload to Google Drive or Cloudinary, and paste
-                      the public link below.
+                      {ndaTemplate?.description ||
+                        "Download the official GCSRM NDA template. Sign it physically or digitally, upload to Google Drive or Cloudinary, and paste the public link below."}
                     </p>
 
                     <div>
                       <a
-                        href="/assets/NDA_Template.pdf"
-                        download="NDA_Template.pdf"
+                        href={ndaTemplate.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-outfit-black text-xs uppercase px-4 py-2.5 bg-[#FFDE59] hover:bg-[#f0cf48] text-black transition-all cursor-pointer"
+                        className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
                       >
-                        <Download size={16} />
-                        <span>Download NDA Template (.pdf)</span>
+                        <span>{ndaTemplate.buttonText}</span>
                       </a>
                     </div>
 
@@ -1071,7 +1028,6 @@ export function UpdateDataModal({
                         onChange={(e) =>
                           handleChange("ndaUrl", e.target.value)
                         }
-                        placeholder="https://drive.google.com/... or https://res.cloudinary.com/..."
                         className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
                           errors.ndaUrl
                             ? "border-[#D92323] bg-[#FEF2F2]"

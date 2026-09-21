@@ -8,5 +8,11 @@
     "Bring your college physical ID card to the orientation session at Tech Park."
   ],
   "note": "Further orientation timing and batch allocations will be dispatched via SRM student email.",
-  "buttonText": "UNDERSTOOD"
+  "buttonText": "UNDERSTOOD",
+  "ndaTemplate": {
+    "title": "NON-DISCLOSURE AGREEMENT (NDA)",
+    "description": "Download and read the standard NDA. Sign and upload the completed document below.",
+    "url": "https://example.com/NDA_Template.pdf",
+    "buttonText": "Download NDA Template"
+  }
 }
