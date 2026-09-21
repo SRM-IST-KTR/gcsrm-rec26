@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   X,
   UserCheck,
@@ -14,6 +14,8 @@ import {
   Loader2,
   Sparkles,
   Info,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { ParticipantData, OnboardMemberPayload } from "./types";
 import { api, ApiError } from "@/lib/api";
@@ -27,6 +29,38 @@ export interface UpdateDataModalProps {
   onSave?: (data: OnboardMemberPayload) => void;
 }
 
+interface FormState {
+  phoneno: string;
+  section: string;
+  subdomain: string;
+  caption: string;
+  pictureUrl: string;
+  faname: string;
+  faphonenumber: string;
+  faemailid: string;
+  github: string;
+  linkedin: string;
+  insta: string;
+  portfolio: string;
+  ndaUrl: string;
+}
+
+const INITIAL_FORM_STATE: FormState = {
+  phoneno: "",
+  section: "",
+  subdomain: "",
+  caption: "",
+  pictureUrl: "",
+  faname: "",
+  faphonenumber: "",
+  faemailid: "",
+  github: "",
+  linkedin: "",
+  insta: "",
+  portfolio: "",
+  ndaUrl: "",
+};
+
 export function UpdateDataModal({
   isOpen,
   onClose,
@@ -35,46 +69,76 @@ export function UpdateDataModal({
 }: UpdateDataModalProps) {
   const { updateParticipant } = useAuth();
 
-  // Form State
-  const [formData, setFormData] = useState({
-    phoneno: "",
-    section: "",
-    subdomain: "",
-    caption: "",
-    pictureUrl: "",
-    github: "",
-    linkedin: "",
-    insta: "",
-    portfolio: "",
-    faname: "",
-    faphonenumber: "",
-    faemailid: "",
-    ndaUrl: "",
-  });
+  const candidateEmail = useMemo(
+    () => (participant?.email || "candidate").toLowerCase().trim(),
+    [participant?.email],
+  );
+  const draftStorageKey = `onboarding_draft_${candidateEmail}`;
 
+  // Form State
+  const [formData, setFormData] = useState<FormState>(INITIAL_FORM_STATE);
+  const [openSection, setOpenSection] = useState<number | null>(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
 
-  // Initialize and pre-fill form fields when modal opens
+  // Initialize and load saved draft from localStorage or participant session
   useEffect(() => {
-    if (isOpen && participant) {
-      setFormData((prev) => ({
-        ...prev,
-        phoneno: participant.phone || prev.phoneno || "",
-        github: participant.links?.github || prev.github || "",
-        portfolio:
-          participant.links?.demo ||
-          participant.links?.deployment ||
-          prev.portfolio ||
-          "",
-      }));
-      setErrors({});
-      setSubmitError(null);
-      setIsSuccess(false);
+    if (!isOpen) return;
+
+    let initial = { ...INITIAL_FORM_STATE };
+
+    // Try restoring draft from localStorage
+    try {
+      const saved = localStorage.getItem(draftStorageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          initial = { ...initial, ...parsed };
+          setDraftSaved(true);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to read onboarding draft:", err);
     }
-  }, [isOpen, participant]);
+
+    // Populate missing fields from participant record
+    if (participant) {
+      if (!initial.phoneno) initial.phoneno = participant.phone || "";
+      if (!initial.github) initial.github = participant.links?.github || "";
+      if (!initial.portfolio) {
+        initial.portfolio =
+          participant.links?.demo || participant.links?.deployment || "";
+      }
+    }
+
+    setFormData(initial);
+    setErrors({});
+    setSubmitError(null);
+    setIsSuccess(false);
+  }, [isOpen, participant, draftStorageKey]);
+
+  // Auto-save draft on every formData change when at least one field has data
+  useEffect(() => {
+    if (!isOpen) return;
+    const isAnyFilled = Object.values(formData).some(
+      (v) => typeof v === "string" && v.trim().length > 0,
+    );
+
+    if (!isAnyFilled) {
+      setDraftSaved(false);
+      return;
+    }
+
+    try {
+      localStorage.setItem(draftStorageKey, JSON.stringify(formData));
+      setDraftSaved(true);
+    } catch (err) {
+      console.error("Failed to auto-save onboarding draft:", err);
+    }
+  }, [formData, isOpen, draftStorageKey]);
 
   // Prevent background scrolling while modal is open
   useEffect(() => {
@@ -88,12 +152,89 @@ export function UpdateDataModal({
     };
   }, [isOpen]);
 
+  // Section completion calculations
+  const section1Fields = [
+    formData.phoneno,
+    formData.section,
+    formData.subdomain,
+    formData.caption,
+    formData.pictureUrl,
+  ];
+  const filled1 = section1Fields.filter((f) => f.trim().length > 0).length;
+
+  const section2Fields = [
+    formData.faname,
+    formData.faphonenumber,
+    formData.faemailid,
+  ];
+  const filled2 = section2Fields.filter((f) => f.trim().length > 0).length;
+
+  const section3Fields = [
+    formData.github,
+    formData.linkedin,
+    formData.insta,
+    formData.portfolio,
+  ];
+  const filled3 = section3Fields.filter((f) => f.trim().length > 0).length;
+
+  const section4Fields = [formData.ndaUrl];
+  const filled4 = section4Fields.filter((f) => f.trim().length > 0).length;
+
+  const totalFilled = filled1 + filled2 + filled3 + filled4;
+  const TOTAL_FIELDS = 13;
+
+  const isSection1Complete = filled1 === 5;
+  const isSection2Complete = filled2 === 3;
+  const isSection3Complete = filled3 === 4;
+  const isSection4Complete = filled4 === 1;
+
+  const incompleteSections = useMemo(() => {
+    const list: string[] = [];
+    if (!isSection1Complete) list.push("Academic & Profile");
+    if (!isSection2Complete) list.push("Faculty Advisor");
+    if (!isSection3Complete) list.push("Social Handles");
+    if (!isSection4Complete) list.push("NDA Submission");
+    return list;
+  }, [
+    isSection1Complete,
+    isSection2Complete,
+    isSection3Complete,
+    isSection4Complete,
+  ]);
+
+  const isFormComplete = incompleteSections.length === 0;
+
+  const getSectionBadge = (filled: number, total: number) => {
+    if (filled === 0) {
+      return {
+        label: "Incomplete",
+        pillClass: "bg-[#FF4D4D] text-white",
+      };
+    }
+    if (filled < total) {
+      return {
+        label: "In Progress",
+        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
+      };
+    }
+    return {
+      label: "Ready",
+      pillClass: "bg-[#22C55E] text-white",
+    };
+  };
+
+  const status1 = getSectionBadge(filled1, 5);
+  const status2 = getSectionBadge(filled2, 3);
+  const status3 = getSectionBadge(filled3, 4);
+  const status4 = getSectionBadge(filled4, 1);
+
   if (!isOpen) return null;
 
-  const handleChange = (
-    field: keyof typeof formData,
-    value: string,
-  ) => {
+  const toggleSection = (index: number) => {
+    setOpenSection((prev) => (prev === index ? null : index));
+  };
+
+  const handleChange = (field: keyof FormState, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
@@ -104,7 +245,25 @@ export function UpdateDataModal({
     }
   };
 
-  const validate = () => {
+  const handleClearDraft = () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to clear your saved draft? All unsaved inputs will be reset.",
+    );
+    if (!confirmed) return;
+
+    try {
+      localStorage.removeItem(draftStorageKey);
+    } catch (err) {
+      console.error("Failed to remove onboarding draft:", err);
+    }
+
+    setFormData(INITIAL_FORM_STATE);
+    setErrors({});
+    setSubmitError(null);
+    setDraftSaved(false);
+  };
+
+  const validateFormats = () => {
     const errs: Record<string, string> = {};
     const trimmedPhone = formData.phoneno.trim();
 
@@ -118,7 +277,7 @@ export function UpdateDataModal({
       formData.faemailid.trim() &&
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.faemailid.trim())
     ) {
-      errs.faemailid = "Enter a valid email address (e.g. name@srmist.edu.in)";
+      errs.faemailid = "Enter a valid faculty email (e.g. name@srmist.edu.in)";
     }
 
     if (
@@ -132,7 +291,7 @@ export function UpdateDataModal({
       formData.ndaUrl.trim() &&
       !/^https?:\/\/.+/i.test(formData.ndaUrl.trim())
     ) {
-      errs.ndaUrl = "Enter a valid document link starting with http:// or https://";
+      errs.ndaUrl = "Enter a valid document URL starting with http:// or https://";
     }
 
     setErrors(errs);
@@ -142,7 +301,14 @@ export function UpdateDataModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
+    if (!isFormComplete) {
+      setSubmitError(
+        `Please complete all sections first (${incompleteSections.join(", ")}).`,
+      );
+      return;
+    }
+
+    if (!validateFormats()) {
       setSubmitError("Please correct highlighted fields before submitting.");
       return;
     }
@@ -199,6 +365,13 @@ export function UpdateDataModal({
 
     try {
       await api.onboard(token, payload);
+
+      // Clear draft on successful submission
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch (e) {
+        // ignore
+      }
 
       if (updateParticipant) {
         updateParticipant({
@@ -257,7 +430,7 @@ export function UpdateDataModal({
         </div>
 
         {/* Modal Content / Scroll Container */}
-        <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex flex-col gap-5 text-left">
+        <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex flex-col gap-4 text-left">
           {isSuccess ? (
             /* Success View */
             <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-[#ECFDF5] border-2 border-[#1E1B24] rounded-2xl shadow-[4px_4px_0px_#1E1B24] gap-4 text-center">
@@ -298,7 +471,37 @@ export function UpdateDataModal({
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {/* Draft Status & Progress Bar */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-1.5 text-xs font-rubik text-[#5C5866]">
+                  {draftSaved && totalFilled > 0 ? (
+                    <>
+                      <Check size={14} className="text-[#22C55E]" />
+                      <span>Draft auto-saved</span>
+                    </>
+                  ) : totalFilled > 0 ? (
+                    <span>Auto-saving draft...</span>
+                  ) : (
+                    <span className="text-[#888590]">No draft saved</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-rubik font-bold text-[#1E1B24]">
+                    {totalFilled}/{TOTAL_FIELDS} Fields Filled
+                  </span>
+                  <span
+                    className={`border border-[#1E1B24] px-2 py-0.2 rounded-md text-[10px] font-outfit-black uppercase ${
+                      isFormComplete
+                        ? "bg-[#22C55E] text-white"
+                        : "bg-[#FFDE59] text-[#1E1B24]"
+                    }`}
+                  >
+                    {isFormComplete ? "All Ready" : "In Progress"}
+                  </span>
+                </div>
+              </div>
+
               {/* Error Alert Banner */}
               {submitError && (
                 <div className="bg-[#FEE2E2] border-2 border-[#D92323] text-[#D92323] p-3.5 rounded-xl shadow-[3px_3px_0px_#1E1B24] font-rubik text-xs sm:text-sm font-semibold flex items-center gap-2.5">
@@ -355,290 +558,466 @@ export function UpdateDataModal({
                 </div>
               </div>
 
-              {/* Section 1: Member Contact & Academic Info */}
-              <div className="border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] bg-white flex flex-col gap-3.5">
-                <div className="flex items-center gap-2 border-b border-[#1E1B24]/15 pb-2">
-                  <Sparkles size={18} className="text-[#1E1B24]" />
-                  <h3 className="font-outfit-black text-sm uppercase tracking-wider text-[#1E1B24]">
-                    1. Member Profile &amp; Contact
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* Phone Number (Required) */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Phone Number <span className="text-[#D92323]">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phoneno}
-                      onChange={(e) => handleChange("phoneno", e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                        errors.phoneno
-                          ? "border-[#D92323] bg-[#FEF2F2]"
-                          : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                      }`}
-                    />
-                    {errors.phoneno && (
-                      <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                        {errors.phoneno}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Section */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      College Section
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.section}
-                      onChange={(e) => handleChange("section", e.target.value)}
-                      placeholder="e.g. CSE-A, ECE-B"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* Subdomain */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Subdomain Track
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.subdomain}
-                      onChange={(e) => handleChange("subdomain", e.target.value)}
-                      placeholder="e.g. Web Development, UI/UX, AI/ML"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* Cloudinary Picture URL */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Picture URL (Cloudinary)
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.pictureUrl}
-                      onChange={(e) => handleChange("pictureUrl", e.target.value)}
-                      placeholder="https://res.cloudinary.com/..."
-                      className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                        errors.pictureUrl
-                          ? "border-[#D92323] bg-[#FEF2F2]"
-                          : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                      }`}
-                    />
-                    {errors.pictureUrl && (
-                      <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                        {errors.pictureUrl}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Caption / Bio */}
-                  <div className="sm:col-span-2 flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Caption / Bio
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.caption}
-                      onChange={(e) => handleChange("caption", e.target.value)}
-                      placeholder="A short punchy bio or quote about yourself..."
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D] resize-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 2: Social Links */}
-              <div className="border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] bg-white flex flex-col gap-3.5">
-                <div className="flex items-center gap-2 border-b border-[#1E1B24]/15 pb-2">
-                  <Share2 size={18} className="text-[#1E1B24]" />
-                  <h3 className="font-outfit-black text-sm uppercase tracking-wider text-[#1E1B24]">
-                    2. Socials &amp; Portfolio
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* GitHub */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      GitHub URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.github}
-                      onChange={(e) => handleChange("github", e.target.value)}
-                      placeholder="https://github.com/username"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* LinkedIn */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      LinkedIn URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.linkedin}
-                      onChange={(e) => handleChange("linkedin", e.target.value)}
-                      placeholder="https://linkedin.com/in/username"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* Instagram */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Instagram Handle / URL
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.insta}
-                      onChange={(e) => handleChange("insta", e.target.value)}
-                      placeholder="@username or https://instagram.com/..."
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* Portfolio */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      Personal Portfolio URL
-                    </label>
-                    <input
-                      type="url"
-                      value={formData.portfolio}
-                      onChange={(e) => handleChange("portfolio", e.target.value)}
-                      placeholder="https://yourportfolio.dev"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 3: Faculty Advisor (FA) Details */}
-              <div className="border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] bg-white flex flex-col gap-3.5">
-                <div className="flex items-center gap-2 border-b border-[#1E1B24]/15 pb-2">
-                  <GraduationCap size={18} className="text-[#1E1B24]" />
-                  <h3 className="font-outfit-black text-sm uppercase tracking-wider text-[#1E1B24]">
-                    3. Faculty Advisor (FA) Details
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  {/* FA Name */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      FA Name
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.faname}
-                      onChange={(e) => handleChange("faname", e.target.value)}
-                      placeholder="e.g. Dr. Jane Doe"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* FA Phone */}
-                  <div className="flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      FA Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={formData.faphonenumber}
-                      onChange={(e) => handleChange("faphonenumber", e.target.value)}
-                      placeholder="+91 98765 43210"
-                      className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
-                    />
-                  </div>
-
-                  {/* FA Email */}
-                  <div className="sm:col-span-2 flex flex-col gap-1">
-                    <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                      FA Official Email ID
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.faemailid}
-                      onChange={(e) => handleChange("faemailid", e.target.value)}
-                      placeholder="faculty.name@ktr.srmist.edu.in"
-                      className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                        errors.faemailid
-                          ? "border-[#D92323] bg-[#FEF2F2]"
-                          : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                      }`}
-                    />
-                    {errors.faemailid && (
-                      <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                        {errors.faemailid}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 4: NDA Section */}
-              <div className="border-2 border-[#1E1B24] rounded-xl p-4 shadow-[3px_3px_0px_#1E1B24] bg-[#F8FAFC] flex flex-col gap-3.5">
-                <div className="flex items-center gap-2 border-b border-[#1E1B24]/15 pb-2">
-                  <FileText size={18} className="text-[#1E1B24]" />
-                  <h3 className="font-outfit-black text-sm uppercase tracking-wider text-[#1E1B24]">
-                    4. Non-Disclosure Agreement (NDA)
-                  </h3>
-                </div>
-
-                <p className="font-rubik text-xs text-[#5C5866]">
-                  Download the official GCSRM NDA document template. Sign it physically
-                  or digitally, upload it to Google Drive or Cloudinary, and submit the public access link below.
-                </p>
-
-                <div className="flex items-center gap-3">
-                  <a
-                    href="/assets/NDA_Template.pdf"
-                    download="NDA_Template.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-outfit-black text-xs uppercase px-4 py-2.5 bg-[#FFDE59] hover:bg-[#f0cf48] text-black transition-all cursor-pointer"
-                  >
-                    <Download size={16} />
-                    <span>Download NDA Template (.pdf)</span>
-                  </a>
-                </div>
-
-                <div className="flex flex-col gap-1 pt-1">
-                  <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                    Signed NDA Document URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.ndaUrl}
-                    onChange={(e) => handleChange("ndaUrl", e.target.value)}
-                    placeholder="https://drive.google.com/... or https://res.cloudinary.com/..."
-                    className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                      errors.ndaUrl
-                        ? "border-[#D92323] bg-[#FEF2F2]"
-                        : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                    }`}
-                  />
-                  {errors.ndaUrl && (
-                    <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                      {errors.ndaUrl}
+              {/* ACCORDION SECTION 1: Academic & Profile Details */}
+              <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(1)}
+                  className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sparkles size={18} className="text-[#1E1B24] shrink-0" />
+                    <span className="text-sm uppercase tracking-wide truncate">
+                      1. Academic &amp; Profile Details
                     </span>
-                  )}
-                </div>
+                    <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
+                      ({filled1}/5)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span
+                      className={`border-2 border-[#1E1B24] px-2.5 py-0.5 rounded-full text-[11px] font-outfit-black uppercase shadow-[1.5px_1.5px_0px_#1E1B24] ${status1.pillClass}`}
+                    >
+                      {status1.label}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-[#1E1B24] transition-transform duration-200 ${
+                        openSection === 1 ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {openSection === 1 && (
+                  <div className="p-4 border-t-2 border-[#1E1B24] bg-white animate-in fade-in duration-150 flex flex-col gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* Phone Number (Required) */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Phone Number <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={formData.phoneno}
+                          onChange={(e) =>
+                            handleChange("phoneno", e.target.value)
+                          }
+                          placeholder="+91 98765 43210"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.phoneno
+                              ? "border-[#D92323] bg-[#FEF2F2]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
+                        />
+                        {errors.phoneno && (
+                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
+                            {errors.phoneno}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Section */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          College Section <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.section}
+                          onChange={(e) =>
+                            handleChange("section", e.target.value)
+                          }
+                          placeholder="e.g. CSE-A, ECE-B"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* Subdomain */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Subdomain Track <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.subdomain}
+                          onChange={(e) =>
+                            handleChange("subdomain", e.target.value)
+                          }
+                          placeholder="e.g. UI/UX, Web Development"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* Cloudinary Picture URL */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Picture URL (Cloudinary){" "}
+                          <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          value={formData.pictureUrl}
+                          onChange={(e) =>
+                            handleChange("pictureUrl", e.target.value)
+                          }
+                          placeholder="https://res.cloudinary.com/..."
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.pictureUrl
+                              ? "border-[#D92323] bg-[#FEF2F2]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
+                        />
+                        {errors.pictureUrl && (
+                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
+                            {errors.pictureUrl}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Caption / Bio */}
+                      <div className="sm:col-span-2 flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Caption / Bio <span className="text-[#D92323]">*</span>
+                        </label>
+                        <textarea
+                          rows={2}
+                          required
+                          value={formData.caption}
+                          onChange={(e) =>
+                            handleChange("caption", e.target.value)
+                          }
+                          placeholder="Short bio or quote about yourself..."
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D] resize-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* ACCORDION SECTION 2: Faculty Advisor Details */}
+              <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(2)}
+                  className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <GraduationCap
+                      size={18}
+                      className="text-[#1E1B24] shrink-0"
+                    />
+                    <span className="text-sm uppercase tracking-wide truncate">
+                      2. Faculty Advisor Details
+                    </span>
+                    <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
+                      ({filled2}/3)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span
+                      className={`border-2 border-[#1E1B24] px-2.5 py-0.5 rounded-full text-[11px] font-outfit-black uppercase shadow-[1.5px_1.5px_0px_#1E1B24] ${status2.pillClass}`}
+                    >
+                      {status2.label}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-[#1E1B24] transition-transform duration-200 ${
+                        openSection === 2 ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {openSection === 2 && (
+                  <div className="p-4 border-t-2 border-[#1E1B24] bg-white animate-in fade-in duration-150 flex flex-col gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* FA Name */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          FA Name <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.faname}
+                          onChange={(e) =>
+                            handleChange("faname", e.target.value)
+                          }
+                          placeholder="e.g. Dr. Jane Doe"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* FA Phone */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          FA Phone Number{" "}
+                          <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={formData.faphonenumber}
+                          onChange={(e) =>
+                            handleChange("faphonenumber", e.target.value)
+                          }
+                          placeholder="+91 98765 43210"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* FA Email */}
+                      <div className="sm:col-span-2 flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          FA Email ID <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={formData.faemailid}
+                          onChange={(e) =>
+                            handleChange("faemailid", e.target.value)
+                          }
+                          placeholder="faculty.name@srmist.edu.in"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.faemailid
+                              ? "border-[#D92323] bg-[#FEF2F2]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
+                        />
+                        {errors.faemailid && (
+                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
+                            {errors.faemailid}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ACCORDION SECTION 3: Social Handles */}
+              <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(3)}
+                  className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Share2 size={18} className="text-[#1E1B24] shrink-0" />
+                    <span className="text-sm uppercase tracking-wide truncate">
+                      3. Social Handles
+                    </span>
+                    <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
+                      ({filled3}/4)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span
+                      className={`border-2 border-[#1E1B24] px-2.5 py-0.5 rounded-full text-[11px] font-outfit-black uppercase shadow-[1.5px_1.5px_0px_#1E1B24] ${status3.pillClass}`}
+                    >
+                      {status3.label}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-[#1E1B24] transition-transform duration-200 ${
+                        openSection === 3 ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {openSection === 3 && (
+                  <div className="p-4 border-t-2 border-[#1E1B24] bg-white animate-in fade-in duration-150 flex flex-col gap-3.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {/* GitHub */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          GitHub URL <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          value={formData.github}
+                          onChange={(e) =>
+                            handleChange("github", e.target.value)
+                          }
+                          placeholder="https://github.com/username"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* LinkedIn */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          LinkedIn URL <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          value={formData.linkedin}
+                          onChange={(e) =>
+                            handleChange("linkedin", e.target.value)
+                          }
+                          placeholder="https://linkedin.com/in/username"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* Instagram */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Instagram Handle / URL{" "}
+                          <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.insta}
+                          onChange={(e) =>
+                            handleChange("insta", e.target.value)
+                          }
+                          placeholder="@username or https://instagram.com/..."
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+
+                      {/* Portfolio */}
+                      <div className="flex flex-col gap-1">
+                        <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                          Portfolio URL <span className="text-[#D92323]">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          value={formData.portfolio}
+                          onChange={(e) =>
+                            handleChange("portfolio", e.target.value)
+                          }
+                          placeholder="https://yourportfolio.dev"
+                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ACCORDION SECTION 4: NDA Submission */}
+              <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(4)}
+                  className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileText size={18} className="text-[#1E1B24] shrink-0" />
+                    <span className="text-sm uppercase tracking-wide truncate">
+                      4. NDA Submission
+                    </span>
+                    <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
+                      ({filled4}/1)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <span
+                      className={`border-2 border-[#1E1B24] px-2.5 py-0.5 rounded-full text-[11px] font-outfit-black uppercase shadow-[1.5px_1.5px_0px_#1E1B24] ${status4.pillClass}`}
+                    >
+                      {status4.label}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={`text-[#1E1B24] transition-transform duration-200 ${
+                        openSection === 4 ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                </button>
+
+                {openSection === 4 && (
+                  <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
+                    <p className="font-rubik text-xs text-[#5C5866]">
+                      Download the official GCSRM NDA template. Sign it physically
+                      or digitally, upload to Google Drive or Cloudinary, and paste
+                      the public link below.
+                    </p>
+
+                    <div>
+                      <a
+                        href="/assets/NDA_Template.pdf"
+                        download="NDA_Template.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-outfit-black text-xs uppercase px-4 py-2.5 bg-[#FFDE59] hover:bg-[#f0cf48] text-black transition-all cursor-pointer"
+                      >
+                        <Download size={16} />
+                        <span>Download NDA Template (.pdf)</span>
+                      </a>
+                    </div>
+
+                    <div className="flex flex-col gap-1 pt-1">
+                      <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                        Signed NDA Document URL{" "}
+                        <span className="text-[#D92323]">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        required
+                        value={formData.ndaUrl}
+                        onChange={(e) =>
+                          handleChange("ndaUrl", e.target.value)
+                        }
+                        placeholder="https://drive.google.com/... or https://res.cloudinary.com/..."
+                        className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                          errors.ndaUrl
+                            ? "border-[#D92323] bg-[#FEF2F2]"
+                            : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                        }`}
+                      />
+                      {errors.ndaUrl && (
+                        <span className="font-rubik text-[11px] text-[#D92323] font-bold">
+                          {errors.ndaUrl}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Validation Helper Note when Incomplete */}
+              {!isFormComplete && (
+                <div className="flex items-start gap-2 p-3 bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-xl shadow-[2px_2px_0px_#1E1B24] text-xs font-rubik text-[#1E1B24]">
+                  <Info size={16} className="shrink-0 mt-0.5 text-[#1E1B24]" />
+                  <span>
+                    <strong>Attention:</strong> Complete all fields in{" "}
+                    <span className="font-bold underline">
+                      {incompleteSections.join(", ")}
+                    </span>{" "}
+                    to enable submission.
+                  </span>
+                </div>
+              )}
 
               {/* Form Footer Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleClearDraft}
+                  disabled={totalFilled === 0 || isSubmitting}
+                  className="px-4 py-2 text-xs md:text-sm font-bold border-2 border-black rounded-xl bg-[#FFF] text-[#FF4D4D] shadow-[2px_2px_0px_#000] hover:bg-red-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  Clear Draft
+                </button>
                 <button
                   type="button"
                   onClick={onClose}
@@ -649,8 +1028,12 @@ export function UpdateDataModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-outfit-black text-sm uppercase tracking-wide px-6 py-2.5 transition-all cursor-pointer bg-[#FF4D4D] hover:bg-[#e04343] text-white disabled:opacity-75 disabled:cursor-not-allowed"
+                  disabled={!isFormComplete || isSubmitting}
+                  className={`inline-flex items-center gap-2 border-2 border-black rounded-xl font-outfit-black text-sm uppercase tracking-wide px-6 py-2.5 transition-all ${
+                    isFormComplete && !isSubmitting
+                      ? "bg-[#22C55E] hover:bg-[#1eb053] text-white shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] cursor-pointer"
+                      : "bg-neutral-300 text-neutral-500 shadow-none border-neutral-400 cursor-not-allowed opacity-75"
+                  }`}
                 >
                   {isSubmitting ? (
                     <>

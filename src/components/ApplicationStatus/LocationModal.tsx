@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import { X, MapPin, Calendar, Building, Compass } from "lucide-react";
+import locationData from "./onboardingLocation.json";
 
 export interface LocationModalProps {
   isOpen: boolean;
@@ -30,7 +31,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
           <div className="flex items-center gap-2.5">
             <MapPin className="text-white" size={24} />
             <h2 className="font-outfit-black text-xl text-white uppercase tracking-wide">
-              Onboarding Venue &amp; Location
+              {locationData.headerTitle}
             </h2>
           </div>
           <button
@@ -51,13 +52,13 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
               <Building className="text-[#1E1B24] shrink-0 mt-0.5" size={22} />
               <div>
                 <h3 className="font-outfit-black text-base text-[#1E1B24] uppercase tracking-wide">
-                  SRM Institute of Science &amp; Technology
+                  {locationData.venue.title}
                 </h3>
                 <p className="font-rubik text-sm text-[#1E1B24] mt-0.5 font-medium">
-                  Tech Park, 4th Floor — GitHub Community SRM Lab (Room TP401 / TP402)
+                  {locationData.venue.room}
                 </p>
                 <p className="font-rubik text-xs text-[#5C5866] mt-1">
-                  Kattankulathur, Chengalpattu District, Tamil Nadu 603203
+                  {locationData.venue.address}
                 </p>
               </div>
             </div>
@@ -68,10 +69,10 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
               <Compass className="text-[#1E1B24] shrink-0 mt-0.5" size={20} />
               <div>
                 <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24] block">
-                  Campus Navigation &amp; Landmarks
+                  {locationData.navigation.title}
                 </span>
                 <p className="font-rubik text-xs text-[#5C5866] mt-0.5">
-                  Enter via SRM Main Gate, proceed past University Building toward Tech Park. Take Central Elevators/Escalators to Floor 4.
+                  {locationData.navigation.description}
                 </p>
               </div>
             </div>
@@ -80,10 +81,10 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
               <Calendar className="text-[#1E1B24] shrink-0 mt-0.5" size={20} />
               <div>
                 <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24] block">
-                  Reporting &amp; Schedules
+                  {locationData.reporting.title}
                 </span>
                 <p className="font-rubik text-xs text-[#5C5866] mt-0.5">
-                  Please report 15 minutes before your allotted cohort time with your SRM Physical ID card.
+                  {locationData.reporting.description}
                 </p>
               </div>
             </div>
@@ -97,7 +98,7 @@ export function LocationModal({ isOpen, onClose }: LocationModalProps) {
             onClick={onClose}
             className="border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-6 py-2 transition-all bg-[#1E1B24] hover:bg-[#33303c] text-white cursor-pointer text-sm uppercase tracking-wider"
           >
-            Got It
+            {locationData.buttonText}
           </button>
         </div>
       </div>

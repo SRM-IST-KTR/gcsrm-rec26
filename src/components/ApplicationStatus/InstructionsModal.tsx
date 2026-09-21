@@ -3,17 +3,13 @@
 import React, { useEffect } from "react";
 import { X, Info } from "lucide-react";
 import instructionsData from "./domainInstructions.json";
+import onboardingData from "./onboardingInstructions.json";
 
 /**
  * Onboarding instructions checklist displayed to accepted team members.
- * Defined as a top-level constant for easy editing and maintenance.
+ * Sourced directly from onboardingInstructions.json for easy editing and maintenance.
  */
-export const ONBOARDING_INSTRUCTIONS: string[] = [
-  "Keep an eye on your SRM student email for official onboarding calls, server invites, and orientation dates.",
-  "Join the official GitHub Community SRM Discord / Slack channels once you receive your welcome invitation.",
-  "Bring your college physical ID card and personal laptop to the orientation session at Tech Park.",
-  "Connect with your domain leads to receive your first team sprint guidelines and repository permissions.",
-];
+export const ONBOARDING_INSTRUCTIONS: string[] = onboardingData.steps;
 
 interface InstructionsModalProps {
   isOpen: boolean;
@@ -22,7 +18,12 @@ interface InstructionsModalProps {
   category?: "domain" | "onboarding";
 }
 
-export function InstructionsModal({ isOpen, onClose, domain, category }: InstructionsModalProps) {
+export function InstructionsModal({
+  isOpen,
+  onClose,
+  domain,
+  category,
+}: InstructionsModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("overflow-hidden", "touch-none");
@@ -37,10 +38,21 @@ export function InstructionsModal({ isOpen, onClose, domain, category }: Instruc
   if (!isOpen) return null;
 
   const isCategoryOnboarding = category === "onboarding";
-  const keyToUse = isCategoryOnboarding ? "Onboarding" : (domain && (domain in instructionsData) ? domain : "Technical");
+  const keyToUse = isCategoryOnboarding
+    ? "Onboarding"
+    : domain && domain in instructionsData
+      ? domain
+      : "Technical";
   const safeDomain = keyToUse as keyof typeof instructionsData;
-  const data = instructionsData[safeDomain] || instructionsData["Technical"];
-  const rules = isCategoryOnboarding ? ONBOARDING_INSTRUCTIONS : data.rules;
+  const domainData = instructionsData[safeDomain] || instructionsData["Technical"];
+
+  const modalTitle = isCategoryOnboarding ? onboardingData.headerTitle : domainData.title;
+  const badgeText = isCategoryOnboarding ? onboardingData.categoryBadge : domainData.badge;
+  const highlightText = isCategoryOnboarding ? "Orientation & Induction" : domainData.highlight;
+  const sectionTitle = isCategoryOnboarding ? onboardingData.sectionTitle : "Submission Requirements";
+  const rules = isCategoryOnboarding ? onboardingData.steps : domainData.rules;
+  const noteText = isCategoryOnboarding ? onboardingData.note : domainData.note;
+  const buttonText = isCategoryOnboarding ? onboardingData.buttonText : "UNDERSTOOD";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -50,7 +62,7 @@ export function InstructionsModal({ isOpen, onClose, domain, category }: Instruc
           <div className="flex items-center gap-2">
             <Info className="text-[#1E1B24]" size={24} />
             <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
-              {data.title}
+              {modalTitle}
             </h2>
           </div>
           <button
@@ -65,16 +77,16 @@ export function InstructionsModal({ isOpen, onClose, domain, category }: Instruc
         <div className="p-5 overflow-y-auto overscroll-contain flex flex-col gap-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <span className="font-outfit-black text-sm uppercase text-[#1E1B24] tracking-wider">
-              {data.badge}
+              {badgeText}
             </span>
             <span className="bg-[var(--error,#D92323)] text-white font-outfit-black text-xs uppercase px-3 py-1.5 rounded-md border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] text-center">
-              {data.highlight}
+              {highlightText}
             </span>
           </div>
 
           <div className="flex flex-col gap-3">
             <h3 className="font-outfit-black text-base uppercase text-[#1E1B24]">
-              {isCategoryOnboarding ? "Onboarding Guidelines" : "Submission Requirements"}
+              {sectionTitle}
             </h3>
             <ul className="flex flex-col gap-3">
               {rules.map((rule, idx) => (
@@ -96,7 +108,7 @@ export function InstructionsModal({ isOpen, onClose, domain, category }: Instruc
           <div className="bg-[#EFF8FF] border-2 border-[#1E1B24] p-3 rounded-lg shadow-[2px_2px_0px_#1E1B24]">
             <p className="font-rubik text-sm font-semibold text-[#1E1B24]">
               <span className="font-outfit-black text-[#D92323] uppercase mr-1">Note:</span>
-              {data.note}
+              {noteText}
             </p>
           </div>
         </div>
@@ -107,10 +119,12 @@ export function InstructionsModal({ isOpen, onClose, domain, category }: Instruc
             onClick={onClose}
             className="px-6 py-2.5 bg-[#4EC37B] hover:bg-[#3ea866] border-2 border-[#1E1B24] rounded-lg text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
           >
-            UNDERSTOOD
+            {buttonText}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+export default InstructionsModal;
