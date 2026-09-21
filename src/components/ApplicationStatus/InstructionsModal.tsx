@@ -4,13 +4,25 @@ import React, { useEffect } from "react";
 import { X, Info } from "lucide-react";
 import instructionsData from "./domainInstructions.json";
 
+/**
+ * Onboarding instructions checklist displayed to accepted team members.
+ * Defined as a top-level constant for easy editing and maintenance.
+ */
+export const ONBOARDING_INSTRUCTIONS: string[] = [
+  "Keep an eye on your SRM student email for official onboarding calls, server invites, and orientation dates.",
+  "Join the official GitHub Community SRM Discord / Slack channels once you receive your welcome invitation.",
+  "Bring your college physical ID card and personal laptop to the orientation session at Tech Park.",
+  "Connect with your domain leads to receive your first team sprint guidelines and repository permissions.",
+];
+
 interface InstructionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   domain?: string;
+  category?: "domain" | "onboarding";
 }
 
-export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModalProps) {
+export function InstructionsModal({ isOpen, onClose, domain, category }: InstructionsModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("overflow-hidden", "touch-none");
@@ -24,9 +36,11 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
 
   if (!isOpen) return null;
 
-  // Fallback gracefully to Technical if domain is missing or invalid
-  const safeDomain = domain && (domain in instructionsData) ? domain as keyof typeof instructionsData : "Technical";
-  const data = instructionsData[safeDomain];
+  const isCategoryOnboarding = category === "onboarding";
+  const keyToUse = isCategoryOnboarding ? "Onboarding" : (domain && (domain in instructionsData) ? domain : "Technical");
+  const safeDomain = keyToUse as keyof typeof instructionsData;
+  const data = instructionsData[safeDomain] || instructionsData["Technical"];
+  const rules = isCategoryOnboarding ? ONBOARDING_INSTRUCTIONS : data.rules;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -60,10 +74,10 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
 
           <div className="flex flex-col gap-3">
             <h3 className="font-outfit-black text-base uppercase text-[#1E1B24]">
-              Submission Requirements
+              {isCategoryOnboarding ? "Onboarding Guidelines" : "Submission Requirements"}
             </h3>
             <ul className="flex flex-col gap-3">
-              {data.rules.map((rule, idx) => (
+              {rules.map((rule, idx) => (
                 <li
                   key={idx}
                   className="flex gap-3 border-2 border-[#1E1B24] bg-[#FFFDF0] p-3 rounded-lg shadow-[2px_2px_0px_#1E1B24]"

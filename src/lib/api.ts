@@ -12,7 +12,7 @@
  * tokens are ever needed, add a single header interceptor inside `request`.
  */
 
-import type { ParticipantData } from "@/components/ApplicationStatus/types";
+import type { ParticipantData, OnboardMemberPayload } from "@/components/ApplicationStatus/types";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -341,6 +341,50 @@ export const api = {
     let response: Response;
     try {
       response = await fetch(`${BASE_URL}/api/recruitment/submit`, {
+        method: "POST",
+        headers: {
+          ...jsonHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      throw new ApiError(0, {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      });
+    }
+
+    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+    const isError =
+      !response.ok ||
+      (data !== null && typeof data === "object" && data.success === false);
+
+    if (isError) {
+      throw new ApiError(
+        response.status,
+        (data as unknown as ApiErrorBody) ?? {
+          success: false,
+          message: `Request failed with status ${response.status}`,
+        },
+      );
+    }
+
+    return data ?? {};
+  },
+
+  /**
+   * Onboard an accepted candidate to team records via `POST /api/recruitment/onboard`.
+   * Requires JWT Bearer token in Authorization header.
+   */
+  async onboard(
+    token: string,
+    payload: OnboardMemberPayload,
+  ): Promise<Record<string, unknown>> {
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}/api/recruitment/onboard`, {
         method: "POST",
         headers: {
           ...jsonHeaders(),

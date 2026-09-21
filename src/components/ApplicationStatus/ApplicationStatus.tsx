@@ -16,6 +16,8 @@ import { SubmitTaskModal } from "./SubmitTaskModal";
 import { TaskDetailsModal } from "./TaskDetailsModal";
 import { RecruitmentTask } from "./types";
 import { InstructionsModal } from "./InstructionsModal";
+import { UpdateDataModal } from "./UpdateDataModal";
+import { LocationModal } from "./LocationModal";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -156,19 +158,27 @@ export function computeDynamicSteps(
 /**
  * Renders distinct Neobrutalist Hero Status Card based on the participant's current status
  */
+export interface StatusHeroCardProps {
+  status: ParticipantStatus;
+  participant?: Partial<ParticipantData> | null;
+  onSubmitTask?: () => void;
+  onViewTasks?: () => void;
+  onViewInstructions?: () => void;
+  onUpdateData?: () => void;
+  onOpenInstructions?: () => void;
+  onOpenLocation?: () => void;
+}
+
 export function StatusHeroCard({
   status,
   participant,
   onSubmitTask,
   onViewTasks,
   onViewInstructions,
-}: {
-  status: ParticipantStatus;
-  participant?: Partial<ParticipantData> | null;
-  onSubmitTask?: () => void;
-  onViewTasks?: () => void;
-  onViewInstructions?: () => void;
-}) {
+  onUpdateData,
+  onOpenInstructions,
+  onOpenLocation,
+}: StatusHeroCardProps) {
   const [isSubmissionOpen, setIsSubmissionOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -335,6 +345,29 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Congratulations on making it through all recruitment phases! You have been inducted into the team. Keep an eye on your email for onboarding calls, server invites, and orientation schedules.
         </p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 flex-wrap">
+          <button
+            type="button"
+            onClick={onUpdateData}
+            className="bg-[#FF4D4D] hover:bg-[#e04343] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Update Data
+          </button>
+          <button
+            type="button"
+            onClick={onOpenInstructions || onViewInstructions}
+            className="bg-[#FFDE59] hover:bg-[#f0cf48] text-black border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Instructions
+          </button>
+          <button
+            type="button"
+            onClick={onOpenLocation}
+            className="bg-[#22C55E] hover:bg-[#1eb053] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Location
+          </button>
+        </div>
       </div>
     );
   }
@@ -395,12 +428,18 @@ export function ApplicationStatus({
   cardTitle = "Application Progress",
   className = "",
   showParticipantInfo = true,
+  onUpdateData,
+  onOpenInstructions,
+  onOpenLocation,
 }: ApplicationStatusProps) {
   const { participant: authParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [showTaskDetailsModal, setShowTaskDetailsModal] = React.useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = React.useState(false);
+  const [instructionsCategory, setInstructionsCategory] = React.useState<"domain" | "onboarding">("domain");
+  const [showUpdateDataModal, setShowUpdateDataModal] = React.useState(false);
+  const [showLocationModal, setShowLocationModal] = React.useState(false);
   const [assignedTasks, setAssignedTasks] = React.useState<RecruitmentTask[]>(tasks);
   const hasFetchedTasks = React.useRef(false);
 
@@ -485,7 +524,23 @@ export function ApplicationStatus({
             participant={participant}
             onSubmitTask={() => setShowSubmitModal(true)}
             onViewTasks={() => setShowTaskDetailsModal(true)}
-            onViewInstructions={() => setShowInstructionsModal(true)}
+            onViewInstructions={() => {
+              setInstructionsCategory("domain");
+              setShowInstructionsModal(true);
+            }}
+            onUpdateData={
+              onUpdateData || (() => setShowUpdateDataModal(true))
+            }
+            onOpenInstructions={
+              onOpenInstructions ||
+              (() => {
+                setInstructionsCategory("onboarding");
+                setShowInstructionsModal(true);
+              })
+            }
+            onOpenLocation={
+              onOpenLocation || (() => setShowLocationModal(true))
+            }
           />
 
           {/* Dynamic Steps List */}
@@ -519,6 +574,20 @@ export function ApplicationStatus({
         isOpen={showInstructionsModal}
         onClose={() => setShowInstructionsModal(false)}
         domain={participant?.domain}
+        category={instructionsCategory}
+      />
+
+      {/* Update Data Modal */}
+      <UpdateDataModal
+        isOpen={showUpdateDataModal}
+        onClose={() => setShowUpdateDataModal(false)}
+        participant={participant}
+      />
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
       />
     </section>
   );
