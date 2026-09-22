@@ -18,6 +18,7 @@ import { RecruitmentTask } from "./types";
 import { InstructionsModal } from "./InstructionsModal";
 import { UpdateDataModal } from "./UpdateDataModal";
 import { LocationModal } from "./LocationModal";
+import { api } from "@/lib/api";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -479,6 +480,28 @@ export function ApplicationStatus({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [participant, currentStatus]);
+
+  // Check if candidate is already in the team collection and update context
+  React.useEffect(() => {
+    if (participant?.email && !participant?.isOnboarded) {
+      let isMounted = true;
+      api
+        .getTeamMember(participant.email)
+        .then((member) => {
+          if (member && isMounted && updateParticipant) {
+            updateParticipant({
+              isOnboarded: true,
+              status: "onboarding",
+              onboardedData: member,
+            });
+          }
+        })
+        .catch(() => {});
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [participant?.email, participant?.isOnboarded, updateParticipant]);
 
   // Compute visual states dynamically unconditionally
   const steps = useMemo(() => {

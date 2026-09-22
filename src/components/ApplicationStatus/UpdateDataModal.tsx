@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   X,
   UserCheck,
@@ -14,6 +15,8 @@ import {
   Sparkles,
   Info,
   ChevronDown,
+  ExternalLink,
+  Globe,
 } from "lucide-react";
 import { ParticipantData, OnboardMemberPayload } from "./types";
 import { api, ApiError } from "@/lib/api";
@@ -73,6 +76,7 @@ export function UpdateDataModal({
   onSave,
   onSuccess,
 }: UpdateDataModalProps) {
+  const router = useRouter();
   const { updateParticipant } = useAuth();
 
   const candidateEmail = useMemo(
@@ -89,6 +93,7 @@ export function UpdateDataModal({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isOnboarded, setIsOnboarded] = useState(false);
+  const [isLoadingMember, setIsLoadingMember] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -137,7 +142,14 @@ export function UpdateDataModal({
     setIsSuccess(false);
     setIsOnboarded(true);
     onClose();
-  }, [clearTimers, onClose]);
+    if (typeof window !== "undefined") {
+      router.push("/#status");
+      const el = document.getElementById("status");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }, [clearTimers, onClose, router]);
 
   const populateFormFromMemberData = useCallback((data: any) => {
     if (!data || typeof data !== "object") return;
@@ -164,10 +176,15 @@ export function UpdateDataModal({
     });
   }, []);
 
+  // Guard to ensure api.getTeamMember is called strictly once per modal open
+  const hasFetchedMemberRef = useRef<string | null>(null);
+
   // Initialize and load saved draft from localStorage or participant session
   useEffect(() => {
     if (!isOpen) {
       clearTimers();
+      hasFetchedMemberRef.current = null;
+      setIsLoadingMember(false);
       return;
     }
 
@@ -176,6 +193,8 @@ export function UpdateDataModal({
       (participant as any)?.status === "onboarded";
     setIsOnboarded(alreadyOnboarded);
 
+    const existingOnboardedData = (participant as any)?.onboardedData;
+
     let initial = { ...INITIAL_FORM_STATE };
 
     if (alreadyOnboarded) {
@@ -183,58 +202,108 @@ export function UpdateDataModal({
         localStorage.removeItem(draftStorageKey);
       } catch (err) {}
 
-      if ((participant as any)?.onboardedData) {
-        populateFormFromMemberData((participant as any).onboardedData);
+      if (existingOnboardedData) {
+        populateFormFromMemberData(existingOnboardedData);
         setErrors({});
         setSubmitError(null);
         setIsSuccess(false);
         setShowOtpStep(false);
         setOtpValue("");
         resetOtp();
-        return;
       }
     }
 
-    // Try restoring draft from localStorage
-    try {
-      const saved = localStorage.getItem(draftStorageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === "object") {
-          initial = { ...initial, ...parsed };
-          setDraftSaved(true);
+    // Try restoring draft from localStorage if not onboarded
+    if (!alreadyOnboarded) {
+      try {
+        const saved = localStorage.getItem(draftStorageKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === "object") {
+            initial = { ...initial, ...parsed };
+            setDraftSaved(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to read onboarding draft:", err);
+      }
+
+      // Populate missing fields from participant record
+      if (participant) {
+        if (!initial.phoneno && participant.phone) {
+          initial.phoneno = participant.phone.replace(/\D/g, "").slice(-10);
+        }
+        if (!initial.github) initial.github = participant.links?.github || "";
+        if (!initial.portfolio) {
+          initial.portfolio =
+            participant.links?.demo || participant.links?.deployment || "";
         }
       }
-    } catch (err) {
-      console.error("Failed to read onboarding draft:", err);
+
+      setFormData(initial);
     }
 
-    // Populate missing fields from participant record
-    if (participant) {
-      if (!initial.phoneno && participant.phone) {
-        initial.phoneno = participant.phone.replace(/\D/g, "").slice(-10);
-      }
-      if (!initial.github) initial.github = participant.links?.github || "";
-      if (!initial.portfolio) {
-        initial.portfolio =
-          participant.links?.demo || participant.links?.deployment || "";
-      }
-    }
-
-    setFormData(initial);
     setErrors({});
     setSubmitError(null);
     setIsSuccess(false);
     setShowOtpStep(false);
     setOtpValue("");
     resetOtp();
+
+    // Fetch latest saved member record from backend strictly once per candidate session
+    if (
+      candidateEmail &&
+      candidateEmail !== "candidate" &&
+      hasFetchedMemberRef.current !== candidateEmail
+    ) {
+      hasFetchedMemberRef.current = candidateEmail;
+
+      if (!existingOnboardedData) {
+        setIsLoadingMember(true);
+      }
+
+      let isMounted = true;
+      api
+        .getTeamMember(candidateEmail)
+        .then((member) => {
+          if (!isMounted) return;
+          if (member) {
+            setIsOnboarded(true);
+            populateFormFromMemberData(member);
+            try {
+              localStorage.removeItem(draftStorageKey);
+            } catch (err) {}
+            if (updateParticipant) {
+              updateParticipant({
+                isOnboarded: true,
+                status: "onboarding",
+                onboardedData: member,
+              });
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch member details:", err);
+        })
+        .finally(() => {
+          if (isMounted) {
+            setIsLoadingMember(false);
+          }
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }
   }, [
     isOpen,
-    participant,
+    candidateEmail,
+    participant?.isOnboarded,
     draftStorageKey,
     resetOtp,
     clearTimers,
     populateFormFromMemberData,
+    updateParticipant,
   ]);
 
   // Timed success countdown & auto-close trigger
@@ -650,7 +719,9 @@ export function UpdateDataModal({
     };
 
     try {
-      await api.onboard(token, payload);
+      const res = await api.onboard(token, payload);
+      const savedData = (res as any)?.data || payload;
+      populateFormFromMemberData(savedData);
 
       // Clear draft on successful submission
       try {
@@ -665,6 +736,7 @@ export function UpdateDataModal({
           status: "onboarding",
           phone: formData.phoneno.trim(),
           subdomain: candidateSubdomain || participant?.subdomain,
+          onboardedData: savedData,
           links: {
             ...participant?.links,
             github: normalizeUrl(formData.github) || participant?.links?.github,
@@ -1083,9 +1155,10 @@ export function UpdateDataModal({
                 </div>
               )}
 
-              {/* Locked Candidate Record Banner */}
-              <div className="bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-xl p-3.5 sm:p-4 shadow-[3px_3px_0px_#1E1B24] flex flex-col gap-2.5">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E1B24]/15 pb-2">
+              {/* Locked Candidate Record Banner / Full Summary */}
+              <div className="bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-xl p-3.5 sm:p-5 shadow-[3px_3px_0px_#1E1B24] flex flex-col gap-3.5 text-left">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1E1B24]/15 pb-2.5">
                   <div className="flex items-center gap-1.5">
                     <Lock size={15} className="text-[#1E1B24]" />
                     <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
@@ -1107,18 +1180,19 @@ export function UpdateDataModal({
                   </div>
                 </div>
 
+                {/* Identity Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-rubik text-xs text-[#5C5866]">
                   <div>
                     <strong className="text-[#1E1B24]">Name:</strong>{" "}
-                    {participant?.name || "Participant"}
+                    <span className="font-semibold text-[#1E1B24]">{participant?.name || "Participant"}</span>
                   </div>
                   <div>
                     <strong className="text-[#1E1B24]">Reg No:</strong>{" "}
-                    {participant?.registrationNumber || "N/A"}
+                    <span className="font-semibold text-[#1E1B24]">{participant?.registrationNumber || "N/A"}</span>
                   </div>
                   <div className="sm:col-span-2">
                     <strong className="text-[#1E1B24]">SRM Email:</strong>{" "}
-                    {participant?.email || "N/A"}
+                    <span className="font-semibold text-[#1E1B24]">{participant?.email || "N/A"}</span>
                   </div>
                   <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
                     {participant?.domain && (
@@ -1139,24 +1213,257 @@ export function UpdateDataModal({
                     )}
                   </div>
                 </div>
+
+                {/* Extended Details for Onboarded Members */}
+                {isOnboarded &&
+                  (isLoadingMember ? (
+                    /* Clean Neo-Brutalist Loading Skeleton */
+                    <div className="border-t border-[#1E1B24]/15 pt-3.5 flex flex-col gap-4 animate-pulse">
+                      {/* Academic Details Skeleton */}
+                      <div className="flex flex-col gap-2.5">
+                        <div className="h-3.5 w-40 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <div className="h-4 w-32 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                          <div className="h-4 w-28 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                        </div>
+                        <div className="h-14 w-full bg-white/60 border-2 border-[#1E1B24]/15 rounded-xl p-2 flex items-center gap-3">
+                          <div className="w-10 h-10 bg-[#1E1B24]/10 rounded-lg shrink-0" />
+                          <div className="flex flex-col gap-1.5 flex-1">
+                            <div className="h-3 w-28 bg-[#1E1B24]/10 rounded" />
+                            <div className="h-3 w-20 bg-[#1E1B24]/10 rounded" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Faculty Advisor Skeleton */}
+                      <div className="border-t border-[#1E1B24]/15 pt-3 flex flex-col gap-2.5">
+                        <div className="h-3.5 w-32 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div className="h-4 w-28 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                          <div className="h-4 w-28 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                          <div className="h-4 w-32 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                        </div>
+                      </div>
+
+                      {/* Socials Skeleton */}
+                      <div className="border-t border-[#1E1B24]/15 pt-3 flex flex-col gap-2.5">
+                        <div className="h-3.5 w-36 bg-[#1E1B24]/10 rounded border border-[#1E1B24]/15" />
+                        <div className="flex flex-wrap gap-2">
+                          <div className="h-8 w-24 bg-white/60 border-2 border-[#1E1B24]/15 rounded-xl" />
+                          <div className="h-8 w-24 bg-white/60 border-2 border-[#1E1B24]/15 rounded-xl" />
+                          <div className="h-8 w-24 bg-white/60 border-2 border-[#1E1B24]/15 rounded-xl" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Populated Member Data with Smooth Fade-in */
+                    <div className="animate-in fade-in duration-200 flex flex-col gap-3.5">
+                      {/* Academic & Bio */}
+                      <div className="border-t border-[#1E1B24]/15 pt-3 flex flex-col gap-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <Sparkles size={14} className="text-[#1E1B24]" />
+                          <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                            Academic &amp; Profile Details
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-rubik text-xs text-[#5C5866]">
+                          <div>
+                            <strong className="text-[#1E1B24]">Phone:</strong>{" "}
+                            <span className="font-semibold text-[#1E1B24]">
+                              {formData.phoneno || participant?.phone || "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <strong className="text-[#1E1B24]">Section:</strong>{" "}
+                            <span className="font-semibold text-[#1E1B24]">
+                              {formData.section || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Profile Picture Thumbnail & Link */}
+                        {formData.pictureUrl ? (
+                          <div className="flex items-center gap-3 bg-white border-2 border-[#1E1B24] rounded-xl p-2.5 shadow-[2px_2px_0px_#1E1B24]">
+                            <img
+                              src={formData.pictureUrl}
+                              alt="Profile"
+                              className="w-12 h-12 rounded-lg border-2 border-[#1E1B24] object-cover shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                            />
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-outfit-black text-[11px] uppercase text-[#1E1B24]">
+                                Profile Picture
+                              </span>
+                              <a
+                                href={normalizeUrl(formData.pictureUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 font-rubik font-bold text-xs text-[#2563EB] hover:underline truncate"
+                              >
+                                <span>View Full Image</span>
+                                <ExternalLink size={12} className="shrink-0" />
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="font-rubik text-xs text-[#5C5866]">
+                            <strong className="text-[#1E1B24]">Profile Picture:</strong> Not provided
+                          </div>
+                        )}
+
+                        {/* Caption / Bio */}
+                        {formData.caption && (
+                          <div className="bg-white border-2 border-[#1E1B24] rounded-xl p-3 shadow-[2px_2px_0px_#1E1B24]">
+                            <span className="font-outfit-black text-[10px] uppercase text-[#5C5866] tracking-wide">
+                              Bio / Caption
+                            </span>
+                            <p className="font-rubik text-xs italic text-[#1E1B24] mt-1 leading-relaxed">
+                              &ldquo;{formData.caption}&rdquo;
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Faculty Advisor Section */}
+                      <div className="border-t border-[#1E1B24]/15 pt-3 flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <GraduationCap size={14} className="text-[#1E1B24]" />
+                          <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                            Faculty Advisor
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-rubik text-xs text-[#5C5866]">
+                          <div>
+                            <strong className="text-[#1E1B24]">FA Name:</strong>{" "}
+                            <span className="font-semibold text-[#1E1B24] block sm:inline">
+                              {formData.faname || "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <strong className="text-[#1E1B24]">FA Phone:</strong>{" "}
+                            <span className="font-semibold text-[#1E1B24] block sm:inline">
+                              {formData.faphonenumber || "N/A"}
+                            </span>
+                          </div>
+                          <div>
+                            <strong className="text-[#1E1B24]">FA Email:</strong>{" "}
+                            <span className="font-semibold text-[#1E1B24] block sm:inline truncate">
+                              {formData.faemailid || "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Socials & NDA Documents */}
+                      <div className="border-t border-[#1E1B24]/15 pt-3 flex flex-col gap-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <Share2 size={14} className="text-[#1E1B24]" />
+                          <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
+                            Socials &amp; Documents
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          {formData.github ? (
+                            <a
+                              href={normalizeUrl(formData.github)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-white hover:bg-neutral-100 text-[#1E1B24] border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                            >
+                              <span>GitHub</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          ) : null}
+
+                          {formData.linkedin ? (
+                            <a
+                              href={normalizeUrl(formData.linkedin)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-[#0077B5] hover:bg-[#006097] text-white border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                            >
+                              <span>LinkedIn</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          ) : null}
+
+                          {formData.insta ? (
+                            <a
+                              href={normalizeUrl(formData.insta)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-[#E1306C] hover:bg-[#c9255c] text-white border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                            >
+                              <span>Instagram</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          ) : null}
+
+                          {formData.portfolio ? (
+                            <a
+                              href={normalizeUrl(formData.portfolio)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-[#FFD93D] hover:bg-[#f5cd2f] text-[#1E1B24] border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                            >
+                              <Globe size={12} />
+                              <span>Portfolio</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          ) : null}
+
+                          {formData.ndaUrl ? (
+                            <a
+                              href={normalizeUrl(formData.ndaUrl)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 bg-[#38BDF8] hover:bg-[#20a7e3] text-[#1E1B24] border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                            >
+                              <FileText size={12} />
+                              <span>Signed NDA</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          ) : null}
+
+                          {!formData.github &&
+                            !formData.linkedin &&
+                            !formData.insta &&
+                            !formData.portfolio &&
+                            !formData.ndaUrl && (
+                              <span className="font-rubik text-xs text-[#5C5866]">
+                                No external links provided.
+                              </span>
+                            )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
 
-              {/* ACCORDION SECTION 1: Academic & Profile Details */}
-              <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
-                <button
-                  type="button"
-                  onClick={() => toggleSection(1)}
-                  className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Sparkles size={18} className="text-[#1E1B24] shrink-0" />
-                    <span className="text-sm uppercase tracking-wide truncate">
-                      1. Academic &amp; Profile Details
-                    </span>
-                    <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
-                      ({filled1}/4)
-                    </span>
-                  </div>
+              {/* Form Input Accordions (Only for Candidates who haven't completed onboarding) */}
+              {!isOnboarded && (
+                <>
+                  {/* ACCORDION SECTION 1: Academic & Profile Details */}
+                  <div className="border-2 border-[#1E1B24] rounded-2xl shadow-[3px_3px_0px_#1E1B24] overflow-hidden bg-white">
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(1)}
+                      className="w-full flex items-center justify-between p-3.5 sm:p-4 text-left font-outfit-black bg-white hover:bg-[#FAF7EE] transition-colors cursor-pointer select-none"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Sparkles size={18} className="text-[#1E1B24] shrink-0" />
+                        <span className="text-sm uppercase tracking-wide truncate">
+                          1. Academic &amp; Profile Details
+                        </span>
+                        <span className="font-rubik text-xs font-semibold text-[#5C5866] shrink-0">
+                          ({filled1}/4)
+                        </span>
+                      </div>
 
                   <div className="flex items-center gap-2.5 shrink-0">
                     <span
@@ -1609,6 +1916,8 @@ export function UpdateDataModal({
                   </div>
                 )}
               </div>
+            </>
+          )}
 
               {/* Validation Helper Note when Incomplete */}
               {!isOnboarded && !isFormComplete && (

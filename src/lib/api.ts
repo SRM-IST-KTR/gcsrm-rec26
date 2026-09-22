@@ -419,4 +419,38 @@ export const api = {
 
     return data ?? {};
   },
+
+  /**
+   * Fetch team member record by candidate email from `GET /api/team`.
+   * Returns matching member record or null if not found or on network error.
+   */
+  async getTeamMember(email: string): Promise<Record<string, unknown> | null> {
+    const normalized = (email || "").toLowerCase().trim();
+    if (!normalized) return null;
+
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}/api/team`, {
+        method: "GET",
+        headers: {
+          ...jsonHeaders(),
+        },
+      });
+    } catch {
+      return null;
+    }
+
+    if (!response.ok) return null;
+
+    const json = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!json || !Array.isArray(json.data)) return null;
+
+    const match = (json.data as Record<string, unknown>[]).find(
+      (m) =>
+        typeof m?.email === "string" &&
+        m.email.toLowerCase().trim() === normalized,
+    );
+
+    return match ?? null;
+  },
 };

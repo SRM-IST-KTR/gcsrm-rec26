@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
         source: "/api/recruitment/:path*",
         destination: `${BACKEND_URL}/api/recruitment/:path*`,
       },
+      {
+        source: "/api/team/:path*",
+        destination: `${BACKEND_URL}/api/team/:path*`,
+      },
     ];
   },
   webpack: (config, { isServer }) => {
