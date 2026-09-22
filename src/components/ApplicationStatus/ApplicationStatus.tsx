@@ -351,7 +351,7 @@ export function StatusHeroCard({
             onClick={onUpdateData}
             className="bg-[#FF4D4D] hover:bg-[#e04343] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
           >
-            Update Data
+            {participant?.isOnboarded ? "View Onboarding Data" : "Update Data"}
           </button>
           <button
             type="button"
@@ -432,7 +432,7 @@ export function ApplicationStatus({
   onOpenInstructions,
   onOpenLocation,
 }: ApplicationStatusProps) {
-  const { participant: authParticipant } = useAuth();
+  const { participant: authParticipant, updateParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [showTaskDetailsModal, setShowTaskDetailsModal] = React.useState(false);
@@ -582,6 +582,11 @@ export function ApplicationStatus({
         isOpen={showUpdateDataModal}
         onClose={() => setShowUpdateDataModal(false)}
         participant={participant}
+        onSuccess={() => {
+          if (updateParticipant) {
+            updateParticipant({ isOnboarded: true, status: "onboarding" });
+          }
+        }}
       />
 
       {/* Location Modal */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
   X,
   UserCheck,
@@ -23,6 +23,7 @@ import { OtpInput } from "@/components/OtpInput";
 import { SendOtpButton } from "@/components/SendOtpButton";
 import { ResendOtpLink } from "@/components/ResendOtpLink";
 import { useAuth } from "@/context/AuthContext";
+import Popup from "@/components/common/Popup";
 import onboardingData from "./onboardingInstructions.json";
 
 export interface UpdateDataModalProps {
@@ -30,6 +31,7 @@ export interface UpdateDataModalProps {
   onClose: () => void;
   participant?: Partial<ParticipantData> | null;
   onSave?: (data: OnboardMemberPayload) => void;
+  onSuccess?: () => void;
 }
 
 interface FormState {
@@ -69,6 +71,7 @@ export function UpdateDataModal({
   onClose,
   participant,
   onSave,
+  onSuccess,
 }: UpdateDataModalProps) {
   const { updateParticipant } = useAuth();
 
@@ -85,8 +88,25 @@ export function UpdateDataModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+
+  // Timed Success & Toast State
+  const [countdown, setCountdown] = useState(3);
+  const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [popup, setPopup] = useState<{
+    isOpen: boolean;
+    type: "success" | "error" | "info";
+    title?: string;
+    message: string;
+    autoCloseMs?: number;
+  }>({
+    isOpen: false,
+    type: "info",
+    message: "",
+  });
 
   // OTP Verification State
   const [showOtpStep, setShowOtpStep] = useState(false);
@@ -101,11 +121,79 @@ export function UpdateDataModal({
     reset: resetOtp,
   } = useOtp();
 
+  const clearTimers = useCallback(() => {
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+      autoCloseTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+  }, []);
+
+  const handleCloseSuccess = useCallback(() => {
+    clearTimers();
+    setIsSuccess(false);
+    setIsOnboarded(true);
+    onClose();
+  }, [clearTimers, onClose]);
+
+  const populateFormFromMemberData = useCallback((data: any) => {
+    if (!data || typeof data !== "object") return;
+    const fa =
+      Array.isArray(data.faDetails) && data.faDetails[0]
+        ? data.faDetails[0]
+        : {};
+    const social =
+      Array.isArray(data.socials) && data.socials[0] ? data.socials[0] : {};
+
+    setFormData({
+      phoneno: (data.phoneno || "").replace(/\D/g, "").slice(-10),
+      section: data.section || "",
+      caption: data.caption || "",
+      pictureUrl: data.pictureUrl || "",
+      faname: fa.faname || "",
+      faphonenumber: (fa.faphonenumber || "").replace(/\D/g, "").slice(-10),
+      faemailid: fa.faemailid || "",
+      github: social.github || "",
+      linkedin: social.linkedin || "",
+      insta: social.insta || "",
+      portfolio: social.portfolio || "",
+      ndaUrl: data.ndaUrl || "",
+    });
+  }, []);
+
   // Initialize and load saved draft from localStorage or participant session
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      clearTimers();
+      return;
+    }
+
+    const alreadyOnboarded =
+      Boolean(participant?.isOnboarded) ||
+      (participant as any)?.status === "onboarded";
+    setIsOnboarded(alreadyOnboarded);
 
     let initial = { ...INITIAL_FORM_STATE };
+
+    if (alreadyOnboarded) {
+      try {
+        localStorage.removeItem(draftStorageKey);
+      } catch (err) {}
+
+      if ((participant as any)?.onboardedData) {
+        populateFormFromMemberData((participant as any).onboardedData);
+        setErrors({});
+        setSubmitError(null);
+        setIsSuccess(false);
+        setShowOtpStep(false);
+        setOtpValue("");
+        resetOtp();
+        return;
+      }
+    }
 
     // Try restoring draft from localStorage
     try {
@@ -140,11 +228,45 @@ export function UpdateDataModal({
     setShowOtpStep(false);
     setOtpValue("");
     resetOtp();
-  }, [isOpen, participant, draftStorageKey, resetOtp]);
+  }, [
+    isOpen,
+    participant,
+    draftStorageKey,
+    resetOtp,
+    clearTimers,
+    populateFormFromMemberData,
+  ]);
+
+  // Timed success countdown & auto-close trigger
+  useEffect(() => {
+    if (!isSuccess) return;
+
+    setCountdown(3);
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    autoCloseTimerRef.current = setTimeout(() => {
+      handleCloseSuccess();
+    }, 3000);
+
+    return () => {
+      clearTimers();
+    };
+  }, [isSuccess, handleCloseSuccess, clearTimers]);
 
   // Auto-save draft on every formData change when at least one field has data
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isOnboarded) return;
     const isAnyFilled = Object.values(formData).some(
       (v) => typeof v === "string" && v.trim().length > 0,
     );
@@ -209,64 +331,81 @@ export function UpdateDataModal({
 
   const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
   const SRM_FA_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@srmist\.edu\.in$/i;
-  const URL_REGEX = /^https?:\/\/.+/i;
+  const GITHUB_URL_REGEX =
+    /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_.-]+(\/[a-zA-Z0-9_.-]+)*\/?$/i;
+  const LINKEDIN_URL_REGEX =
+    /^(https?:\/\/)?(www\.)?linkedin\.com\/(in\/)?[a-zA-Z0-9_.-]+\/?$/i;
+  const INSTAGRAM_URL_REGEX =
+    /^(https?:\/\/)?(www\.)?instagram\.com\/[a-zA-Z0-9_.-]+\/?$/i;
+  const GENERAL_URL_REGEX =
+    /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:[0-9]+)?([/?#][^\s]*)?$/i;
 
   const isPhoneValid = INDIAN_PHONE_REGEX.test(formData.phoneno.trim());
   const phoneError =
-    formData.phoneno.trim().length > 0 && !isPhoneValid
+    !isOnboarded && formData.phoneno.trim().length > 0 && !isPhoneValid
       ? "Enter a valid 10-digit mobile number."
-      : errors.phoneno || null;
+      : !isOnboarded ? errors.phoneno || null : null;
 
-  const isPictureUrlValid = URL_REGEX.test(formData.pictureUrl.trim());
+  const isPictureUrlValid = GENERAL_URL_REGEX.test(formData.pictureUrl.trim());
   const pictureUrlError =
-    formData.pictureUrl.trim().length > 0 && !isPictureUrlValid
-      ? "Enter a valid URL starting with http:// or https://"
-      : errors.pictureUrl || null;
+    !isOnboarded && formData.pictureUrl.trim().length > 0 && !isPictureUrlValid
+      ? "Invalid URL"
+      : !isOnboarded ? errors.pictureUrl || null : null;
 
   const isFaPhoneValid = INDIAN_PHONE_REGEX.test(formData.faphonenumber.trim());
   const faPhoneError =
-    formData.faphonenumber.trim().length > 0 && !isFaPhoneValid
+    !isOnboarded && formData.faphonenumber.trim().length > 0 && !isFaPhoneValid
       ? "Enter a valid 10-digit mobile number."
-      : errors.faphonenumber || null;
+      : !isOnboarded ? errors.faphonenumber || null : null;
 
   const isFaEmailValid =
     formData.faemailid.trim().length > 0 &&
     SRM_FA_EMAIL_REGEX.test(formData.faemailid.trim());
   const faEmailError =
-    formData.faemailid.trim().length > 0 && !isFaEmailValid
+    !isOnboarded && formData.faemailid.trim().length > 0 && !isFaEmailValid
       ? "FA email must be an official @srmist.edu.in address."
-      : errors.faemailid || null;
+      : !isOnboarded ? errors.faemailid || null : null;
 
-  const isGithubValid = URL_REGEX.test(formData.github.trim());
+  const isGithubValid = GITHUB_URL_REGEX.test(formData.github.trim());
   const githubError =
-    formData.github.trim().length > 0 && !isGithubValid
-      ? "Enter a valid URL starting with http:// or https://"
-      : errors.github || null;
+    !isOnboarded && formData.github.trim().length > 0 && !isGithubValid
+      ? "Invalid GitHub URL"
+      : !isOnboarded ? errors.github || null : null;
 
-  const isLinkedinValid = URL_REGEX.test(formData.linkedin.trim());
+  const isLinkedinValid = LINKEDIN_URL_REGEX.test(formData.linkedin.trim());
   const linkedinError =
-    formData.linkedin.trim().length > 0 && !isLinkedinValid
-      ? "Enter a valid URL starting with http:// or https://"
-      : errors.linkedin || null;
+    !isOnboarded && formData.linkedin.trim().length > 0 && !isLinkedinValid
+      ? "Invalid LinkedIn URL"
+      : !isOnboarded ? errors.linkedin || null : null;
 
-  const isPortfolioValid = URL_REGEX.test(formData.portfolio.trim());
+  const isInstaValid = INSTAGRAM_URL_REGEX.test(formData.insta.trim());
+  const instaError =
+    !isOnboarded && formData.insta.trim().length > 0 && !isInstaValid
+      ? "Invalid Instagram URL"
+      : !isOnboarded ? errors.insta || null : null;
+
+  const isPortfolioValid = GENERAL_URL_REGEX.test(formData.portfolio.trim());
   const portfolioError =
-    formData.portfolio.trim().length > 0 && !isPortfolioValid
-      ? "Enter a valid URL starting with http:// or https://"
-      : errors.portfolio || null;
+    !isOnboarded && formData.portfolio.trim().length > 0 && !isPortfolioValid
+      ? "Invalid URL"
+      : !isOnboarded ? errors.portfolio || null : null;
 
-  const isNdaUrlValid = URL_REGEX.test(formData.ndaUrl.trim());
+  const isNdaUrlValid = GENERAL_URL_REGEX.test(formData.ndaUrl.trim());
   const ndaUrlError =
-    formData.ndaUrl.trim().length > 0 && !isNdaUrlValid
-      ? "Enter a valid document URL starting with http:// or https://"
-      : errors.ndaUrl || null;
+    !isOnboarded && formData.ndaUrl.trim().length > 0 && !isNdaUrlValid
+      ? "Invalid URL"
+      : !isOnboarded ? errors.ndaUrl || null : null;
 
   const isSection1Complete =
     filled1 === 4 && isPhoneValid && isPictureUrlValid;
   const isSection2Complete =
     filled2 === 3 && isFaPhoneValid && isFaEmailValid;
   const isSection3Complete =
-    filled3 === 4 && isGithubValid && isLinkedinValid && isPortfolioValid;
+    filled3 === 4 &&
+    isGithubValid &&
+    isLinkedinValid &&
+    isInstaValid &&
+    isPortfolioValid;
   const isSection4Complete =
     filled4 === 1 && isNdaUrlValid;
 
@@ -277,7 +416,7 @@ export function UpdateDataModal({
     faPhoneError || faEmailError || errors.faname,
   );
   const hasSection3Error = Boolean(
-    githubError || linkedinError || portfolioError || errors.insta,
+    githubError || linkedinError || instaError || portfolioError,
   );
   const hasSection4Error = Boolean(ndaUrlError);
 
@@ -302,6 +441,12 @@ export function UpdateDataModal({
     filled: number,
     isComplete: boolean,
   ) => {
+    if (isOnboarded) {
+      return {
+        label: "Locked",
+        pillClass: "bg-[#22C55E] text-white",
+      };
+    }
     if (hasError) {
       return {
         label: "Error",
@@ -331,6 +476,15 @@ export function UpdateDataModal({
   const status3 = getSectionBadge(hasSection3Error, filled3, isSection3Complete);
   const status4 = getSectionBadge(hasSection4Error, filled4, isSection4Complete);
 
+  const getInputClass = (hasErr: boolean | null | string | undefined) =>
+    `px-3 py-2 rounded-xl border-2 font-rubik text-sm transition-all ${
+      isOnboarded
+        ? "bg-[#F3F4F6] text-[#4B5563] border-[#AAAAAA] shadow-none cursor-default focus:outline-none"
+        : hasErr
+        ? "border-[#FF4D4D] bg-[#FEF2F2] shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+        : "border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+    }`;
+
   if (!isOpen) return null;
 
   const toggleSection = (index: number) => {
@@ -338,6 +492,7 @@ export function UpdateDataModal({
   };
 
   const handleChange = (field: keyof FormState, value: string) => {
+    if (isOnboarded) return;
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
@@ -365,6 +520,15 @@ export function UpdateDataModal({
     resetOtp();
   };
 
+  function normalizeUrl(url?: string): string {
+    const trimmed = (url || "").trim();
+    if (!trimmed) return "";
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
+  }
+
   const validateFormats = () => {
     const errs: Record<string, string> = {};
 
@@ -383,8 +547,8 @@ export function UpdateDataModal({
     const trimmedPic = formData.pictureUrl.trim();
     if (!trimmedPic) {
       errs.pictureUrl = "Picture URL is required.";
-    } else if (!URL_REGEX.test(trimmedPic)) {
-      errs.pictureUrl = "Enter a valid URL starting with http:// or https://";
+    } else if (!GENERAL_URL_REGEX.test(trimmedPic)) {
+      errs.pictureUrl = "Invalid URL";
     }
 
     if (!formData.caption.trim()) {
@@ -414,34 +578,37 @@ export function UpdateDataModal({
     const trimmedGithub = formData.github.trim();
     if (!trimmedGithub) {
       errs.github = "GitHub URL is required.";
-    } else if (!URL_REGEX.test(trimmedGithub)) {
-      errs.github = "Enter a valid URL starting with http:// or https://";
+    } else if (!GITHUB_URL_REGEX.test(trimmedGithub)) {
+      errs.github = "Invalid GitHub URL";
     }
 
     const trimmedLinkedin = formData.linkedin.trim();
     if (!trimmedLinkedin) {
       errs.linkedin = "LinkedIn URL is required.";
-    } else if (!URL_REGEX.test(trimmedLinkedin)) {
-      errs.linkedin = "Enter a valid URL starting with http:// or https://";
+    } else if (!LINKEDIN_URL_REGEX.test(trimmedLinkedin)) {
+      errs.linkedin = "Invalid LinkedIn URL";
     }
 
-    if (!formData.insta.trim()) {
-      errs.insta = "Instagram handle / URL is required.";
+    const trimmedInsta = formData.insta.trim();
+    if (!trimmedInsta) {
+      errs.insta = "Instagram URL is required.";
+    } else if (!INSTAGRAM_URL_REGEX.test(trimmedInsta)) {
+      errs.insta = "Invalid Instagram URL";
     }
 
     const trimmedPortfolio = formData.portfolio.trim();
     if (!trimmedPortfolio) {
       errs.portfolio = "Portfolio URL is required.";
-    } else if (!URL_REGEX.test(trimmedPortfolio)) {
-      errs.portfolio = "Enter a valid URL starting with http:// or https://";
+    } else if (!GENERAL_URL_REGEX.test(trimmedPortfolio)) {
+      errs.portfolio = "Invalid URL";
     }
 
     // Section 4
     const trimmedNda = formData.ndaUrl.trim();
     if (!trimmedNda) {
       errs.ndaUrl = "Signed NDA document URL is required.";
-    } else if (!URL_REGEX.test(trimmedNda)) {
-      errs.ndaUrl = "Enter a valid document URL starting with http:// or https://";
+    } else if (!GENERAL_URL_REGEX.test(trimmedNda)) {
+      errs.ndaUrl = "Invalid URL";
     }
 
     setErrors(errs);
@@ -463,7 +630,7 @@ export function UpdateDataModal({
       joined_yr: 2026,
       isCurrentMember: true,
       caption: formData.caption.trim() || undefined,
-      pictureUrl: formData.pictureUrl.trim() || undefined,
+      pictureUrl: normalizeUrl(formData.pictureUrl) || undefined,
       faDetails: [
         {
           faname: formData.faname.trim(),
@@ -473,13 +640,13 @@ export function UpdateDataModal({
       ],
       socials: [
         {
-          insta: formData.insta.trim() || undefined,
-          github: formData.github.trim() || undefined,
-          linkedin: formData.linkedin.trim() || undefined,
-          portfolio: formData.portfolio.trim() || undefined,
+          insta: normalizeUrl(formData.insta) || undefined,
+          github: normalizeUrl(formData.github) || undefined,
+          linkedin: normalizeUrl(formData.linkedin) || undefined,
+          portfolio: normalizeUrl(formData.portfolio) || undefined,
         },
       ],
-      ndaUrl: formData.ndaUrl.trim() || undefined,
+      ndaUrl: normalizeUrl(formData.ndaUrl) || undefined,
     };
 
     try {
@@ -494,12 +661,14 @@ export function UpdateDataModal({
 
       if (updateParticipant) {
         updateParticipant({
+          isOnboarded: true,
+          status: "onboarding",
           phone: formData.phoneno.trim(),
           subdomain: candidateSubdomain || participant?.subdomain,
           links: {
             ...participant?.links,
-            github: formData.github.trim() || participant?.links?.github,
-            demo: formData.portfolio.trim() || participant?.links?.demo,
+            github: normalizeUrl(formData.github) || participant?.links?.github,
+            demo: normalizeUrl(formData.portfolio) || participant?.links?.demo,
           },
         });
       }
@@ -508,20 +677,74 @@ export function UpdateDataModal({
         onSave(payload);
       }
 
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      setPopup({
+        isOpen: true,
+        type: "success",
+        title: "Onboarding Successful!",
+        message: "Onboarding details submitted successfully! Welcome to the team.",
+        autoCloseMs: 3000,
+      });
+
       setIsSuccess(true);
       setShowOtpStep(false);
     } catch (err: unknown) {
       console.error("Onboarding submission error:", err);
-      let message = "Failed to submit onboarding profile. Please try again.";
       if (err instanceof ApiError) {
+        const errText = (err.error || err.message || "").toLowerCase();
+        const is409 =
+          err.status === 409 ||
+          errText.includes("already been onboarded") ||
+          errText.includes("already onboarded");
+
+        if (is409) {
+          const memberData = (err.body as any)?.data;
+          if (memberData) {
+            populateFormFromMemberData(memberData);
+          }
+          setIsOnboarded(true);
+          setShowOtpStep(false);
+          setSubmitError(null);
+          try {
+            localStorage.removeItem(draftStorageKey);
+          } catch (e) {}
+
+          if (updateParticipant) {
+            updateParticipant({
+              isOnboarded: true,
+              status: "onboarding",
+            });
+          }
+
+          if (onSuccess) {
+            onSuccess();
+          }
+
+          setPopup({
+            isOpen: true,
+            type: "info",
+            title: "Already Onboarded",
+            message:
+              "Your onboarding details are already submitted and locked in the team database.",
+            autoCloseMs: 3000,
+          });
+          return;
+        }
+
         if (err.status === 401 || err.status === 403) {
           setShowOtpStep(true);
         }
-        message = err.error || err.message || message;
+        setSubmitError(
+          err.error || err.message || "Failed to submit onboarding profile.",
+        );
       } else if (err instanceof Error) {
-        message = err.message;
+        setSubmitError(err.message);
+      } else {
+        setSubmitError("Failed to submit onboarding profile. Please try again.");
       }
-      setSubmitError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -621,23 +844,30 @@ export function UpdateDataModal({
         {/* Modal Content / Scroll Container */}
         <div className="p-4 sm:p-6 overflow-y-auto overscroll-contain flex flex-col gap-4 text-left">
           {isSuccess ? (
-            /* Success View */
-            <div className="flex flex-col items-center justify-center p-6 sm:p-8 bg-[#ECFDF5] border-2 border-[#1E1B24] rounded-2xl shadow-[4px_4px_0px_#1E1B24] gap-4 text-center">
-              <div className="w-16 h-16 rounded-full bg-[#22C55E] border-2 border-[#1E1B24] shadow-[3px_3px_0px_#1E1B24] flex items-center justify-center text-white">
-                <CheckCircle2 size={36} />
+            /* Timed Success View */
+            <div className="relative overflow-hidden flex flex-col items-center justify-center p-6 sm:p-8 bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-2xl shadow-[6px_6px_0px_#1E1B24] gap-4 text-center animate-in zoom-in-95 duration-200">
+              {/* Badge */}
+              <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#4EC37B]">
+                SUCCESS
+              </span>
+
+              {/* Green Checkmark Circle */}
+              <div className="w-16 h-16 rounded-full bg-[#22C55E] border-[3px] border-[#1E1B24] shadow-[4px_4px_0px_#1E1B24] flex items-center justify-center text-white">
+                <CheckCircle2 size={38} />
               </div>
+
+              {/* Headings */}
               <div className="flex flex-col gap-1">
-                <span className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
-                  Welcome to GCSRM!
-                </span>
-                <p className="font-rubik text-sm text-[#5C5866] max-w-sm">
-                  Your onboarding record has been successfully registered into the
-                  official 2026 team database.
+                <h3 className="font-outfit-black text-2xl text-[#1E1B24] uppercase tracking-wide">
+                  Welcome to the team!
+                </h3>
+                <p className="font-rubik text-sm sm:text-base font-medium text-[#1E1B24] max-w-md leading-relaxed">
+                  Onboarding details submitted successfully! Welcome to the team.
                 </p>
               </div>
 
               {/* Summary Badges */}
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                 <span className="bg-[#FFD93D] border-2 border-[#1E1B24] px-3 py-1 rounded-lg font-outfit-black text-xs uppercase text-[#1E1B24] shadow-[2px_2px_0px_#1E1B24]">
                   Position: Member
                 </span>
@@ -645,7 +875,7 @@ export function UpdateDataModal({
                   Joined: 2026
                 </span>
                 {participant?.domain && (
-                  <span className="bg-[#ECFDF5] border-2 border-[#1E1B24] px-3 py-1 rounded-lg font-outfit-black text-xs uppercase text-[#1E1B24] shadow-[2px_2px_0px_#1E1B24]">
+                  <span className="bg-white border-2 border-[#1E1B24] px-3 py-1 rounded-lg font-outfit-black text-xs uppercase text-[#1E1B24] shadow-[2px_2px_0px_#1E1B24]">
                     Domain: {participant.domain}
                   </span>
                 )}
@@ -656,13 +886,36 @@ export function UpdateDataModal({
                 )}
               </div>
 
+              {/* Countdown Caption */}
+              <p className="font-rubik text-xs sm:text-sm font-semibold text-[#5C5866]">
+                Closing automatically in{" "}
+                <span className="font-outfit-black text-[#1E1B24]">{countdown}s</span>...
+              </p>
+
+              {/* Fallback Close Button */}
               <button
                 type="button"
-                onClick={onClose}
-                className="mt-4 border-2 border-[#1E1B24] rounded-xl shadow-[3px_3px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#1E1B24] font-outfit-black text-sm uppercase px-8 py-2.5 bg-[#1E1B24] hover:bg-[#33303c] text-white transition-all cursor-pointer"
+                onClick={handleCloseSuccess}
+                className="mt-1 border-2 border-[#1E1B24] rounded-xl shadow-[3px_3px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#1E1B24] font-outfit-black text-sm uppercase px-8 py-2.5 bg-[#1E1B24] hover:bg-[#33303c] text-white transition-all cursor-pointer"
               >
-                Close
+                Close Now
               </button>
+
+              {/* Diminishing Progress Bar */}
+              <div className="absolute bottom-0 left-0 w-full h-2 bg-neutral-200 border-t-2 border-[#1E1B24]">
+                <style>{`
+                  @keyframes modal-shrink {
+                    from { width: 100%; }
+                    to { width: 0%; }
+                  }
+                `}</style>
+                <div
+                  className="h-full bg-[#00E599]"
+                  style={{
+                    animation: "modal-shrink 3000ms linear forwards",
+                  }}
+                />
+              </div>
             </div>
           ) : showOtpStep ? (
             /* OTP Verification Step */
@@ -800,6 +1053,28 @@ export function UpdateDataModal({
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
+              {/* Already Onboarded Top Green Banner */}
+              {isOnboarded && (
+                <div className="bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_#1E1B24] flex items-center gap-3.5 animate-in fade-in duration-200">
+                  <div className="w-10 h-10 rounded-full bg-[#22C55E] border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] flex items-center justify-center text-white shrink-0">
+                    <CheckCircle2 size={24} />
+                  </div>
+                  <div className="flex flex-col gap-1 text-left">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-[#22C55E] text-white border-2 border-[#1E1B24] font-outfit-black text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full shadow-[1.5px_1.5px_0px_#1E1B24]">
+                        ALREADY ONBOARDED
+                      </span>
+                      <span className="font-outfit-black text-xs uppercase text-[#1E1B24]">
+                        Record Locked
+                      </span>
+                    </div>
+                    <p className="font-rubik text-xs sm:text-sm font-medium text-[#1E1B24] leading-relaxed">
+                      Your onboarding details have been submitted and locked into the team database.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Error Alert Banner */}
               {submitError && (
                 <div className="bg-[#FEE2E2] border-2 border-[#D92323] text-[#D92323] p-3.5 rounded-xl shadow-[3px_3px_0px_#1E1B24] font-rubik text-xs sm:text-sm font-semibold flex items-center gap-2.5">
@@ -915,6 +1190,8 @@ export function UpdateDataModal({
                             inputMode="numeric"
                             maxLength={10}
                             required
+                            readOnly={isOnboarded}
+                            disabled={isOnboarded}
                             value={formData.phoneno}
                             onChange={(e) =>
                               handleChange(
@@ -922,11 +1199,7 @@ export function UpdateDataModal({
                                 e.target.value.replace(/\D/g, "").slice(0, 10),
                               )
                             }
-                            className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                              phoneError
-                                ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                                : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                            }`}
+                            className={`w-full ${getInputClass(phoneError)}`}
                           />
                         </div>
                         {phoneError && (
@@ -944,15 +1217,13 @@ export function UpdateDataModal({
                         <input
                           type="text"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.section}
                           onChange={(e) =>
                             handleChange("section", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.section
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(errors.section)}
                         />
                         {errors.section && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -969,15 +1240,13 @@ export function UpdateDataModal({
                         <input
                           type="url"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.pictureUrl}
                           onChange={(e) =>
                             handleChange("pictureUrl", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            pictureUrlError
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(pictureUrlError)}
                         />
                         {pictureUrlError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -994,15 +1263,13 @@ export function UpdateDataModal({
                         <textarea
                           rows={2}
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.caption}
                           onChange={(e) =>
                             handleChange("caption", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none resize-none transition-all ${
-                            errors.caption
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={`resize-none ${getInputClass(errors.caption)}`}
                         />
                         {errors.caption && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1061,15 +1328,13 @@ export function UpdateDataModal({
                         <input
                           type="text"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.faname}
                           onChange={(e) =>
                             handleChange("faname", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.faname
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(errors.faname)}
                         />
                         {errors.faname && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1092,6 +1357,8 @@ export function UpdateDataModal({
                             inputMode="numeric"
                             maxLength={10}
                             required
+                            readOnly={isOnboarded}
+                            disabled={isOnboarded}
                             value={formData.faphonenumber}
                             onChange={(e) =>
                               handleChange(
@@ -1099,11 +1366,7 @@ export function UpdateDataModal({
                                 e.target.value.replace(/\D/g, "").slice(0, 10),
                               )
                             }
-                            className={`w-full px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                              faPhoneError
-                                ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                                : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                            }`}
+                            className={`w-full ${getInputClass(faPhoneError)}`}
                           />
                         </div>
                         {faPhoneError && (
@@ -1121,15 +1384,13 @@ export function UpdateDataModal({
                         <input
                           type="email"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.faemailid}
                           onChange={(e) =>
                             handleChange("faemailid", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            faEmailError
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(faEmailError)}
                         />
                         {faEmailError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1185,15 +1446,13 @@ export function UpdateDataModal({
                         <input
                           type="url"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.github}
                           onChange={(e) =>
                             handleChange("github", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            githubError
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(githubError)}
                         />
                         {githubError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1210,15 +1469,13 @@ export function UpdateDataModal({
                         <input
                           type="url"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.linkedin}
                           onChange={(e) =>
                             handleChange("linkedin", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            linkedinError
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(linkedinError)}
                         />
                         {linkedinError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1230,25 +1487,22 @@ export function UpdateDataModal({
                       {/* Instagram */}
                       <div className="flex flex-col gap-1">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          Instagram Handle / URL{" "}
-                          <span className="text-[#D92323]">*</span>
+                          Instagram URL <span className="text-[#D92323]">*</span>
                         </label>
                         <input
-                          type="text"
+                          type="url"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.insta}
                           onChange={(e) =>
                             handleChange("insta", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.insta
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(instaError)}
                         />
-                        {errors.insta && (
+                        {instaError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
-                            {errors.insta}
+                            {instaError}
                           </span>
                         )}
                       </div>
@@ -1261,15 +1515,13 @@ export function UpdateDataModal({
                         <input
                           type="url"
                           required
+                          readOnly={isOnboarded}
+                          disabled={isOnboarded}
                           value={formData.portfolio}
                           onChange={(e) =>
                             handleChange("portfolio", e.target.value)
                           }
-                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            portfolioError
-                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                          }`}
+                          className={getInputClass(portfolioError)}
                         />
                         {portfolioError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1340,15 +1592,13 @@ export function UpdateDataModal({
                       <input
                         type="url"
                         required
+                        readOnly={isOnboarded}
+                        disabled={isOnboarded}
                         value={formData.ndaUrl}
                         onChange={(e) =>
                           handleChange("ndaUrl", e.target.value)
                         }
-                        className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                          ndaUrlError
-                            ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
-                            : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
-                        }`}
+                        className={getInputClass(ndaUrlError)}
                       />
                       {ndaUrlError && (
                         <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
@@ -1361,7 +1611,7 @@ export function UpdateDataModal({
               </div>
 
               {/* Validation Helper Note when Incomplete */}
-              {!isFormComplete && (
+              {!isOnboarded && !isFormComplete && (
                 <div className="flex items-start gap-2 p-3 bg-[#FFFEEF] border-2 border-[#1E1B24] rounded-xl shadow-[2px_2px_0px_#1E1B24] text-xs font-rubik text-[#1E1B24]">
                   <Info size={16} className="shrink-0 mt-0.5 text-[#1E1B24]" />
                   <span>
@@ -1376,45 +1626,67 @@ export function UpdateDataModal({
 
               {/* Form Footer Buttons */}
               <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowClearConfirm(true)}
-                  disabled={totalFilled === 0 || isSubmitting}
-                  className="px-4 py-2 text-xs md:text-sm font-bold border-2 border-black rounded-xl bg-[#FFF] text-[#FF4D4D] shadow-[2px_2px_0px_#000] hover:bg-red-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  Clear Draft
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={isSubmitting}
-                  className="border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2.5 transition-all cursor-pointer bg-neutral-200 hover:bg-neutral-300 text-black text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!isFormComplete || isSubmitting}
-                  className={`inline-flex items-center gap-2 border-2 border-black rounded-xl font-outfit-black text-sm uppercase tracking-wide px-6 py-2.5 transition-all ${
-                    isFormComplete && !isSubmitting
-                      ? "bg-[#22C55E] hover:bg-[#1eb053] text-white shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] cursor-pointer"
-                      : "bg-neutral-300 text-neutral-500 shadow-none border-neutral-400 cursor-not-allowed opacity-75"
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>Saving Changes...</span>
-                    </>
-                  ) : (
-                    <span>Save Changes</span>
-                  )}
-                </button>
+                {isOnboarded ? (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-outfit-black text-sm uppercase px-8 py-2.5 bg-[#1E1B24] hover:bg-[#33303c] text-white transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowClearConfirm(true)}
+                      disabled={totalFilled === 0 || isSubmitting}
+                      className="px-4 py-2 text-xs md:text-sm font-bold border-2 border-black rounded-xl bg-[#FFF] text-[#FF4D4D] shadow-[2px_2px_0px_#000] hover:bg-red-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                    >
+                      Clear Draft
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      disabled={isSubmitting}
+                      className="border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2.5 transition-all cursor-pointer bg-neutral-200 hover:bg-neutral-300 text-black text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!isFormComplete || isSubmitting}
+                      className={`inline-flex items-center gap-2 border-2 border-black rounded-xl font-outfit-black text-sm uppercase tracking-wide px-6 py-2.5 transition-all ${
+                        isFormComplete && !isSubmitting
+                          ? "bg-[#22C55E] hover:bg-[#1eb053] text-white shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] cursor-pointer"
+                          : "bg-neutral-300 text-neutral-500 shadow-none border-neutral-400 cursor-not-allowed opacity-75"
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          <span>Saving Changes...</span>
+                        </>
+                      ) : (
+                        <span>Save Changes</span>
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </form>
           )}
         </div>
       </div>
+
+      {/* Floating Popup Toast */}
+      <Popup
+        isOpen={popup.isOpen}
+        type={popup.type}
+        title={popup.title}
+        message={popup.message}
+        autoCloseMs={popup.autoCloseMs}
+        onClose={() => setPopup((prev) => ({ ...prev, isOpen: false }))}
+      />
 
       {/* Custom Neo-Brutalist Clear Draft Confirmation Modal */}
       {showClearConfirm && (

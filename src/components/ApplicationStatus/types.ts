@@ -38,6 +38,8 @@ export interface ParticipantData {
   degreeWithBranch?: string;
   links?: ParticipantLinks;
   status: ParticipantStatus;
+  isOnboarded?: boolean;
+  onboardedData?: Partial<OnboardMemberPayload> | Record<string, unknown> | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
