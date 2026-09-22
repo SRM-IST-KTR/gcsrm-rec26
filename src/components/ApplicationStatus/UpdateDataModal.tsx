@@ -18,6 +18,10 @@ import {
 import { ParticipantData, OnboardMemberPayload } from "./types";
 import { api, ApiError } from "@/lib/api";
 import { getOtpSession } from "@/lib/otpSession";
+import { useOtp } from "@/hooks/useOtp";
+import { OtpInput } from "@/components/OtpInput";
+import { SendOtpButton } from "@/components/SendOtpButton";
+import { ResendOtpLink } from "@/components/ResendOtpLink";
 import { useAuth } from "@/context/AuthContext";
 import onboardingData from "./onboardingInstructions.json";
 
@@ -84,6 +88,19 @@ export function UpdateDataModal({
   const [draftSaved, setDraftSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  // OTP Verification State
+  const [showOtpStep, setShowOtpStep] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const {
+    phase: otpPhase,
+    error: otpError,
+    resendCooldown,
+    sendOtp,
+    verifyOtp,
+    jumpToVerify,
+    reset: resetOtp,
+  } = useOtp();
+
   // Initialize and load saved draft from localStorage or participant session
   useEffect(() => {
     if (!isOpen) return;
@@ -120,7 +137,10 @@ export function UpdateDataModal({
     setErrors({});
     setSubmitError(null);
     setIsSuccess(false);
-  }, [isOpen, participant, draftStorageKey]);
+    setShowOtpStep(false);
+    setOtpValue("");
+    resetOtp();
+  }, [isOpen, participant, draftStorageKey, resetOtp]);
 
   // Auto-save draft on every formData change when at least one field has data
   useEffect(() => {
@@ -188,11 +208,20 @@ export function UpdateDataModal({
   const TOTAL_FIELDS = 12;
 
   const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
+  const SRM_FA_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@srmist\.edu\.in$/i;
+  const URL_REGEX = /^https?:\/\/.+/i;
+
   const isPhoneValid = INDIAN_PHONE_REGEX.test(formData.phoneno.trim());
   const phoneError =
     formData.phoneno.trim().length > 0 && !isPhoneValid
       ? "Enter a valid 10-digit mobile number."
       : errors.phoneno || null;
+
+  const isPictureUrlValid = URL_REGEX.test(formData.pictureUrl.trim());
+  const pictureUrlError =
+    formData.pictureUrl.trim().length > 0 && !isPictureUrlValid
+      ? "Enter a valid URL starting with http:// or https://"
+      : errors.pictureUrl || null;
 
   const isFaPhoneValid = INDIAN_PHONE_REGEX.test(formData.faphonenumber.trim());
   const faPhoneError =
@@ -200,20 +229,57 @@ export function UpdateDataModal({
       ? "Enter a valid 10-digit mobile number."
       : errors.faphonenumber || null;
 
-  const SRM_FA_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@srmist\.edu\.in$/i;
   const isFaEmailValid =
     formData.faemailid.trim().length > 0 &&
     SRM_FA_EMAIL_REGEX.test(formData.faemailid.trim());
-
   const faEmailError =
     formData.faemailid.trim().length > 0 && !isFaEmailValid
       ? "FA email must be an official @srmist.edu.in address."
       : errors.faemailid || null;
 
-  const isSection1Complete = filled1 === 4 && isPhoneValid;
-  const isSection2Complete = filled2 === 3 && isFaPhoneValid && isFaEmailValid;
-  const isSection3Complete = filled3 === 4;
-  const isSection4Complete = filled4 === 1;
+  const isGithubValid = URL_REGEX.test(formData.github.trim());
+  const githubError =
+    formData.github.trim().length > 0 && !isGithubValid
+      ? "Enter a valid URL starting with http:// or https://"
+      : errors.github || null;
+
+  const isLinkedinValid = URL_REGEX.test(formData.linkedin.trim());
+  const linkedinError =
+    formData.linkedin.trim().length > 0 && !isLinkedinValid
+      ? "Enter a valid URL starting with http:// or https://"
+      : errors.linkedin || null;
+
+  const isPortfolioValid = URL_REGEX.test(formData.portfolio.trim());
+  const portfolioError =
+    formData.portfolio.trim().length > 0 && !isPortfolioValid
+      ? "Enter a valid URL starting with http:// or https://"
+      : errors.portfolio || null;
+
+  const isNdaUrlValid = URL_REGEX.test(formData.ndaUrl.trim());
+  const ndaUrlError =
+    formData.ndaUrl.trim().length > 0 && !isNdaUrlValid
+      ? "Enter a valid document URL starting with http:// or https://"
+      : errors.ndaUrl || null;
+
+  const isSection1Complete =
+    filled1 === 4 && isPhoneValid && isPictureUrlValid;
+  const isSection2Complete =
+    filled2 === 3 && isFaPhoneValid && isFaEmailValid;
+  const isSection3Complete =
+    filled3 === 4 && isGithubValid && isLinkedinValid && isPortfolioValid;
+  const isSection4Complete =
+    filled4 === 1 && isNdaUrlValid;
+
+  const hasSection1Error = Boolean(
+    phoneError || pictureUrlError || errors.section || errors.caption,
+  );
+  const hasSection2Error = Boolean(
+    faPhoneError || faEmailError || errors.faname,
+  );
+  const hasSection3Error = Boolean(
+    githubError || linkedinError || portfolioError || errors.insta,
+  );
+  const hasSection4Error = Boolean(ndaUrlError);
 
   const incompleteSections = useMemo(() => {
     const list: string[] = [];
@@ -231,67 +297,39 @@ export function UpdateDataModal({
 
   const isFormComplete = incompleteSections.length === 0;
 
-  const getSection1Badge = () => {
-    if (filled1 === 0) {
+  const getSectionBadge = (
+    hasError: boolean,
+    filled: number,
+    isComplete: boolean,
+  ) => {
+    if (hasError) {
       return {
-        label: "Incomplete",
+        label: "Error",
         pillClass: "bg-[#FF4D4D] text-white",
       };
     }
-    if (filled1 < 4 || !isPhoneValid) {
-      return {
-        label: "In Progress",
-        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
-      };
-    }
-    return {
-      label: "Ready",
-      pillClass: "bg-[#22C55E] text-white",
-    };
-  };
-
-  const getSection2Badge = () => {
-    if (filled2 === 0) {
-      return {
-        label: "Incomplete",
-        pillClass: "bg-[#FF4D4D] text-white",
-      };
-    }
-    if (filled2 < 3 || !isFaPhoneValid || !isFaEmailValid) {
-      return {
-        label: "In Progress",
-        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
-      };
-    }
-    return {
-      label: "Ready",
-      pillClass: "bg-[#22C55E] text-white",
-    };
-  };
-
-  const getSectionBadge = (filled: number, total: number) => {
     if (filled === 0) {
       return {
         label: "Incomplete",
         pillClass: "bg-[#FF4D4D] text-white",
       };
     }
-    if (filled < total) {
+    if (isComplete) {
       return {
-        label: "In Progress",
-        pillClass: "bg-[#FFDE59] text-[#1E1B24]",
+        label: "Ready",
+        pillClass: "bg-[#22C55E] text-white",
       };
     }
     return {
-      label: "Ready",
-      pillClass: "bg-[#22C55E] text-white",
+      label: "In Progress",
+      pillClass: "bg-[#FFDE59] text-[#1E1B24]",
     };
   };
 
-  const status1 = getSection1Badge();
-  const status2 = getSection2Badge();
-  const status3 = getSectionBadge(filled3, 4);
-  const status4 = getSectionBadge(filled4, 1);
+  const status1 = getSectionBadge(hasSection1Error, filled1, isSection1Complete);
+  const status2 = getSectionBadge(hasSection2Error, filled2, isSection2Complete);
+  const status3 = getSectionBadge(hasSection3Error, filled3, isSection3Complete);
+  const status4 = getSectionBadge(hasSection4Error, filled4, isSection4Complete);
 
   if (!isOpen) return null;
 
@@ -322,43 +360,87 @@ export function UpdateDataModal({
     setSubmitError(null);
     setDraftSaved(false);
     setShowClearConfirm(false);
+    setShowOtpStep(false);
+    setOtpValue("");
+    resetOtp();
   };
 
   const validateFormats = () => {
     const errs: Record<string, string> = {};
-    const trimmedPhone = formData.phoneno.trim();
 
+    // Section 1
+    const trimmedPhone = formData.phoneno.trim();
     if (!trimmedPhone) {
-      errs.phoneno = "Phone number is required";
+      errs.phoneno = "Phone number is required.";
     } else if (!INDIAN_PHONE_REGEX.test(trimmedPhone)) {
       errs.phoneno = "Enter a valid 10-digit mobile number.";
     }
 
+    if (!formData.section.trim()) {
+      errs.section = "College section is required.";
+    }
+
+    const trimmedPic = formData.pictureUrl.trim();
+    if (!trimmedPic) {
+      errs.pictureUrl = "Picture URL is required.";
+    } else if (!URL_REGEX.test(trimmedPic)) {
+      errs.pictureUrl = "Enter a valid URL starting with http:// or https://";
+    }
+
+    if (!formData.caption.trim()) {
+      errs.caption = "Caption / Bio is required.";
+    }
+
+    // Section 2
+    if (!formData.faname.trim()) {
+      errs.faname = "FA name is required.";
+    }
+
     const trimmedFaPhone = formData.faphonenumber.trim();
     if (!trimmedFaPhone) {
-      errs.faphonenumber = "FA phone number is required";
+      errs.faphonenumber = "FA phone number is required.";
     } else if (!INDIAN_PHONE_REGEX.test(trimmedFaPhone)) {
       errs.faphonenumber = "Enter a valid 10-digit mobile number.";
     }
 
-    if (
-      formData.faemailid.trim() &&
-      !SRM_FA_EMAIL_REGEX.test(formData.faemailid.trim())
-    ) {
+    const trimmedFaEmail = formData.faemailid.trim();
+    if (!trimmedFaEmail) {
+      errs.faemailid = "FA email ID is required.";
+    } else if (!SRM_FA_EMAIL_REGEX.test(trimmedFaEmail)) {
       errs.faemailid = "FA email must be an official @srmist.edu.in address.";
     }
 
-    if (
-      formData.pictureUrl.trim() &&
-      !/^https?:\/\/.+/i.test(formData.pictureUrl.trim())
-    ) {
-      errs.pictureUrl = "Enter a valid URL starting with http:// or https://";
+    // Section 3
+    const trimmedGithub = formData.github.trim();
+    if (!trimmedGithub) {
+      errs.github = "GitHub URL is required.";
+    } else if (!URL_REGEX.test(trimmedGithub)) {
+      errs.github = "Enter a valid URL starting with http:// or https://";
     }
 
-    if (
-      formData.ndaUrl.trim() &&
-      !/^https?:\/\/.+/i.test(formData.ndaUrl.trim())
-    ) {
+    const trimmedLinkedin = formData.linkedin.trim();
+    if (!trimmedLinkedin) {
+      errs.linkedin = "LinkedIn URL is required.";
+    } else if (!URL_REGEX.test(trimmedLinkedin)) {
+      errs.linkedin = "Enter a valid URL starting with http:// or https://";
+    }
+
+    if (!formData.insta.trim()) {
+      errs.insta = "Instagram handle / URL is required.";
+    }
+
+    const trimmedPortfolio = formData.portfolio.trim();
+    if (!trimmedPortfolio) {
+      errs.portfolio = "Portfolio URL is required.";
+    } else if (!URL_REGEX.test(trimmedPortfolio)) {
+      errs.portfolio = "Enter a valid URL starting with http:// or https://";
+    }
+
+    // Section 4
+    const trimmedNda = formData.ndaUrl.trim();
+    if (!trimmedNda) {
+      errs.ndaUrl = "Signed NDA document URL is required.";
+    } else if (!URL_REGEX.test(trimmedNda)) {
       errs.ndaUrl = "Enter a valid document URL starting with http:// or https://";
     }
 
@@ -366,38 +448,7 @@ export function UpdateDataModal({
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!isFormComplete) {
-      setSubmitError(
-        `Please complete all sections first (${incompleteSections.join(", ")}).`,
-      );
-      return;
-    }
-
-    if (!validateFormats()) {
-      setSubmitError("Please correct highlighted fields before submitting.");
-      return;
-    }
-
-    // Retrieve authentication token
-    const session = getOtpSession();
-    const token =
-      session?.token ||
-      (typeof window !== "undefined"
-        ? localStorage.getItem("gcsrm_token") ||
-          localStorage.getItem("token") ||
-          localStorage.getItem("authToken")
-        : null);
-
-    if (!token) {
-      setSubmitError(
-        "Authentication session not found or expired. Please re-verify with OTP.",
-      );
-      return;
-    }
-
+  const executeOnboardSubmission = async (token: string) => {
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -458,10 +509,14 @@ export function UpdateDataModal({
       }
 
       setIsSuccess(true);
+      setShowOtpStep(false);
     } catch (err: unknown) {
       console.error("Onboarding submission error:", err);
       let message = "Failed to submit onboarding profile. Please try again.";
       if (err instanceof ApiError) {
+        if (err.status === 401 || err.status === 403) {
+          setShowOtpStep(true);
+        }
         message = err.error || err.message || message;
       } else if (err instanceof Error) {
         message = err.message;
@@ -469,6 +524,71 @@ export function UpdateDataModal({
       setSubmitError(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isFormComplete) {
+      setSubmitError(
+        `Please complete all sections first (${incompleteSections.join(", ")}).`,
+      );
+      return;
+    }
+
+    if (!validateFormats()) {
+      setSubmitError("Please correct highlighted fields before submitting.");
+      return;
+    }
+
+    // Retrieve authentication token
+    const session = getOtpSession();
+    const token =
+      session?.token ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("gcsrm_token") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("authToken")
+        : null);
+
+    if (!token) {
+      // Transition to OTP verification step
+      setShowOtpStep(true);
+      return;
+    }
+
+    await executeOnboardSubmission(token);
+  };
+
+  // OTP handlers
+  const handleSendOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const targetEmail = participant?.email || "";
+    if (!targetEmail) return;
+    await sendOtp(targetEmail);
+  };
+
+  const handleVerifyOtp = async (otpToVerify?: string) => {
+    const code =
+      otpToVerify !== undefined && otpToVerify !== ""
+        ? otpToVerify
+        : otpValue;
+    if (!code || code.length !== 6) return;
+
+    const ok = await verifyOtp(code);
+    if (ok) {
+      const session = getOtpSession();
+      if (session && session.token) {
+        await executeOnboardSubmission(session.token);
+      }
+    }
+  };
+
+  const handleOtpInputChange = (val: string) => {
+    setOtpValue(val);
+    if (val.length === 6) {
+      handleVerifyOtp(val);
     }
   };
 
@@ -543,6 +663,139 @@ export function UpdateDataModal({
               >
                 Close
               </button>
+            </div>
+          ) : showOtpStep ? (
+            /* OTP Verification Step */
+            <div className="flex flex-col gap-5 p-2 sm:p-4">
+              <div className="flex items-center gap-3">
+                <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-[#1E1B24] px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#FFD93D] shrink-0">
+                  VERIFY
+                </span>
+                <h3 className="font-outfit-black text-[20px] text-[#1E1B24] tracking-tight">
+                  Verify Email to Submit
+                </h3>
+              </div>
+
+              <p className="font-rubik text-[14px] font-medium text-[#5C5866] leading-relaxed">
+                Verify your SRM email to authenticate and submit your onboarding record.
+              </p>
+
+              {/* Error Alert Banner */}
+              {(submitError || otpError) && (
+                <div className="bg-[#FEE2E2] border-2 border-[#D92323] text-[#D92323] p-3.5 rounded-xl shadow-[3px_3px_0px_#1E1B24] font-rubik text-xs sm:text-sm font-semibold flex items-center gap-2.5">
+                  <AlertCircle size={20} className="shrink-0 text-[#D92323]" />
+                  <span>{otpError || submitError}</span>
+                </div>
+              )}
+
+              {!(otpPhase === "sent" || otpPhase === "verifying" || otpPhase === "verified") ? (
+                /* ── Send OTP Form ── */
+                <form onSubmit={handleSendOtp} noValidate className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="verify-email" className="font-outfit-black text-[14px] text-[#1E1B24]">
+                      SRM Email
+                    </label>
+                    <input
+                      type="email"
+                      id="verify-email"
+                      value={participant?.email || ""}
+                      disabled
+                      className="w-full bg-[#E8E8E8] border-[3px] border-[#AAAAAA] rounded-[16px] p-4 font-rubik text-[16px] text-[#777777] shadow-none cursor-not-allowed"
+                    />
+                  </div>
+
+                  <SendOtpButton loading={otpPhase === "sending"}>
+                    {otpPhase === "sending" ? "Sending OTP..." : "Send OTP"}
+                  </SendOtpButton>
+
+                  <div className="w-full flex items-center justify-center px-4 text-center mt-3 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => jumpToVerify(participant?.email || "")}
+                      disabled={!participant?.email}
+                      className="w-full py-2.5 px-4 my-2 bg-white hover:bg-neutral-100 text-black font-bold text-xs sm:text-sm uppercase tracking-wide border-2 border-black rounded-lg shadow-[2px_2px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-[2px_2px_0px_#000] disabled:hover:translate-x-0 disabled:hover:translate-y-0 disabled:hover:bg-white cursor-pointer"
+                    >
+                      Already have an OTP? Verify →
+                    </button>
+                  </div>
+
+                  <div className="flex justify-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowOtpStep(false);
+                        setSubmitError(null);
+                      }}
+                      className="text-sm font-bold text-[#1E1B24] hover:underline transition-all cursor-pointer bg-transparent border-none"
+                    >
+                      ← Back to Onboarding Form
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* ── Verify OTP Form ── */
+                <div className="flex flex-col gap-4">
+                  <p className="font-rubik text-center text-[13px] font-medium text-[#5C5866]">
+                    We sent a 6-digit code to{" "}
+                    <span className="font-bold text-[#1E1B24]">{participant?.email}</span>
+                  </p>
+
+                  <div className="my-2">
+                    <OtpInput
+                      value={otpValue}
+                      onChange={handleOtpInputChange}
+                      disabled={otpPhase === "verifying" || isSubmitting}
+                      hasError={!!otpError}
+                      onComplete={(code) => handleVerifyOtp(code)}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleVerifyOtp()}
+                    disabled={otpPhase === "verifying" || isSubmitting || otpValue.length !== 6}
+                    className="w-full rounded-2xl py-4 text-white text-xl uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                    style={{
+                      backgroundColor: "#22C55E",
+                      border: "3px solid #1e1b24",
+                      boxShadow: "4px 4px 0px #1e1b24",
+                      fontWeight: 800,
+                      fontFamily: "'Outfit', sans-serif",
+                    }}
+                  >
+                    {otpPhase === "verifying" || isSubmitting ? (
+                      <>
+                        <Loader2 size={22} className="animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <span>Verify &amp; Submit</span>
+                    )}
+                  </button>
+
+                  <ResendOtpLink
+                    cooldown={resendCooldown}
+                    onResend={() => {
+                      if (participant?.email) sendOtp(participant.email);
+                    }}
+                    disabled={otpPhase === "verifying" || isSubmitting}
+                  />
+
+                  <div className="flex justify-center mt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowOtpStep(false);
+                        setSubmitError(null);
+                        resetOtp();
+                      }}
+                      className="text-sm font-bold text-[#1E1B24] hover:underline transition-all cursor-pointer bg-transparent border-none"
+                    >
+                      ← Back to Onboarding Form
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -695,8 +948,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("section", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.section
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {errors.section && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {errors.section}
+                          </span>
+                        )}
                       </div>
 
                       {/* Picture URL */}
@@ -712,14 +974,14 @@ export function UpdateDataModal({
                             handleChange("pictureUrl", e.target.value)
                           }
                           className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                            errors.pictureUrl
-                              ? "border-[#D92323] bg-[#FEF2F2]"
+                            pictureUrlError
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
                               : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
                           }`}
                         />
-                        {errors.pictureUrl && (
-                          <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                            {errors.pictureUrl}
+                        {pictureUrlError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {pictureUrlError}
                           </span>
                         )}
                       </div>
@@ -736,8 +998,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("caption", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D] resize-none"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none resize-none transition-all ${
+                            errors.caption
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {errors.caption && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {errors.caption}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -794,8 +1065,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("faname", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.faname
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {errors.faname && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {errors.faname}
+                          </span>
+                        )}
                       </div>
 
                       {/* FA Phone */}
@@ -909,8 +1189,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("github", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            githubError
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {githubError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {githubError}
+                          </span>
+                        )}
                       </div>
 
                       {/* LinkedIn */}
@@ -925,8 +1214,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("linkedin", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            linkedinError
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {linkedinError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {linkedinError}
+                          </span>
+                        )}
                       </div>
 
                       {/* Instagram */}
@@ -942,8 +1240,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("insta", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            errors.insta
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {errors.insta && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {errors.insta}
+                          </span>
+                        )}
                       </div>
 
                       {/* Portfolio */}
@@ -958,8 +1265,17 @@ export function UpdateDataModal({
                           onChange={(e) =>
                             handleChange("portfolio", e.target.value)
                           }
-                          className="px-3 py-2 rounded-xl border-2 border-[#1E1B24] font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none focus:ring-2 focus:ring-[#FF4D4D]"
+                          className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
+                            portfolioError
+                              ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
+                              : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
+                          }`}
                         />
+                        {portfolioError && (
+                          <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                            {portfolioError}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1029,14 +1345,14 @@ export function UpdateDataModal({
                           handleChange("ndaUrl", e.target.value)
                         }
                         className={`px-3 py-2 rounded-xl border-2 font-rubik text-sm shadow-[2px_2px_0px_#1E1B24] focus:outline-none transition-all ${
-                          errors.ndaUrl
-                            ? "border-[#D92323] bg-[#FEF2F2]"
+                          ndaUrlError
+                            ? "border-[#FF4D4D] bg-[#FEF2F2] focus:ring-2 focus:ring-[#FF4D4D]"
                             : "border-[#1E1B24] focus:ring-2 focus:ring-[#FF4D4D]"
                         }`}
                       />
-                      {errors.ndaUrl && (
-                        <span className="font-rubik text-[11px] text-[#D92323] font-bold">
-                          {errors.ndaUrl}
+                      {ndaUrlError && (
+                        <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
+                          {ndaUrlError}
                         </span>
                       )}
                     </div>
