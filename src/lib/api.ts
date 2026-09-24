@@ -7,12 +7,18 @@
  *   Next.js rewrites forward `/api/otp/*`, `/api/email/*`, `/api/recruitment/*`
  *   to the backend, avoiding CORS during development.
  *
+ * The participant reads (`lookupParticipant`, `fetchParticipantTasks`) are
+ * guarded by the admin key on the backend, so they always call the same-origin
+ * route handlers in `src/app/api/recruitment` which attach the key server-side
+ * (see `src/lib/backendProxy.ts`). OTP/apply/submit are unguarded or JWT-based
+ * and keep talking to the backend directly.
+ *
  * The backend is cookie-free for these endpoints, so `credentials` is not sent;
  * every request is a JSON POST with `Content-Type: application/json`. If auth
  * tokens are ever needed, add a single header interceptor inside `request`.
  */
 
-import type { ParticipantData } from "@/components/ApplicationStatus/types";
+import type { ParticipantData, RecruitmentTask } from "@/components/ApplicationStatus/types";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -223,10 +229,12 @@ export const api = {
    * If verified is false or data is null (or 404) -> `{ exists: false, user: null }`.
    */
   async lookupParticipant(email: string): Promise<{ exists: boolean; user: ParticipantData | null }> {
-    const url = `${BASE_URL}/api/recruitment/email/${encodeURIComponent(email)}`;
+    // Same-origin proxy route (src/app/api/recruitment/email/[email]); the
+    // backend guards this read with the admin key, which is attached server-side.
+    const url = `/api/recruitment/email/${encodeURIComponent(email)}`;
     let response: Response;
     try {
-      response = await fetch(url, { headers: { ...jsonHeaders() } });
+      response = await fetch(url);
     } catch {
       throw new ApiError(0, {
         success: false,
@@ -268,6 +276,44 @@ export const api = {
     }
 
     return { exists: false, user: null };
+  },
+
+  /**
+   * Fetch the tasks assigned to a participant via the same-origin proxy for
+   * `GET /api/recruitment?email=...`. The backend guards this read with the
+   * admin key, which is attached server-side. Returns the participant's task
+   * list (empty when the response carries none).
+   */
+  async fetchParticipantTasks(email: string): Promise<RecruitmentTask[]> {
+    const url = `/api/recruitment?email=${encodeURIComponent(email)}`;
+    let response: Response;
+    try {
+      response = await fetch(url);
+    } catch {
+      throw new ApiError(0, {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      });
+    }
+
+    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+    const isError =
+      !response.ok ||
+      (data !== null && typeof data === "object" && data.success === false);
+
+    if (isError) {
+      throw new ApiError(
+        response.status,
+        (data as unknown as ApiErrorBody) ?? {
+          success: false,
+          message: `Request failed with status ${response.status}`,
+        },
+      );
+    }
+
+    const tasks = (data as any)?.data?.tasks;
+    return Array.isArray(tasks) ? (tasks as RecruitmentTask[]) : [];
   },
 
   /**
