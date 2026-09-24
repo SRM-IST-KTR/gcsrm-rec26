@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
 import {
   ApplicationStatusProps,
   ParticipantData,
@@ -411,13 +412,9 @@ export function ApplicationStatus({
     const fetchTasks = () => {
       if (participant?.email && currentStatus === "task_assigned" && !hasFetchedTasks.current) {
         hasFetchedTasks.current = true;
-        const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
-        fetch(`${baseUrl}/api/recruitment?email=${encodeURIComponent(participant.email)}`)
-          .then(res => res.json())
+        api.fetchParticipantTasks(participant.email)
           .then(data => {
-            if (data.success && data.data?.tasks) {
-              setAssignedTasks(data.data.tasks);
-            }
+            setAssignedTasks(data);
           })
           .catch(err => {
             console.error("Failed to fetch tasks:", err);

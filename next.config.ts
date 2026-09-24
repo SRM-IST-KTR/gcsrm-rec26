@@ -9,14 +9,24 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
   async rewrites() {
+    // Only the unguarded / JWT-based calls are forwarded to the backend for
+    // dev (when NEXT_PUBLIC_API_URL is empty and the client uses relative
+    // paths). The key-guarded reads are served by the route handlers under
+    // src/app/api/recruitment, so they must NOT be captured here — array
+    // rewrites run before dynamic routes and would otherwise shadow
+    // /api/recruitment/email/[email].
     return [
       {
         source: "/api/otp/:path*",
         destination: `${BACKEND_URL}/api/otp/:path*`,
       },
       {
-        source: "/api/recruitment/:path*",
-        destination: `${BACKEND_URL}/api/recruitment/:path*`,
+        source: "/api/recruitment/apply",
+        destination: `${BACKEND_URL}/api/recruitment/apply`,
+      },
+      {
+        source: "/api/recruitment/submit",
+        destination: `${BACKEND_URL}/api/recruitment/submit`,
       },
     ];
   },
