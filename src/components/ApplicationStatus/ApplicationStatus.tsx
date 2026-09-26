@@ -146,10 +146,10 @@ export function computeDynamicSteps(
           "Congratulations! You have been shortlisted for the personal interview round. Check your SRM email for details.";
       } else if (status === "selected" && config.rank === 5) {
         description =
-          "You have been selected to join GitHub Community SRM! Onboarding documents and instructions will arrive at your SRM email soon.";
+          "You have been selected to join GitHub Community SRM! Complete the onboarding process by filling the details to be a part of the community.";
       } else if (status === "onboarding" && config.rank === 6) {
         description =
-          "Welcome to the team! Follow the onboarding instructions sent to your SRM email to complete your induction.";
+          "Your details are being processed for onboarding. Please check the Whatsapp group for further instructions.";
       } else if (status === "onboarded" && config.rank === 7) {
         description =
           "Your onboarding is complete and your team member record is now active. Welcome aboard!";
