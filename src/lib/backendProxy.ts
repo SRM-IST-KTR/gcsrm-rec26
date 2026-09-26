@@ -8,15 +8,11 @@
  */
 
 /** Backend origin for server-side calls (mirrors the rewrites in next.config.ts). */
-export const BACKEND_URL = (
-  process.env.BACKEND_URL?.trim() ||
-  process.env.NEXT_PUBLIC_API_URL?.trim() ||
-  "http://localhost:8000"
-).replace(/\/+$/, "");
+export const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 
 /** Headers carrying the admin key, or null when the key is not configured. */
 export function adminHeaders(): Record<string, string> | null {
-  const key = process.env.SERVICE_API_KEY?.trim();
+  const key = process.env.NEXT_PUBLIC_EMAIL_API_KEY?.trim();
   if (!key) return null;
   return { Accept: "application/json", Authorization: `Bearer ${key}` };
 }
