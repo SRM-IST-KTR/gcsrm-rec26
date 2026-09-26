@@ -517,13 +517,17 @@ export const api = {
     const normalized = (email || "").toLowerCase().trim();
     if (!normalized) return null;
 
+    const publicKey = process.env.NEXT_PUBLIC_PUBLIC_API_KEY;
+    const headers: Record<string, string> = { ...jsonHeaders() };
+    if (publicKey) {
+      headers.Authorization = `Bearer ${publicKey}`;
+    }
+
     let response: Response;
     try {
       response = await fetch(`${BASE_URL}/api/team`, {
         method: "GET",
-        headers: {
-          ...jsonHeaders(),
-        },
+        headers,
       });
     } catch {
       return null;
