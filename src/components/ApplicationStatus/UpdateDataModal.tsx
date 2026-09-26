@@ -2171,7 +2171,7 @@ export function UpdateDataModal({
                 {openSection === 4 && (
                   <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
                     <p className="font-rubik text-xs text-[#5C5866]">
-                      Get the NDA printed, sign it physically or digitally, and upload the completed document image scan below (max 5MB).
+                      Get the NDA printed, sign it physically, and upload the completed document image scan below (max 5MB).
                     </p>
 
                     <div className="flex flex-col gap-1.5 pt-1">
