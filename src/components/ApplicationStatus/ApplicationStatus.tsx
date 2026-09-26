@@ -361,35 +361,7 @@ export function StatusHeroCard({
           Congratulations! You&apos;ve Been Selected
         </h4>
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
-          You have been selected to join GitHub Community SRM! Onboarding documents and instructions will be sent to your SRM email shortly.
-        </p>
-        <div className="bg-white border-2 border-[#1E1B24] rounded-[14px] p-3.5 sm:p-4 mt-1 flex flex-col gap-2 shadow-[2px_2px_0px_#1E1B24]">
-          <span className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-            Next Steps:
-          </span>
-          <ul className="font-rubik text-xs sm:text-[13px] text-[#5C5866] font-medium space-y-1 list-disc list-inside">
-            <li>Check your SRM email for onboarding documents and instructions.</li>
-            <li>Prepare your signed NDA, profile picture, and faculty advisor details.</li>
-          </ul>
-        </div>
-      </div>
-    );
-  }
-
-  // 6. Onboarding (NDA/documents submitted, team record in progress)
-  if (status === "onboarding") {
-    return (
-      <div className="w-full bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
-        <div className="flex items-center gap-2.5">
-          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#10B981]">
-            ONBOARDING
-          </span>
-        </div>
-        <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
-          Onboarding in Progress
-        </h4>
-        <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
-          Submit your onboarding profile: signed NDA, profile picture, faculty advisor details, and social links. Once your team member record is created, your status will update to onboarded.
+          You have been selected to join GitHub Community SRM! Submit your onboarding profile below — signed NDA, profile picture, faculty advisor details, and social links. Your status will move to onboarding once submitted, and to onboarded after admin verification.
         </p>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 flex-wrap">
           <button
@@ -414,6 +386,25 @@ export function StatusHeroCard({
             Location
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // 6. Onboarding (documents submitted, under admin review)
+  if (status === "onboarding") {
+    return (
+      <div className="w-full bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
+        <div className="flex items-center gap-2.5">
+          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#10B981]">
+            ONBOARDING
+          </span>
+        </div>
+        <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
+          Onboarding Documents Submitted
+        </h4>
+        <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
+          Your onboarding profile has been submitted and is under review by the admin team. Once your team member record is created, your status will update to onboarded.
+        </p>
       </div>
     );
   }
@@ -690,7 +681,7 @@ export function ApplicationStatus({
         participant={participant}
             onSuccess={() => {
           if (updateParticipant) {
-            updateParticipant({ isOnboarded: true, status: "onboarded" });
+            updateParticipant({ isOnboarded: true, status: "onboarding" });
           }
         }}
       />

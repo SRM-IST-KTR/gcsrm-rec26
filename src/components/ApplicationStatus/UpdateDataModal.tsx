@@ -911,7 +911,7 @@ export function UpdateDataModal({
       if (updateParticipant) {
         updateParticipant({
           isOnboarded: true,
-          status: "onboarded",
+          status: "onboarding",
           phone: formData.phoneno.trim(),
           subdomain: candidateSubdomain || participant?.subdomain,
           onboardedData: savedData,
