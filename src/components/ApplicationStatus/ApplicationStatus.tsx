@@ -390,7 +390,7 @@ export function StatusHeroCard({
     );
   }
 
-  // 6. Onboarding (documents submitted, under admin review)
+  {/* 6. Onboarding (documents submitted, under admin review) */}
   if (status === "onboarding") {
     return (
       <div className="w-full bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
@@ -405,6 +405,15 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Your onboarding profile has been submitted and is under review by the admin team. Once your team member record is created, your status will update to onboarded.
         </p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 flex-wrap">
+          <button
+            type="button"
+            onClick={onOpenLocation}
+            className="bg-[#22C55E] hover:bg-[#1eb053] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Location
+          </button>
+        </div>
       </div>
     );
   }
