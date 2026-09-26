@@ -1673,6 +1673,7 @@ export function UpdateDataModal({
                               href={normalizeUrl(formData.ndaUrl)}
                               target="_blank"
                               rel="noopener noreferrer"
+                              download
                               className="inline-flex items-center gap-1.5 bg-[#38BDF8] hover:bg-[#20a7e3] text-[#1E1B24] border-2 border-[#1E1B24] px-3 py-1.5 rounded-xl font-outfit-black text-xs uppercase shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                             >
                               <FileText size={12} />
@@ -2230,11 +2231,9 @@ export function UpdateDataModal({
                       ) : (
                         <div className="flex items-center gap-3 p-3 bg-white border-2 border-[#1E1B24] rounded-xl shadow-[2px_2px_0px_#1E1B24]">
                           {ndaPreview ? (
-                            <img
-                              src={ndaPreview}
-                              alt="NDA preview"
-                              className="w-12 h-12 rounded-lg object-cover border-2 border-[#1E1B24] shrink-0"
-                            />
+                            <div className="w-12 h-12 rounded-lg bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center shrink-0">
+                              <FileText size={22} className="text-[#1E1B24]" />
+                            </div>
                           ) : (
                             <div className="w-12 h-12 rounded-lg bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center shrink-0">
                               <FileCheck size={22} className="text-[#4EC37B]" />
