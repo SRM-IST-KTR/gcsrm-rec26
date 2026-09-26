@@ -72,28 +72,46 @@ const INITIAL_FORM_STATE: FormState = {
 };
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES =
+
+const ACCEPTED_IMAGE_TYPES =
   "image/jpeg,image/png,image/heic,image/heif,.heic,.heif";
-const ALLOWED_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".heic", ".heif"];
-const ALLOWED_MIME_TYPES = [
+const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".heic", ".heif"];
+const ALLOWED_IMAGE_MIME_TYPES = [
   "image/jpeg",
   "image/png",
   "image/heic",
   "image/heif",
 ];
 
-function validateUploadedFile(file: File): string | null {
+const ACCEPTED_NDA_TYPES = "application/pdf,.pdf";
+const ALLOWED_NDA_EXTENSIONS = [".pdf"];
+const ALLOWED_NDA_MIME_TYPES = ["application/pdf"];
+
+function validateImageFile(file: File): string | null {
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 5MB limit.`;
   }
   const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
   if (ext === ".pdf" || file.type === "application/pdf") {
-    return "PDF files are not accepted. Please upload an image/camera scan (JPG, PNG, HEIC, HEIF).";
+    return "PDF files are not accepted for pictures. Please upload an image (JPG, PNG, HEIC, HEIF).";
   }
-  const isExtValid = ALLOWED_FILE_EXTENSIONS.includes(ext);
-  const isMimeValid = ALLOWED_MIME_TYPES.includes(file.type.toLowerCase());
+  const isExtValid = ALLOWED_IMAGE_EXTENSIONS.includes(ext);
+  const isMimeValid = ALLOWED_IMAGE_MIME_TYPES.includes(file.type.toLowerCase());
   if (!isExtValid && !isMimeValid) {
     return "Invalid format. Accepted formats: JPG, JPEG, PNG, HEIC, HEIF.";
+  }
+  return null;
+}
+
+function validateNdaFile(file: File): string | null {
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 5MB limit.`;
+  }
+  const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
+  const isExtValid = ALLOWED_NDA_EXTENSIONS.includes(ext);
+  const isMimeValid = ALLOWED_NDA_MIME_TYPES.includes(file.type.toLowerCase());
+  if (!isExtValid && !isMimeValid) {
+    return "Invalid format. Only PDF files are accepted for NDA.";
   }
   return null;
 }
@@ -498,7 +516,7 @@ export function UpdateDataModal({
 
   const isPictureValid = isOnboarded
     ? formData.pictureUrl.trim().length > 0 && GENERAL_URL_REGEX.test(formData.pictureUrl.trim())
-    : pictureFile !== null && !validateUploadedFile(pictureFile);
+    : pictureFile !== null && !validateImageFile(pictureFile);
   const pictureError = !isOnboarded ? errors.picture || null : null;
 
   const isFaPhoneValid = INDIAN_PHONE_REGEX.test(formData.faphonenumber.trim());
@@ -547,7 +565,7 @@ export function UpdateDataModal({
 
   const isNdaValid = isOnboarded
     ? formData.ndaUrl.trim().length > 0 && GENERAL_URL_REGEX.test(formData.ndaUrl.trim())
-    : ndaFile !== null && !validateUploadedFile(ndaFile);
+    : ndaFile !== null && !validateNdaFile(ndaFile);
   const ndaError = !isOnboarded ? errors.nda || null : null;
 
   const isRequiredSection3Filled =
@@ -666,7 +684,7 @@ export function UpdateDataModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const error = validateUploadedFile(file);
+    const error = validateImageFile(file);
     if (error) {
       setErrors((prev) => ({ ...prev, picture: error }));
       return;
@@ -693,7 +711,7 @@ export function UpdateDataModal({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const error = validateUploadedFile(file);
+    const error = validateNdaFile(file);
     if (error) {
       setErrors((prev) => ({ ...prev, nda: error }));
       return;
@@ -768,7 +786,7 @@ export function UpdateDataModal({
     if (!pictureFile) {
       errs.picture = "Profile picture is required.";
     } else {
-      const picErr = validateUploadedFile(pictureFile);
+      const picErr = validateImageFile(pictureFile);
       if (picErr) errs.picture = picErr;
     }
 
@@ -831,7 +849,7 @@ export function UpdateDataModal({
     if (!ndaFile) {
       errs.nda = "Signed NDA document is required.";
     } else {
-      const ndaErr = validateUploadedFile(ndaFile);
+      const ndaErr = validateNdaFile(ndaFile);
       if (ndaErr) errs.nda = ndaErr;
     }
 
@@ -1781,7 +1799,7 @@ export function UpdateDataModal({
                           ref={pictureInputRef}
                           type="file"
                           name="picture"
-                          accept={ACCEPTED_FILE_TYPES}
+                          accept={ACCEPTED_IMAGE_TYPES}
                           className="hidden"
                           onChange={handlePictureChange}
                           disabled={isOnboarded}
@@ -2182,7 +2200,7 @@ export function UpdateDataModal({
                         ref={ndaInputRef}
                         type="file"
                         name="nda"
-                        accept={ACCEPTED_FILE_TYPES}
+                        accept={ACCEPTED_NDA_TYPES}
                         className="hidden"
                         onChange={handleNdaChange}
                         disabled={isOnboarded}
