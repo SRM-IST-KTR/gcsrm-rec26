@@ -1,5 +1,5 @@
 {
-  "toBeAnnounced": true,
+  "toBeAnnounced": false,
   "tbaDetails": {
     "title": "VENUE TO BE ANNOUNCED",
     "badge": "PENDING ANNOUNCEMENT",
@@ -7,12 +7,12 @@
   },
   "headerTitle": "ONBOARDING VENUE & LOCATION",
   "venue": {
-    "title": "Tech Park",
-    "room": "4th Floor — Room TP401 "
+    "title": "📍 Peter Drucker Hall, MBA Block",
+    "room": "⏰ 5:00 PM - 6:30 PM"
   },
   "reporting": {
-    "title": "REPORTING & SCHEDULES",
-    "description": "Please report 15 minutes before your allotted cohort time with your SRM Physical ID card."
+    "title": "DATE & REPORTING",
+    "description": "Sunday, 28th September 2026 | Please report 15 minutes before your allotted cohort time with your SRM Physical ID card."
   },
   "buttonText": "GOT IT"
 }

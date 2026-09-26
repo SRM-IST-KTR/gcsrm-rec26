@@ -71,8 +71,6 @@ const INITIAL_FORM_STATE: FormState = {
   ndaUrl: "",
 };
 
-const ndaTemplate = onboardingData.ndaTemplate;
-
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_FILE_TYPES =
   "image/jpeg,image/png,image/heic,image/heif,.heic,.heif";
@@ -776,6 +774,11 @@ export function UpdateDataModal({
 
     if (!formData.caption.trim()) {
       errs.caption = "Caption / Bio is required.";
+    } else {
+      const wordCount = formData.caption.trim().split(/\s+/).length;
+      if (wordCount > 15) {
+        errs.caption = "Caption / Bio must be 15 words or fewer.";
+      }
     }
 
     // Section 2
@@ -1848,6 +1851,10 @@ export function UpdateDataModal({
                       <div className="sm:col-span-2 flex flex-col gap-1">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
                           Caption / Bio <span className="text-[#D92323]">*</span>
+                          <span className="font-rubik text-[11px] text-[#5C5866] normal-case tracking-normal font-normal">
+                            {" "}
+                            (max 15 words)
+                          </span>
                         </label>
                         <textarea
                           rows={2}
@@ -1855,11 +1862,15 @@ export function UpdateDataModal({
                           readOnly={isOnboarded}
                           disabled={isOnboarded}
                           value={formData.caption}
+                          maxLength={200}
                           onChange={(e) =>
                             handleChange("caption", e.target.value)
                           }
                           className={`resize-none ${getInputClass(errors.caption)}`}
                         />
+                        <div className="font-rubik text-[11px] text-[#5C5866]">
+                          {formData.caption.trim().split(/\s+/).filter(Boolean).length} / 15 words
+                        </div>
                         {errors.caption && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
                             {errors.caption}
@@ -2160,20 +2171,8 @@ export function UpdateDataModal({
                 {openSection === 4 && (
                   <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
                     <p className="font-rubik text-xs text-[#5C5866]">
-                      {ndaTemplate?.description ||
-                        "Download the official GCSRM NDA template. Sign it physically or digitally, and upload the signed document image scan below (max 5MB)."}
+                      Get the NDA printed, sign it physically or digitally, and upload the completed document image scan below (max 5MB).
                     </p>
-
-                    <div>
-                      <a
-                        href={ndaTemplate.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-[#4EC37B] text-white font-outfit-black text-xs uppercase tracking-wider rounded-xl border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
-                      >
-                        <span>{ndaTemplate.buttonText}</span>
-                      </a>
-                    </div>
 
                     <div className="flex flex-col gap-1.5 pt-1">
                       <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
