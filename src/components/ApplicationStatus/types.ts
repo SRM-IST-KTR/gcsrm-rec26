@@ -8,8 +8,9 @@ export type ParticipantStatus =
   | "task_assigned"
   | "taskSubmitted"
   | "interviewShortlisted"
-  | "interviewShortlist"
+  | "selected"
   | "onboarding"
+  | "onboarded"
   | "rejected"
   | "underReview";
 
