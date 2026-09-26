@@ -1,0 +1,18 @@
+{
+  "headerTitle": "ONBOARDING & NEXT STEPS",
+  "categoryBadge": "ORIENTATION & INDUCTION",
+  "sectionTitle": "SUBMISSION REQUIREMENTS",
+  "steps": [
+    "Keep an eye on your SRM student email for official onboarding calls, server invites, and orientation dates.",
+    "Download the official NDA template, sign it physically or digitally, and upload the completed document through the onboarding form.",
+    "Bring your college physical ID card to the orientation session at Tech Park."
+  ],
+  "note": "Further orientation timing and batch allocations will be dispatched via SRM student email.",
+  "buttonText": "UNDERSTOOD",
+  "ndaTemplate": {
+    "title": "NON-DISCLOSURE AGREEMENT (NDA)",
+    "description": "Download and read the standard NDA. Sign and upload the completed document below.",
+    "url": "/assets/NDA_Template.pdf",
+    "buttonText": "Download NDA Template"
+  }
+}

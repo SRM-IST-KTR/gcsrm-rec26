@@ -1,0 +1,18 @@
+{
+  "toBeAnnounced": true,
+  "tbaDetails": {
+    "title": "VENUE TO BE ANNOUNCED",
+    "badge": "PENDING ANNOUNCEMENT",
+    "description": "The onboarding venue is being finalized and will be announced shortly."
+  },
+  "headerTitle": "ONBOARDING VENUE & LOCATION",
+  "venue": {
+    "title": "Tech Park",
+    "room": "4th Floor — Room TP401 "
+  },
+  "reporting": {
+    "title": "REPORTING & SCHEDULES",
+    "description": "Please report 15 minutes before your allotted cohort time with your SRM Physical ID card."
+  },
+  "buttonText": "GOT IT"
+}

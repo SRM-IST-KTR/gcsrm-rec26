@@ -3,14 +3,27 @@
 import React, { useEffect } from "react";
 import { X, Info } from "lucide-react";
 import instructionsData from "./domainInstructions.json";
+import onboardingData from "./onboardingInstructions.json";
+
+/**
+ * Onboarding instructions checklist displayed to accepted team members.
+ * Sourced directly from onboardingInstructions.json for easy editing and maintenance.
+ */
+export const ONBOARDING_INSTRUCTIONS: string[] = onboardingData.steps;
 
 interface InstructionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   domain?: string;
+  category?: "domain" | "onboarding";
 }
 
-export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModalProps) {
+export function InstructionsModal({
+  isOpen,
+  onClose,
+  domain,
+  category,
+}: InstructionsModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("overflow-hidden", "touch-none");
@@ -24,9 +37,22 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
 
   if (!isOpen) return null;
 
-  // Fallback gracefully to Technical if domain is missing or invalid
-  const safeDomain = domain && (domain in instructionsData) ? domain as keyof typeof instructionsData : "Technical";
-  const data = instructionsData[safeDomain];
+  const isCategoryOnboarding = category === "onboarding";
+  const keyToUse = isCategoryOnboarding
+    ? "Onboarding"
+    : domain && domain in instructionsData
+      ? domain
+      : "Technical";
+  const safeDomain = keyToUse as keyof typeof instructionsData;
+  const domainData = instructionsData[safeDomain] || instructionsData["Technical"];
+
+  const modalTitle = isCategoryOnboarding ? onboardingData.headerTitle : domainData.title;
+  const badgeText = isCategoryOnboarding ? onboardingData.categoryBadge : domainData.badge;
+  const highlightText = isCategoryOnboarding ? "Orientation & Induction" : domainData.highlight;
+  const sectionTitle = isCategoryOnboarding ? onboardingData.sectionTitle : "Submission Requirements";
+  const rules = isCategoryOnboarding ? onboardingData.steps : domainData.rules;
+  const noteText = isCategoryOnboarding ? onboardingData.note : domainData.note;
+  const buttonText = isCategoryOnboarding ? onboardingData.buttonText : "UNDERSTOOD";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -36,7 +62,7 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
           <div className="flex items-center gap-2">
             <Info className="text-[#1E1B24]" size={24} />
             <h2 className="font-outfit-black text-xl text-[#1E1B24] uppercase tracking-wide">
-              {data.title}
+              {modalTitle}
             </h2>
           </div>
           <button
@@ -51,19 +77,19 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
         <div className="p-5 overflow-y-auto overscroll-contain flex flex-col gap-5">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <span className="font-outfit-black text-sm uppercase text-[#1E1B24] tracking-wider">
-              {data.badge}
+              {badgeText}
             </span>
             <span className="bg-[var(--error,#D92323)] text-white font-outfit-black text-xs uppercase px-3 py-1.5 rounded-md border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] text-center">
-              {data.highlight}
+              {highlightText}
             </span>
           </div>
 
           <div className="flex flex-col gap-3">
             <h3 className="font-outfit-black text-base uppercase text-[#1E1B24]">
-              Submission Requirements
+              {sectionTitle}
             </h3>
             <ul className="flex flex-col gap-3">
-              {data.rules.map((rule, idx) => (
+              {rules.map((rule, idx) => (
                 <li
                   key={idx}
                   className="flex gap-3 border-2 border-[#1E1B24] bg-[#FFFDF0] p-3 rounded-lg shadow-[2px_2px_0px_#1E1B24]"
@@ -82,7 +108,7 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
           <div className="bg-[#EFF8FF] border-2 border-[#1E1B24] p-3 rounded-lg shadow-[2px_2px_0px_#1E1B24]">
             <p className="font-rubik text-sm font-semibold text-[#1E1B24]">
               <span className="font-outfit-black text-[#D92323] uppercase mr-1">Note:</span>
-              {data.note}
+              {noteText}
             </p>
           </div>
         </div>
@@ -93,10 +119,12 @@ export function InstructionsModal({ isOpen, onClose, domain }: InstructionsModal
             onClick={onClose}
             className="px-6 py-2.5 bg-[#4EC37B] hover:bg-[#3ea866] border-2 border-[#1E1B24] rounded-lg text-white font-outfit-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_#1E1B24] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer"
           >
-            UNDERSTOOD
+            {buttonText}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+export default InstructionsModal;

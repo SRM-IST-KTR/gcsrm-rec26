@@ -19,6 +19,7 @@ export interface ParticipantLinks {
   github?: string | null;
   demo?: string | null;
   deployment?: string | null;
+  portfolio?: string | null;
   design?: string | null;
   designFiles?: string | null;
   figmaPlugins?: string | null;
@@ -34,9 +35,12 @@ export interface ParticipantData {
   phone?: string;
   year?: string;
   domain?: string;
+  subdomain?: string;
   degreeWithBranch?: string;
   links?: ParticipantLinks;
   status: ParticipantStatus;
+  isOnboarded?: boolean;
+  onboardedData?: OnboardedMemberRecord | Record<string, unknown> | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -92,4 +96,60 @@ export interface ApplicationStatusProps {
   className?: string;
   /** Toggle displaying participant info banner (defaults to true) */
   showParticipantInfo?: boolean;
+  /** Callback triggered when clicking "Update Data" in the onboarding status card */
+  onUpdateData?: () => void;
+  /** Callback triggered when clicking "Instructions" in the onboarding status card */
+  onOpenInstructions?: () => void;
+  /** Callback triggered when clicking "Location" in the onboarding status card */
+  onOpenLocation?: () => void;
+}
+
+export interface FacultyAdvisorDetails {
+  faname: string;
+  faphonenumber: string;
+  faemailid: string;
+}
+
+export interface SocialLinksDetails {
+  insta?: string;
+  github?: string;
+  linkedin?: string;
+  portfolio?: string;
+}
+
+export interface OnboardMemberPayload {
+  name: string;
+  email: string;
+  phoneno: string;
+  section: string;
+  domain: string;
+  subdomain?: string;
+  position: string;
+  joined_yr: number;
+  isCurrentMember?: boolean;
+  caption?: string;
+  picture: File;
+  nda: File;
+  faDetails: FacultyAdvisorDetails[];
+  socials: SocialLinksDetails[];
+}
+
+export interface OnboardedMemberRecord {
+  _id?: string;
+  name?: string;
+  email?: string;
+  phoneno?: string;
+  section?: string;
+  domain?: string;
+  subdomain?: string;
+  position?: string;
+  joined_yr?: number;
+  isCurrentMember?: boolean;
+  caption?: string;
+  pictureUrl?: string;
+  picture?: string;
+  ndaUrl?: string;
+  nda?: string;
+  faDetails?: FacultyAdvisorDetails[];
+  socials?: SocialLinksDetails[];
 }

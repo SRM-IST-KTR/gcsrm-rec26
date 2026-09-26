@@ -18,7 +18,7 @@
  * tokens are ever needed, add a single header interceptor inside `request`.
  */
 
-import type { ParticipantData, RecruitmentTask } from "@/components/ApplicationStatus/types";
+import type { ParticipantData, OnboardMemberPayload, RecruitmentTask } from "@/components/ApplicationStatus/types";
 
 // ── OTP shapes ────────────────────────────────────────────────────────────
 
@@ -114,7 +114,7 @@ export interface BackendParticipantLookupResponse {
   } | null;
 }
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 /** Headers shared by every backend call. */
 function jsonHeaders(): Record<string, string> {
   return { "Content-Type": "application/json" };
@@ -166,6 +166,7 @@ function mapBackendLookup(data: any): ParticipantData {
     phone: source.phone || "",
     year: source.year || "",
     domain: source.domain || "",
+    subdomain: source.subdomain || source.subDomain || "",
     degreeWithBranch: source.degreeWithBranch || source.dept || "",
     links: source.links,
     status: (source.status || "registered") as ParticipantData["status"],
@@ -199,6 +200,7 @@ function mapBackendApplyUser(user: any): ParticipantData {
     email: user.email || "",
     registrationNumber: user.registrationNumber || user.regNo || "",
     domain: user.domain || "",
+    subdomain: user.subdomain || user.subDomain || "",
     year: user.year || "",
     phone: user.phone || "",
     degreeWithBranch: user.degreeWithBranch || user.dept || "",
@@ -418,5 +420,126 @@ export const api = {
     }
 
     return data ?? {};
+  },
+
+  /**
+   * Onboard an accepted candidate to team records via `POST /api/recruitment/onboard`.
+   * Sends multipart/form-data containing binary files ('picture', 'nda') and metadata.
+   * Requires JWT Bearer token in Authorization header.
+   */
+  async onboardMember(
+    token: string,
+    payload: OnboardMemberPayload,
+  ): Promise<Record<string, unknown>> {
+    const formData = new FormData();
+
+    // 1. Binary file fields
+    formData.append("picture", payload.picture);
+    formData.append("nda", payload.nda);
+
+    // 2. Text metadata fields
+    formData.append("name", payload.name);
+    formData.append("email", payload.email);
+    formData.append("phoneno", payload.phoneno);
+    formData.append("position", payload.position);
+    formData.append("domain", payload.domain);
+    if (payload.subdomain) {
+      formData.append("subdomain", payload.subdomain);
+    }
+    formData.append("section", payload.section);
+    formData.append("joined_yr", String(payload.joined_yr));
+
+    if (payload.caption) {
+      formData.append("caption", payload.caption);
+    }
+    if (typeof payload.isCurrentMember === "boolean") {
+      formData.append("isCurrentMember", String(payload.isCurrentMember));
+    }
+
+    // 3. Complex fields (JSON-stringified)
+    if (payload.faDetails) {
+      formData.append("faDetails", JSON.stringify(payload.faDetails));
+    }
+    if (payload.socials) {
+      formData.append("socials", JSON.stringify(payload.socials));
+    }
+
+    let response: Response;
+    try {
+      // NOTE: Do NOT set Content-Type header manually; fetch will automatically
+      // attach multipart/form-data with the correct boundary delimiter.
+      response = await fetch(`${BASE_URL}/api/recruitment/onboard`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+    } catch {
+      throw new ApiError(0, {
+        success: false,
+        message: "Network error. Please check your connection and try again.",
+      });
+    }
+
+    const data = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+
+    const isError =
+      !response.ok ||
+      (data !== null && typeof data === "object" && data.success === false);
+
+    if (isError) {
+      throw new ApiError(
+        response.status,
+        (data as unknown as ApiErrorBody) ?? {
+          success: false,
+          message: `Request failed with status ${response.status}`,
+        },
+      );
+    }
+
+    return data ?? {};
+  },
+
+  /** Alias to preserve compatibility with existing callers */
+  async onboard(
+    token: string,
+    payload: OnboardMemberPayload,
+  ): Promise<Record<string, unknown>> {
+    return this.onboardMember(token, payload);
+  },
+
+  /**
+   * Fetch team member record by candidate email from `GET /api/team`.
+   * Returns matching member record or null if not found or on network error.
+   */
+  async getTeamMember(email: string): Promise<Record<string, unknown> | null> {
+    const normalized = (email || "").toLowerCase().trim();
+    if (!normalized) return null;
+
+    let response: Response;
+    try {
+      response = await fetch(`${BASE_URL}/api/team`, {
+        method: "GET",
+        headers: {
+          ...jsonHeaders(),
+        },
+      });
+    } catch {
+      return null;
+    }
+
+    if (!response.ok) return null;
+
+    const json = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!json || !Array.isArray(json.data)) return null;
+
+    const match = (json.data as Record<string, unknown>[]).find(
+      (m) =>
+        typeof m?.email === "string" &&
+        m.email.toLowerCase().trim() === normalized,
+    );
+
+    return match ?? null;
   },
 };
