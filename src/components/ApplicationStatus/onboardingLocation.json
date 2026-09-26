@@ -1,0 +1,18 @@
+{
+  "toBeAnnounced": false,
+  "tbaDetails": {
+    "title": "VENUE TO BE ANNOUNCED",
+    "badge": "PENDING ANNOUNCEMENT",
+    "description": "The onboarding venue is being finalized and will be announced shortly."
+  },
+  "headerTitle": "ONBOARDING VENUE & LOCATION",
+  "venue": {
+    "title": "Peter Drucker Hall, MBA Block",
+    "room": "5:00 PM - 6:30 PM"
+  },
+  "reporting": {
+    "title": "DATE & REPORTING",
+    "description": "Monday, 28th September 2026 | Please report 15 minutes before your allotted cohort time with your SRM Physical ID card."
+  },
+  "buttonText": "GOT IT"
+}

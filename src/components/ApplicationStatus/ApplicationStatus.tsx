@@ -17,6 +17,8 @@ import { SubmitTaskModal } from "./SubmitTaskModal";
 import { TaskDetailsModal } from "./TaskDetailsModal";
 import { RecruitmentTask } from "./types";
 import { InstructionsModal } from "./InstructionsModal";
+import { UpdateDataModal } from "./UpdateDataModal";
+import { LocationModal } from "./LocationModal";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)
@@ -57,10 +59,26 @@ export const DEFAULT_STEP_CONFIGS: StepConfig[] = [
   {
     id: "level-05",
     level: "Level 05",
+    title: "Selected",
+    activeDescription:
+      "Congratulations! You have been selected to join GitHub Community SRM. You will receive onboarding documents and instructions via your SRM email shortly.",
+    rank: 5,
+  },
+  {
+    id: "level-06",
+    level: "Level 06",
     title: "Onboarding",
     activeDescription:
-      "Congratulations on reaching the final phase! Welcome to GitHub Community SRM.",
-    rank: 5,
+      "Submit your onboarding documents, profile picture, signed NDA, and faculty advisor details to complete your team induction.",
+    rank: 6,
+  },
+  {
+    id: "level-07",
+    level: "Level 07",
+    title: "Onboarded",
+    activeDescription:
+      "Welcome to the team! Your onboarding is complete and your team member record is now active.",
+    rank: 7,
   },
 ];
 
@@ -73,8 +91,9 @@ export const STATUS_RANK_MAP: Record<ParticipantStatus, number> = {
   taskSubmitted: 3,
   underReview: 3,
   interviewShortlisted: 4,
-  interviewShortlist: 4,
-  onboarding: 5,
+  selected: 5,
+  onboarding: 6,
+  onboarded: 7,
   rejected: 0,
 };
 
@@ -85,11 +104,7 @@ export function computeDynamicSteps(
   status: ParticipantStatus,
   stepConfigs: StepConfig[] = DEFAULT_STEP_CONFIGS
 ): StatusStep[] {
-  // Consolidate duplicate interview enums
-  const normalizedStatus =
-    status === "interviewShortlist" ? "interviewShortlisted" : status;
-
-  if (normalizedStatus === "rejected") {
+  if (status === "rejected") {
     return stepConfigs.map((config) => ({
       id: config.id,
       level: config.level,
@@ -99,7 +114,7 @@ export function computeDynamicSteps(
     }));
   }
 
-  const currentRank = STATUS_RANK_MAP[normalizedStatus] ?? 1;
+  const currentRank = STATUS_RANK_MAP[status] ?? 1;
 
   return stepConfigs.map((config) => {
     if (config.rank < currentRank) {
@@ -114,24 +129,30 @@ export function computeDynamicSteps(
 
     if (config.rank === currentRank) {
       let description = config.activeDescription;
-      if (normalizedStatus === "registered" && config.rank === 1) {
+      if (status === "registered" && config.rank === 1) {
         description =
           "Your application has been received and logged. Task assignment will open shortly.";
-      } else if (normalizedStatus === "task_assigned" && config.rank === 2) {
+      } else if (status === "task_assigned" && config.rank === 2) {
         description =
           "Your domain task has been assigned. Please complete and submit your solution.";
-      } else if (normalizedStatus === "taskSubmitted" && config.rank === 3) {
+      } else if (status === "taskSubmitted" && config.rank === 3) {
         description =
           "Your task has been received and is pending review by domain mentors.";
-      } else if (normalizedStatus === "underReview" && config.rank === 3) {
+      } else if (status === "underReview" && config.rank === 3) {
         description =
           "Your submission and profile are under active evaluation by the technical panel.";
-      } else if (normalizedStatus === "interviewShortlisted" && config.rank === 4) {
+      } else if (status === "interviewShortlisted" && config.rank === 4) {
         description =
           "Congratulations! You have been shortlisted for the personal interview round. Check your SRM email for details.";
-      } else if (normalizedStatus === "onboarding" && config.rank === 5) {
+      } else if (status === "selected" && config.rank === 5) {
         description =
-          "Welcome to the team! Follow the onboarding instructions sent to your SRM email.";
+          "You have been selected to join GitHub Community SRM! Complete the onboarding process by filling the details to be a part of the community.";
+      } else if (status === "onboarding" && config.rank === 6) {
+        description =
+          "Your details are being processed for onboarding. Please check the Whatsapp group for further instructions.";
+      } else if (status === "onboarded" && config.rank === 7) {
+        description =
+          "Your onboarding is complete and your team member record is now active. Welcome aboard!";
       }
 
       return {
@@ -157,19 +178,27 @@ export function computeDynamicSteps(
 /**
  * Renders distinct Neobrutalist Hero Status Card based on the participant's current status
  */
+export interface StatusHeroCardProps {
+  status: ParticipantStatus;
+  participant?: Partial<ParticipantData> | null;
+  onSubmitTask?: () => void;
+  onViewTasks?: () => void;
+  onViewInstructions?: () => void;
+  onUpdateData?: () => void;
+  onOpenInstructions?: () => void;
+  onOpenLocation?: () => void;
+}
+
 export function StatusHeroCard({
   status,
   participant,
   onSubmitTask,
   onViewTasks,
   onViewInstructions,
-}: {
-  status: ParticipantStatus;
-  participant?: Partial<ParticipantData> | null;
-  onSubmitTask?: () => void;
-  onViewTasks?: () => void;
-  onViewInstructions?: () => void;
-}) {
+  onUpdateData,
+  onOpenInstructions,
+  onOpenLocation,
+}: StatusHeroCardProps) {
   const [isSubmissionOpen, setIsSubmissionOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -179,10 +208,8 @@ export function StatusHeroCard({
     setIsSubmissionOpen(now >= SUBMISSION_START && now < SUBMISSION_END);
   }, []);
 
-  const normalizedStatus = status === "interviewShortlist" ? "interviewShortlisted" : status;
-
-  // 1. Interview Shortlisted (interviewShortlisted or interviewShortlist)
-  if (normalizedStatus === "interviewShortlisted") {
+  // 1. Interview Shortlisted
+  if (status === "interviewShortlisted") {
     return (
       <div className="w-full bg-[#EBFBF0] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -211,7 +238,7 @@ export function StatusHeroCard({
   }
 
   // 2. Task Assigned
-  if (normalizedStatus === "task_assigned") {
+  if (status === "task_assigned") {
     return (
       <div className="w-full bg-[#FFFDF0] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -284,7 +311,7 @@ export function StatusHeroCard({
   }
 
   // 3. Task Submitted
-  if (normalizedStatus === "taskSubmitted") {
+  if (status === "taskSubmitted") {
     return (
       <div className="w-full bg-[#EFF8FF] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -303,7 +330,7 @@ export function StatusHeroCard({
   }
 
   // 4. Under Review
-  if (normalizedStatus === "underReview") {
+  if (status === "underReview") {
     return (
       <div className="w-full bg-[#FFFBEB] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -321,8 +348,69 @@ export function StatusHeroCard({
     );
   }
 
-  // 5. Onboarding (Selected)
-  if (normalizedStatus === "onboarding") {
+  // 5. Selected
+  if (status === "selected") {
+    return (
+      <div className="w-full bg-[#F0F9FF] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
+        <div className="flex items-center gap-2.5">
+          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#0EA5E9]">
+            SELECTED
+          </span>
+        </div>
+        <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
+          Congratulations! You&apos;ve Been Selected
+        </h4>
+        <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
+          You have been selected to join GitHub Community SRM! Submit your onboarding profile below — signed NDA, profile picture, faculty advisor details, and social links. Your status will move to onboarding once submitted, and to onboarded after admin verification.
+        </p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 flex-wrap">
+          <button
+            type="button"
+            onClick={onUpdateData}
+            className="bg-[#FF4D4D] hover:bg-[#e04343] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            {participant?.isOnboarded ? "View Onboarding Data" : "Update Data"}
+          </button>
+          <button
+            type="button"
+            onClick={onOpenInstructions || onViewInstructions}
+            className="bg-[#FFDE59] hover:bg-[#f0cf48] text-black border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Instructions
+          </button>
+          <button
+            type="button"
+            onClick={onOpenLocation}
+            className="bg-[#22C55E] hover:bg-[#1eb053] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Location
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 6. Onboarding (documents submitted, under admin review)
+  if (status === "onboarding") {
+    return (
+      <div className="w-full bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
+        <div className="flex items-center gap-2.5">
+          <span className="font-outfit-black text-[12px] uppercase tracking-[1.5px] text-white px-3 py-1 rounded-full border-2 border-[#1E1B24] shadow-[2px_2px_0px_#1E1B24] bg-[#10B981]">
+            ONBOARDING
+          </span>
+        </div>
+        <h4 className="font-outfit-black text-[20px] sm:text-[22px] text-[#1E1B24] tracking-tight leading-tight">
+          Onboarding Documents Submitted
+        </h4>
+        <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
+          Your onboarding profile has been submitted and is under review by the admin team. Once your team member record is created, your status will update to onboarded.
+        </p>
+      </div>
+    );
+  }
+
+  // 7. Onboarded (team member record created)
+  if (status === "onboarded") {
     return (
       <div className="w-full bg-[#ECFDF5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -336,12 +424,35 @@ export function StatusHeroCard({
         <p className="font-rubik text-[14px] sm:text-[15px] font-medium text-[#1E1B24] leading-relaxed">
           Congratulations on making it through all recruitment phases! You have been inducted into the team. Keep an eye on your email for onboarding calls, server invites, and orientation schedules.
         </p>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 flex-wrap">
+          <button
+            type="button"
+            onClick={onUpdateData}
+            className="bg-[#FF4D4D] hover:bg-[#e04343] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            {participant?.isOnboarded ? "View Onboarding Data" : "Update Data"}
+          </button>
+          <button
+            type="button"
+            onClick={onOpenInstructions || onViewInstructions}
+            className="bg-[#FFDE59] hover:bg-[#f0cf48] text-black border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Instructions
+          </button>
+          <button
+            type="button"
+            onClick={onOpenLocation}
+            className="bg-[#22C55E] hover:bg-[#1eb053] text-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000] font-bold px-4 py-2 transition-all cursor-pointer text-center"
+          >
+            Location
+          </button>
+        </div>
       </div>
     );
   }
 
-  // 6. Rejected
-  if (normalizedStatus === "rejected") {
+  // 8. Rejected
+  if (status === "rejected") {
     return (
       <div className="w-full bg-[#FFF5F5] border-[3px] border-[#1E1B24] rounded-[20px] p-5 sm:p-6 shadow-[4px_4px_0px_#1E1B24] mb-6 flex flex-col gap-3 text-left">
         <div className="flex items-center gap-2.5">
@@ -396,12 +507,18 @@ export function ApplicationStatus({
   cardTitle = "Application Progress",
   className = "",
   showParticipantInfo = true,
+  onUpdateData,
+  onOpenInstructions,
+  onOpenLocation,
 }: ApplicationStatusProps) {
-  const { participant: authParticipant } = useAuth();
+  const { participant: authParticipant, updateParticipant } = useAuth();
   const participant = propParticipant !== undefined ? propParticipant : authParticipant;
   const [showSubmitModal, setShowSubmitModal] = React.useState(false);
   const [showTaskDetailsModal, setShowTaskDetailsModal] = React.useState(false);
   const [showInstructionsModal, setShowInstructionsModal] = React.useState(false);
+  const [instructionsCategory, setInstructionsCategory] = React.useState<"domain" | "onboarding">("domain");
+  const [showUpdateDataModal, setShowUpdateDataModal] = React.useState(false);
+  const [showLocationModal, setShowLocationModal] = React.useState(false);
   const [assignedTasks, setAssignedTasks] = React.useState<RecruitmentTask[]>(tasks);
   const hasFetchedTasks = React.useRef(false);
 
@@ -437,6 +554,28 @@ export function ApplicationStatus({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [participant, currentStatus]);
+
+  // Check if candidate is already in the team collection and update context
+  React.useEffect(() => {
+    if (participant?.email && !participant?.isOnboarded) {
+      let isMounted = true;
+      api
+        .getTeamMember(participant.email)
+        .then((member) => {
+          if (member && isMounted && updateParticipant) {
+            updateParticipant({
+              isOnboarded: true,
+              status: "onboarded",
+              onboardedData: member,
+            });
+          }
+        })
+        .catch(() => {});
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [participant?.email, participant?.isOnboarded, updateParticipant]);
 
   // Compute visual states dynamically unconditionally
   const steps = useMemo(() => {
@@ -482,7 +621,23 @@ export function ApplicationStatus({
             participant={participant}
             onSubmitTask={() => setShowSubmitModal(true)}
             onViewTasks={() => setShowTaskDetailsModal(true)}
-            onViewInstructions={() => setShowInstructionsModal(true)}
+            onViewInstructions={() => {
+              setInstructionsCategory("domain");
+              setShowInstructionsModal(true);
+            }}
+            onUpdateData={
+              onUpdateData || (() => setShowUpdateDataModal(true))
+            }
+            onOpenInstructions={
+              onOpenInstructions ||
+              (() => {
+                setInstructionsCategory("onboarding");
+                setShowInstructionsModal(true);
+              })
+            }
+            onOpenLocation={
+              onOpenLocation || (() => setShowLocationModal(true))
+            }
           />
 
           {/* Dynamic Steps List */}
@@ -516,6 +671,25 @@ export function ApplicationStatus({
         isOpen={showInstructionsModal}
         onClose={() => setShowInstructionsModal(false)}
         domain={participant?.domain}
+        category={instructionsCategory}
+      />
+
+      {/* Update Data Modal */}
+      <UpdateDataModal
+        isOpen={showUpdateDataModal}
+        onClose={() => setShowUpdateDataModal(false)}
+        participant={participant}
+            onSuccess={() => {
+          if (updateParticipant) {
+            updateParticipant({ isOnboarded: true, status: "onboarding" });
+          }
+        }}
+      />
+
+      {/* Location Modal */}
+      <LocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
       />
     </section>
   );
