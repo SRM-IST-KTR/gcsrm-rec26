@@ -17,6 +17,10 @@ import {
   ChevronDown,
   ExternalLink,
   Globe,
+  UploadCloud,
+  ImageIcon,
+  FileCheck,
+  Trash2,
 } from "lucide-react";
 import { ParticipantData, OnboardMemberPayload } from "./types";
 import { api, ApiError } from "@/lib/api";
@@ -69,6 +73,33 @@ const INITIAL_FORM_STATE: FormState = {
 
 const ndaTemplate = onboardingData.ndaTemplate;
 
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_FILE_TYPES =
+  "image/jpeg,image/png,image/heic,image/heif,.heic,.heif";
+const ALLOWED_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".heic", ".heif"];
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/heic",
+  "image/heif",
+];
+
+function validateUploadedFile(file: File): string | null {
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 5MB limit.`;
+  }
+  const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
+  if (ext === ".pdf" || file.type === "application/pdf") {
+    return "PDF files are not accepted. Please upload an image/camera scan (JPG, PNG, HEIC, HEIF).";
+  }
+  const isExtValid = ALLOWED_FILE_EXTENSIONS.includes(ext);
+  const isMimeValid = ALLOWED_MIME_TYPES.includes(file.type.toLowerCase());
+  if (!isExtValid && !isMimeValid) {
+    return "Invalid format. Accepted formats: JPG, JPEG, PNG, HEIC, HEIF.";
+  }
+  return null;
+}
+
 export function UpdateDataModal({
   isOpen,
   onClose,
@@ -97,6 +128,15 @@ export function UpdateDataModal({
   const [draftSaved, setDraftSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  // File Upload State
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
+  const [picturePreview, setPicturePreview] = useState<string | null>(null);
+  const [ndaFile, setNdaFile] = useState<File | null>(null);
+  const [ndaPreview, setNdaPreview] = useState<string | null>(null);
+
+  const pictureInputRef = useRef<HTMLInputElement>(null);
+  const ndaInputRef = useRef<HTMLInputElement>(null);
+
   // Timed Success & Toast State
   const [countdown, setCountdown] = useState(3);
   const autoCloseTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -116,6 +156,8 @@ export function UpdateDataModal({
   // OTP Verification State
   const [showOtpStep, setShowOtpStep] = useState(false);
   const [otpValue, setOtpValue] = useState("");
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const isVerifyingRef = useRef(false);
   const {
     phase: otpPhase,
     error: otpError,
@@ -125,6 +167,15 @@ export function UpdateDataModal({
     jumpToVerify,
     reset: resetOtp,
   } = useOtp();
+
+  useEffect(() => {
+    if (isOpen) {
+      const session = getOtpSession();
+      if (session?.token) {
+        setOtpToken(session.token);
+      }
+    }
+  }, [isOpen]);
 
   const clearTimers = useCallback(() => {
     if (autoCloseTimerRef.current) {
@@ -164,7 +215,7 @@ export function UpdateDataModal({
       phoneno: (data.phoneno || "").replace(/\D/g, "").slice(-10),
       section: data.section || "",
       caption: data.caption || "",
-      pictureUrl: data.pictureUrl || "",
+      pictureUrl: data.pictureUrl || data.picture || "",
       faname: fa.faname || "",
       faphonenumber: (fa.faphonenumber || "").replace(/\D/g, "").slice(-10),
       faemailid: fa.faemailid || "",
@@ -172,9 +223,34 @@ export function UpdateDataModal({
       linkedin: social.linkedin || "",
       insta: social.insta || "",
       portfolio: social.portfolio || "",
-      ndaUrl: data.ndaUrl || "",
+      ndaUrl: data.ndaUrl || data.nda || "",
     });
   }, []);
+
+  // Object URL lifecycle for live file previews
+  useEffect(() => {
+    if (!pictureFile) {
+      setPicturePreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(pictureFile);
+    setPicturePreview(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [pictureFile]);
+
+  useEffect(() => {
+    if (!ndaFile) {
+      setNdaPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(ndaFile);
+    setNdaPreview(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [ndaFile]);
 
   // Guard to ensure api.getTeamMember is called strictly once per modal open
   const hasFetchedMemberRef = useRef<string | null>(null);
@@ -185,6 +261,8 @@ export function UpdateDataModal({
       clearTimers();
       hasFetchedMemberRef.current = null;
       setIsLoadingMember(false);
+      setPictureFile(null);
+      setNdaFile(null);
       return;
     }
 
@@ -369,11 +447,14 @@ export function UpdateDataModal({
     participant?.subdomain || (participant as any)?.subDomain || "";
 
   // Section completion calculations
+  const hasPicture = isOnboarded
+    ? formData.pictureUrl.trim().length > 0
+    : Boolean(pictureFile);
   const section1Fields = [
     formData.phoneno,
     formData.section,
     formData.caption,
-    formData.pictureUrl,
+    hasPicture ? "yes" : "",
   ];
   const filled1 = section1Fields.filter((f) => f.trim().length > 0).length;
 
@@ -392,8 +473,10 @@ export function UpdateDataModal({
   ];
   const filled3 = section3Fields.filter((f) => f.trim().length > 0).length;
 
-  const section4Fields = [formData.ndaUrl];
-  const filled4 = section4Fields.filter((f) => f.trim().length > 0).length;
+  const hasNda = isOnboarded
+    ? formData.ndaUrl.trim().length > 0
+    : Boolean(ndaFile);
+  const filled4 = hasNda ? 1 : 0;
 
   const totalFilled = filled1 + filled2 + filled3 + filled4;
   const TOTAL_FIELDS = 12;
@@ -415,11 +498,10 @@ export function UpdateDataModal({
       ? "Enter a valid 10-digit mobile number."
       : !isOnboarded ? errors.phoneno || null : null;
 
-  const isPictureUrlValid = GENERAL_URL_REGEX.test(formData.pictureUrl.trim());
-  const pictureUrlError =
-    !isOnboarded && formData.pictureUrl.trim().length > 0 && !isPictureUrlValid
-      ? "Invalid URL"
-      : !isOnboarded ? errors.pictureUrl || null : null;
+  const isPictureValid = isOnboarded
+    ? formData.pictureUrl.trim().length > 0 && GENERAL_URL_REGEX.test(formData.pictureUrl.trim())
+    : pictureFile !== null && !validateUploadedFile(pictureFile);
+  const pictureError = !isOnboarded ? errors.picture || null : null;
 
   const isFaPhoneValid = INDIAN_PHONE_REGEX.test(formData.faphonenumber.trim());
   const faPhoneError =
@@ -453,33 +535,43 @@ export function UpdateDataModal({
       ? "Invalid Instagram URL"
       : !isOnboarded ? errors.insta || null : null;
 
-  const isPortfolioValid = GENERAL_URL_REGEX.test(formData.portfolio.trim());
+  const isPortfolioValid =
+    formData.portfolio.trim().length === 0 ||
+    GENERAL_URL_REGEX.test(formData.portfolio.trim());
   const portfolioError =
-    !isOnboarded && formData.portfolio.trim().length > 0 && !isPortfolioValid
+    !isOnboarded &&
+    formData.portfolio.trim().length > 0 &&
+    !GENERAL_URL_REGEX.test(formData.portfolio.trim())
       ? "Invalid URL"
-      : !isOnboarded ? errors.portfolio || null : null;
+      : !isOnboarded
+      ? errors.portfolio || null
+      : null;
 
-  const isNdaUrlValid = GENERAL_URL_REGEX.test(formData.ndaUrl.trim());
-  const ndaUrlError =
-    !isOnboarded && formData.ndaUrl.trim().length > 0 && !isNdaUrlValid
-      ? "Invalid URL"
-      : !isOnboarded ? errors.ndaUrl || null : null;
+  const isNdaValid = isOnboarded
+    ? formData.ndaUrl.trim().length > 0 && GENERAL_URL_REGEX.test(formData.ndaUrl.trim())
+    : ndaFile !== null && !validateUploadedFile(ndaFile);
+  const ndaError = !isOnboarded ? errors.nda || null : null;
+
+  const isRequiredSection3Filled =
+    formData.github.trim().length > 0 &&
+    formData.linkedin.trim().length > 0 &&
+    formData.insta.trim().length > 0;
 
   const isSection1Complete =
-    filled1 === 4 && isPhoneValid && isPictureUrlValid;
+    filled1 === 4 && isPhoneValid && isPictureValid;
   const isSection2Complete =
     filled2 === 3 && isFaPhoneValid && isFaEmailValid;
   const isSection3Complete =
-    filled3 === 4 &&
+    isRequiredSection3Filled &&
     isGithubValid &&
     isLinkedinValid &&
     isInstaValid &&
     isPortfolioValid;
   const isSection4Complete =
-    filled4 === 1 && isNdaUrlValid;
+    filled4 === 1 && isNdaValid;
 
   const hasSection1Error = Boolean(
-    phoneError || pictureUrlError || errors.section || errors.caption,
+    phoneError || pictureError || errors.section || errors.caption,
   );
   const hasSection2Error = Boolean(
     faPhoneError || faEmailError || errors.faname,
@@ -487,7 +579,7 @@ export function UpdateDataModal({
   const hasSection3Error = Boolean(
     githubError || linkedinError || instaError || portfolioError,
   );
-  const hasSection4Error = Boolean(ndaUrlError);
+  const hasSection4Error = Boolean(ndaError);
 
   const incompleteSections = useMemo(() => {
     const list: string[] = [];
@@ -572,6 +664,60 @@ export function UpdateDataModal({
     }
   };
 
+  const handlePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const error = validateUploadedFile(file);
+    if (error) {
+      setErrors((prev) => ({ ...prev, picture: error }));
+      return;
+    }
+
+    setPictureFile(file);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.picture;
+      return next;
+    });
+  };
+
+  const handleRemovePicture = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPictureFile(null);
+    if (pictureInputRef.current) {
+      pictureInputRef.current.value = "";
+    }
+    setErrors((prev) => ({ ...prev, picture: "Profile picture is required." }));
+  };
+
+  const handleNdaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const error = validateUploadedFile(file);
+    if (error) {
+      setErrors((prev) => ({ ...prev, nda: error }));
+      return;
+    }
+
+    setNdaFile(file);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.nda;
+      return next;
+    });
+  };
+
+  const handleRemoveNda = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setNdaFile(null);
+    if (ndaInputRef.current) {
+      ndaInputRef.current.value = "";
+    }
+    setErrors((prev) => ({ ...prev, nda: "Signed NDA document is required." }));
+  };
+
   const handleExecuteClearDraft = () => {
     try {
       localStorage.removeItem(draftStorageKey);
@@ -580,6 +726,14 @@ export function UpdateDataModal({
     }
 
     setFormData(INITIAL_FORM_STATE);
+    setPictureFile(null);
+    setNdaFile(null);
+    if (pictureInputRef.current) {
+      pictureInputRef.current.value = "";
+    }
+    if (ndaInputRef.current) {
+      ndaInputRef.current.value = "";
+    }
     setErrors({});
     setSubmitError(null);
     setDraftSaved(false);
@@ -613,11 +767,11 @@ export function UpdateDataModal({
       errs.section = "College section is required.";
     }
 
-    const trimmedPic = formData.pictureUrl.trim();
-    if (!trimmedPic) {
-      errs.pictureUrl = "Picture URL is required.";
-    } else if (!GENERAL_URL_REGEX.test(trimmedPic)) {
-      errs.pictureUrl = "Invalid URL";
+    if (!pictureFile) {
+      errs.picture = "Profile picture is required.";
+    } else {
+      const picErr = validateUploadedFile(pictureFile);
+      if (picErr) errs.picture = picErr;
     }
 
     if (!formData.caption.trim()) {
@@ -666,27 +820,51 @@ export function UpdateDataModal({
     }
 
     const trimmedPortfolio = formData.portfolio.trim();
-    if (!trimmedPortfolio) {
-      errs.portfolio = "Portfolio URL is required.";
-    } else if (!GENERAL_URL_REGEX.test(trimmedPortfolio)) {
+    if (trimmedPortfolio && !GENERAL_URL_REGEX.test(trimmedPortfolio)) {
       errs.portfolio = "Invalid URL";
     }
 
     // Section 4
-    const trimmedNda = formData.ndaUrl.trim();
-    if (!trimmedNda) {
-      errs.ndaUrl = "Signed NDA document URL is required.";
-    } else if (!GENERAL_URL_REGEX.test(trimmedNda)) {
-      errs.ndaUrl = "Invalid URL";
+    if (!ndaFile) {
+      errs.nda = "Signed NDA document is required.";
+    } else {
+      const ndaErr = validateUploadedFile(ndaFile);
+      if (ndaErr) errs.nda = ndaErr;
     }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const executeOnboardSubmission = async (token: string) => {
+  const executeOnboardSubmission = async (overrideToken?: string) => {
     setIsSubmitting(true);
     setSubmitError(null);
+
+    const tokenToUse =
+      overrideToken ||
+      otpToken ||
+      getOtpSession()?.token ||
+      (typeof window !== "undefined"
+        ? localStorage.getItem("gcsrm_token") ||
+          localStorage.getItem("token") ||
+          localStorage.getItem("authToken")
+        : null);
+
+    if (!tokenToUse) {
+      setShowOtpStep(true);
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!otpToken && tokenToUse) {
+      setOtpToken(tokenToUse);
+    }
+
+    if (!pictureFile || !ndaFile) {
+      setSubmitError("Please ensure both profile picture and signed NDA are uploaded.");
+      setIsSubmitting(false);
+      return;
+    }
 
     const payload: OnboardMemberPayload = {
       name: participant?.name || "",
@@ -699,7 +877,8 @@ export function UpdateDataModal({
       joined_yr: 2026,
       isCurrentMember: true,
       caption: formData.caption.trim() || undefined,
-      pictureUrl: normalizeUrl(formData.pictureUrl) || undefined,
+      picture: pictureFile,
+      nda: ndaFile,
       faDetails: [
         {
           faname: formData.faname.trim(),
@@ -715,11 +894,10 @@ export function UpdateDataModal({
           portfolio: normalizeUrl(formData.portfolio) || undefined,
         },
       ],
-      ndaUrl: normalizeUrl(formData.ndaUrl) || undefined,
     };
 
     try {
-      const res = await api.onboard(token, payload);
+      const res = await api.onboardMember(tokenToUse, payload);
       const savedData = (res as any)?.data || payload;
       populateFormFromMemberData(savedData);
 
@@ -807,6 +985,7 @@ export function UpdateDataModal({
         }
 
         if (err.status === 401 || err.status === 403) {
+          setOtpToken(null);
           setShowOtpStep(true);
         }
         setSubmitError(
@@ -840,6 +1019,7 @@ export function UpdateDataModal({
     // Retrieve authentication token
     const session = getOtpSession();
     const token =
+      otpToken ||
       session?.token ||
       (typeof window !== "undefined"
         ? localStorage.getItem("gcsrm_token") ||
@@ -851,6 +1031,10 @@ export function UpdateDataModal({
       // Transition to OTP verification step
       setShowOtpStep(true);
       return;
+    }
+
+    if (!otpToken && token) {
+      setOtpToken(token);
     }
 
     await executeOnboardSubmission(token);
@@ -865,24 +1049,55 @@ export function UpdateDataModal({
   };
 
   const handleVerifyOtp = async (otpToVerify?: string) => {
+    // 1. If otpToken is already in state, reuse directly and submit
+    if (otpToken) {
+      await executeOnboardSubmission(otpToken);
+      return;
+    }
+
+    // 2. If valid session already exists in storage, reuse
+    const existingSession = getOtpSession();
+    if (existingSession && existingSession.token) {
+      setOtpToken(existingSession.token);
+      await executeOnboardSubmission(existingSession.token);
+      return;
+    }
+
+    // 3. Prevent duplicate / concurrent verify calls (auto-verify + button click)
+    if (isVerifyingRef.current || otpPhase === "verifying" || isSubmitting) {
+      return;
+    }
+
     const code =
       otpToVerify !== undefined && otpToVerify !== ""
         ? otpToVerify
         : otpValue;
     if (!code || code.length !== 6) return;
 
-    const ok = await verifyOtp(code);
-    if (ok) {
-      const session = getOtpSession();
-      if (session && session.token) {
-        await executeOnboardSubmission(session.token);
+    isVerifyingRef.current = true;
+    try {
+      const ok = await verifyOtp(code);
+      if (ok) {
+        const session = getOtpSession();
+        if (session && session.token) {
+          setOtpToken(session.token);
+          await executeOnboardSubmission(session.token);
+        }
       }
+    } finally {
+      isVerifyingRef.current = false;
     }
   };
 
   const handleOtpInputChange = (val: string) => {
     setOtpValue(val);
-    if (val.length === 6) {
+    if (
+      val.length === 6 &&
+      !isVerifyingRef.current &&
+      !otpToken &&
+      otpPhase !== "verifying" &&
+      !isSubmitting
+    ) {
       handleVerifyOtp(val);
     }
   };
@@ -1069,16 +1284,31 @@ export function UpdateDataModal({
                     <OtpInput
                       value={otpValue}
                       onChange={handleOtpInputChange}
-                      disabled={otpPhase === "verifying" || isSubmitting}
+                      disabled={otpPhase === "verifying" || isSubmitting || !!otpToken || isVerifyingRef.current}
                       hasError={!!otpError}
-                      onComplete={(code) => handleVerifyOtp(code)}
+                      onComplete={(code) => {
+                        if (
+                          !isVerifyingRef.current &&
+                          !otpToken &&
+                          otpPhase !== "verifying" &&
+                          !isSubmitting
+                        ) {
+                          handleVerifyOtp(code);
+                        }
+                      }}
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={() => handleVerifyOtp()}
-                    disabled={otpPhase === "verifying" || isSubmitting || otpValue.length !== 6}
+                    disabled={
+                      otpPhase === "verifying" ||
+                      isSubmitting ||
+                      !!otpToken ||
+                      isVerifyingRef.current ||
+                      otpValue.length !== 6
+                    }
                     className="w-full rounded-2xl py-4 text-white text-xl uppercase tracking-wide disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
                     style={{
                       backgroundColor: "#22C55E",
@@ -1088,7 +1318,7 @@ export function UpdateDataModal({
                       fontFamily: "'Outfit', sans-serif",
                     }}
                   >
-                    {otpPhase === "verifying" || isSubmitting ? (
+                    {otpPhase === "verifying" || isSubmitting || !!otpToken || isVerifyingRef.current ? (
                       <>
                         <Loader2 size={22} className="animate-spin" />
                         <span>Submitting...</span>
@@ -1103,7 +1333,7 @@ export function UpdateDataModal({
                     onResend={() => {
                       if (participant?.email) sendOtp(participant.email);
                     }}
-                    disabled={otpPhase === "verifying" || isSubmitting}
+                    disabled={otpPhase === "verifying" || isSubmitting || !!otpToken || isVerifyingRef.current}
                   />
 
                   <div className="flex justify-center mt-2">
@@ -1539,25 +1769,77 @@ export function UpdateDataModal({
                         )}
                       </div>
 
-                      {/* Picture URL */}
-                      <div className="flex flex-col gap-1">
+                      {/* Profile Picture */}
+                      <div className="flex flex-col gap-1.5">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          Picture URL <span className="text-[#D92323]">*</span>
+                          Profile Picture <span className="text-[#D92323]">*</span>
                         </label>
                         <input
-                          type="url"
-                          required
-                          readOnly={isOnboarded}
+                          ref={pictureInputRef}
+                          type="file"
+                          name="picture"
+                          accept={ACCEPTED_FILE_TYPES}
+                          className="hidden"
+                          onChange={handlePictureChange}
                           disabled={isOnboarded}
-                          value={formData.pictureUrl}
-                          onChange={(e) =>
-                            handleChange("pictureUrl", e.target.value)
-                          }
-                          className={getInputClass(pictureUrlError)}
                         />
-                        {pictureUrlError && (
+
+                        {!pictureFile ? (
+                          <div
+                            onClick={() => !isOnboarded && pictureInputRef.current?.click()}
+                            className={`group flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed ${
+                              pictureError
+                                ? "border-[#FF4D4D] bg-[#FFF0F0]"
+                                : "border-[#1E1B24] bg-white hover:bg-[#FAF7EE]"
+                            } rounded-xl cursor-pointer transition-all shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center text-[#1E1B24] group-hover:scale-105 transition-transform">
+                              <UploadCloud size={20} />
+                            </div>
+                            <div className="text-center">
+                              <p className="font-outfit-black text-xs text-[#1E1B24] uppercase tracking-wide">
+                                Click to upload photo
+                              </p>
+                              <p className="font-rubik text-[11px] text-[#5C5866] mt-0.5">
+                                JPG, PNG, HEIC up to 5MB
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 p-3 bg-white border-2 border-[#1E1B24] rounded-xl shadow-[2px_2px_0px_#1E1B24]">
+                            {picturePreview ? (
+                              <img
+                                src={picturePreview}
+                                alt="Profile preview"
+                                className="w-12 h-12 rounded-lg object-cover border-2 border-[#1E1B24] shrink-0"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-lg bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center shrink-0">
+                                <ImageIcon size={22} className="text-[#1E1B24]" />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="font-outfit-black text-xs text-[#1E1B24] truncate" title={pictureFile.name}>
+                                {pictureFile.name}
+                              </p>
+                              <p className="font-rubik text-[11px] text-[#5C5866]">
+                                {(pictureFile.size / (1024 * 1024)).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleRemovePicture}
+                              className="p-1.5 text-[#FF4D4D] hover:bg-[#FFF0F0] border-2 border-transparent hover:border-[#FF4D4D] rounded-lg transition-colors cursor-pointer shrink-0"
+                              title="Remove photo"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+
+                        {pictureError && (
                           <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
-                            {pictureUrlError}
+                            {pictureError}
                           </span>
                         )}
                       </div>
@@ -1817,11 +2099,13 @@ export function UpdateDataModal({
                       {/* Portfolio */}
                       <div className="flex flex-col gap-1">
                         <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                          Portfolio URL <span className="text-[#D92323]">*</span>
+                          Portfolio URL{" "}
+                          <span className="font-rubik text-[11px] text-[#5C5866] normal-case tracking-normal font-normal">
+                            (Optional)
+                          </span>
                         </label>
                         <input
                           type="url"
-                          required
                           readOnly={isOnboarded}
                           disabled={isOnboarded}
                           value={formData.portfolio}
@@ -1877,7 +2161,7 @@ export function UpdateDataModal({
                   <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
                     <p className="font-rubik text-xs text-[#5C5866]">
                       {ndaTemplate?.description ||
-                        "Download the official GCSRM NDA template. Sign it physically or digitally, upload to Google Drive or Cloudinary, and paste the public link below."}
+                        "Download the official GCSRM NDA template. Sign it physically or digitally, and upload the signed document image scan below (max 5MB)."}
                     </p>
 
                     <div>
@@ -1891,25 +2175,76 @@ export function UpdateDataModal({
                       </a>
                     </div>
 
-                    <div className="flex flex-col gap-1 pt-1">
+                    <div className="flex flex-col gap-1.5 pt-1">
                       <label className="font-outfit-black text-xs uppercase tracking-wider text-[#1E1B24]">
-                        Signed NDA Document URL{" "}
-                        <span className="text-[#D92323]">*</span>
+                        Signed NDA Document <span className="text-[#D92323]">*</span>
                       </label>
                       <input
-                        type="url"
-                        required
-                        readOnly={isOnboarded}
+                        ref={ndaInputRef}
+                        type="file"
+                        name="nda"
+                        accept={ACCEPTED_FILE_TYPES}
+                        className="hidden"
+                        onChange={handleNdaChange}
                         disabled={isOnboarded}
-                        value={formData.ndaUrl}
-                        onChange={(e) =>
-                          handleChange("ndaUrl", e.target.value)
-                        }
-                        className={getInputClass(ndaUrlError)}
                       />
-                      {ndaUrlError && (
+
+                      {!ndaFile ? (
+                        <div
+                          onClick={() => !isOnboarded && ndaInputRef.current?.click()}
+                          className={`group flex flex-col items-center justify-center gap-2 p-4 border-2 border-dashed ${
+                            ndaError
+                              ? "border-[#FF4D4D] bg-[#FFF0F0]"
+                              : "border-[#1E1B24] bg-white hover:bg-[#FAF7EE]"
+                          } rounded-xl cursor-pointer transition-all shadow-[2px_2px_0px_#1E1B24] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                        >
+                          <div className="w-10 h-10 rounded-full bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center text-[#1E1B24] group-hover:scale-105 transition-transform">
+                            <UploadCloud size={20} />
+                          </div>
+                          <div className="text-center">
+                            <p className="font-outfit-black text-xs text-[#1E1B24] uppercase tracking-wide">
+                              Upload Signed NDA Scan
+                            </p>
+                            <p className="font-rubik text-[11px] text-[#5C5866] mt-0.5">
+                              JPG, PNG, HEIC up to 5MB
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 p-3 bg-white border-2 border-[#1E1B24] rounded-xl shadow-[2px_2px_0px_#1E1B24]">
+                          {ndaPreview ? (
+                            <img
+                              src={ndaPreview}
+                              alt="NDA preview"
+                              className="w-12 h-12 rounded-lg object-cover border-2 border-[#1E1B24] shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-[#FAF7EE] border-2 border-[#1E1B24] flex items-center justify-center shrink-0">
+                              <FileCheck size={22} className="text-[#4EC37B]" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-outfit-black text-xs text-[#1E1B24] truncate" title={ndaFile.name}>
+                              {ndaFile.name}
+                            </p>
+                            <p className="font-rubik text-[11px] text-[#5C5866]">
+                              {(ndaFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemoveNda}
+                            className="p-1.5 text-[#FF4D4D] hover:bg-[#FFF0F0] border-2 border-transparent hover:border-[#FF4D4D] rounded-lg transition-colors cursor-pointer shrink-0"
+                            title="Remove document"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      )}
+
+                      {ndaError && (
                         <span className="font-rubik text-[11px] text-[#FF4D4D] font-bold">
-                          {ndaUrlError}
+                          {ndaError}
                         </span>
                       )}
                     </div>

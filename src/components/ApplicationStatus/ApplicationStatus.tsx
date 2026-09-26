@@ -19,7 +19,6 @@ import { RecruitmentTask } from "./types";
 import { InstructionsModal } from "./InstructionsModal";
 import { UpdateDataModal } from "./UpdateDataModal";
 import { LocationModal } from "./LocationModal";
-import { api } from "@/lib/api";
 
 /**
  * Standard recruitment pipeline steps configuration (Level 01 to Level 05)

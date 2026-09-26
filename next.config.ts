@@ -2,8 +2,7 @@ import type { NextConfig } from "next";
 
 import path from "path";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL?.trim() || "http://localhost:8000";
+const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 
 const nextConfig: NextConfig = {
   output: "standalone",

@@ -114,7 +114,7 @@ export interface BackendParticipantLookupResponse {
   } | null;
 }
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/+$/, "");
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/+$/, "");
 /** Headers shared by every backend call. */
 function jsonHeaders(): Record<string, string> {
   return { "Content-Type": "application/json" };
@@ -424,21 +424,56 @@ export const api = {
 
   /**
    * Onboard an accepted candidate to team records via `POST /api/recruitment/onboard`.
+   * Sends multipart/form-data containing binary files ('picture', 'nda') and metadata.
    * Requires JWT Bearer token in Authorization header.
    */
-  async onboard(
+  async onboardMember(
     token: string,
     payload: OnboardMemberPayload,
   ): Promise<Record<string, unknown>> {
+    const formData = new FormData();
+
+    // 1. Binary file fields
+    formData.append("picture", payload.picture);
+    formData.append("nda", payload.nda);
+
+    // 2. Text metadata fields
+    formData.append("name", payload.name);
+    formData.append("email", payload.email);
+    formData.append("phoneno", payload.phoneno);
+    formData.append("position", payload.position);
+    formData.append("domain", payload.domain);
+    if (payload.subdomain) {
+      formData.append("subdomain", payload.subdomain);
+    }
+    formData.append("section", payload.section);
+    formData.append("joined_yr", String(payload.joined_yr));
+
+    if (payload.caption) {
+      formData.append("caption", payload.caption);
+    }
+    if (typeof payload.isCurrentMember === "boolean") {
+      formData.append("isCurrentMember", String(payload.isCurrentMember));
+    }
+
+    // 3. Complex fields (JSON-stringified)
+    if (payload.faDetails) {
+      formData.append("faDetails", JSON.stringify(payload.faDetails));
+    }
+    if (payload.socials) {
+      formData.append("socials", JSON.stringify(payload.socials));
+    }
+
     let response: Response;
     try {
+      // NOTE: Do NOT set Content-Type header manually; fetch will automatically
+      // attach multipart/form-data with the correct boundary delimiter.
       response = await fetch(`${BASE_URL}/api/recruitment/onboard`, {
         method: "POST",
         headers: {
-          ...jsonHeaders(),
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
     } catch {
       throw new ApiError(0, {
@@ -464,6 +499,14 @@ export const api = {
     }
 
     return data ?? {};
+  },
+
+  /** Alias to preserve compatibility with existing callers */
+  async onboard(
+    token: string,
+    payload: OnboardMemberPayload,
+  ): Promise<Record<string, unknown>> {
+    return this.onboardMember(token, payload);
   },
 
   /**

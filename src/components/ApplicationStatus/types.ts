@@ -19,6 +19,7 @@ export interface ParticipantLinks {
   github?: string | null;
   demo?: string | null;
   deployment?: string | null;
+  portfolio?: string | null;
   design?: string | null;
   designFiles?: string | null;
   figmaPlugins?: string | null;
@@ -39,7 +40,7 @@ export interface ParticipantData {
   links?: ParticipantLinks;
   status: ParticipantStatus;
   isOnboarded?: boolean;
-  onboardedData?: Partial<OnboardMemberPayload> | Record<string, unknown> | null;
+  onboardedData?: OnboardedMemberRecord | Record<string, unknown> | null;
   createdAt?: string | Date;
   updatedAt?: string | Date;
 }
@@ -125,10 +126,30 @@ export interface OnboardMemberPayload {
   subdomain?: string;
   position: string;
   joined_yr: number;
-  isCurrentMember: boolean;
+  isCurrentMember?: boolean;
   caption?: string;
-  pictureUrl?: string;
+  picture: File;
+  nda: File;
   faDetails: FacultyAdvisorDetails[];
   socials: SocialLinksDetails[];
+}
+
+export interface OnboardedMemberRecord {
+  _id?: string;
+  name?: string;
+  email?: string;
+  phoneno?: string;
+  section?: string;
+  domain?: string;
+  subdomain?: string;
+  position?: string;
+  joined_yr?: number;
+  isCurrentMember?: boolean;
+  caption?: string;
+  pictureUrl?: string;
+  picture?: string;
   ndaUrl?: string;
+  nda?: string;
+  faDetails?: FacultyAdvisorDetails[];
+  socials?: SocialLinksDetails[];
 }
