@@ -71,7 +71,9 @@ const INITIAL_FORM_STATE: FormState = {
   ndaUrl: "",
 };
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+// Per-field limits; picture + NDA combined (4MB) must stay under Vercel's 4.5MB request cap
+const MAX_PICTURE_SIZE_BYTES = 2.5 * 1024 * 1024;
+const MAX_NDA_SIZE_BYTES = 1.5 * 1024 * 1024;
 
 const ACCEPTED_IMAGE_TYPES =
   "image/jpeg,image/png,image/heic,image/heif,.heic,.heif";
@@ -88,8 +90,8 @@ const ALLOWED_NDA_EXTENSIONS = [".pdf"];
 const ALLOWED_NDA_MIME_TYPES = ["application/pdf"];
 
 function validateImageFile(file: File): string | null {
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 5MB limit.`;
+  if (file.size > MAX_PICTURE_SIZE_BYTES) {
+    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 2.5MB limit.`;
   }
   const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
   if (ext === ".pdf" || file.type === "application/pdf") {
@@ -104,8 +106,8 @@ function validateImageFile(file: File): string | null {
 }
 
 function validateNdaFile(file: File): string | null {
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds 5MB limit.`;
+  if (file.size > MAX_NDA_SIZE_BYTES) {
+    return `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 1.5MB limit.`;
   }
   const ext = "." + (file.name.split(".").pop() || "").toLowerCase();
   const isExtValid = ALLOWED_NDA_EXTENSIONS.includes(ext);
@@ -1823,7 +1825,7 @@ export function UpdateDataModal({
                                 Click to upload photo
                               </p>
                               <p className="font-rubik text-[11px] text-[#5C5866] mt-0.5">
-                                JPG, PNG, HEIC up to 5MB
+                                JPG, PNG, HEIC up to 2.5MB
                               </p>
                             </div>
                           </div>
@@ -2190,7 +2192,7 @@ export function UpdateDataModal({
                 {openSection === 4 && (
                   <div className="p-4 border-t-2 border-[#1E1B24] bg-[#F8FAFC] animate-in fade-in duration-150 flex flex-col gap-3.5">
                     <p className="font-rubik text-xs text-[#5C5866]">
-                      Get the NDA printed, sign it physically, and upload the completed document image scan below (max 5MB).
+                      Get the NDA printed, sign it physically, and upload the signed PDF below (max 1.5MB).
                     </p>
 
                     <div className="flex flex-col gap-1.5 pt-1">
@@ -2224,7 +2226,7 @@ export function UpdateDataModal({
                               Upload Signed NDA Scan
                             </p>
                             <p className="font-rubik text-[11px] text-[#5C5866] mt-0.5">
-                              JPG, PNG, HEIC up to 5MB
+                              PDF up to 1.5MB
                             </p>
                           </div>
                         </div>
